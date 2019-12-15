@@ -16,7 +16,7 @@ ghost_sa(鬼策)可以理解为不带前端界面的神策服务端。
 主要用途是接收 神策SDK 上报的数据，和实现神策上的短链创建与解析功能。
 
 使用了flask框架，可以通过uwsgi部署。数据库建议使用TiDB，实测1天100万事件量，单次查询当天事件在10毫秒左右，查询1个月范围的数据，返回在30-60秒左右。
-如果只是体验和测试功能，也可以用MySQL，不过性能很差。
+如果只是体验和测试功能，也可以用MySQL 5.7（含）以上的版本，不过性能很差。
 
 目前经过测试，支持IOS，JS，小程序，Python的SDK上报。
 SDK可以在神策的项目中下载 https://github.com/sensorsdata
@@ -31,7 +31,7 @@ SDK的使用方法，可以直接查看神策官方文档 https://www.sensorsdat
 
 /component <--主要组件，运行程序所需要的主要组件都在这里
 
-/geoio <--IP和ASN识别组件，下载的mmdb需要放在这里
+/geoip <--IP和ASN识别组件，下载的mmdb需要放在这里
 
 /image <--需要返回的1像素图片所在处。当然，不嫌流量贵，也可以换成其他图片哈
 
@@ -43,3 +43,14 @@ SDK的使用方法，可以直接查看神策官方文档 https://www.sensorsdat
 
 
 安装初始化：
+
+安装之前需要先准备好数据库，测试功能可以用mysql5.7。
+
+！！！正式环境建议使用tidb或其他newsql。
+
+1.打开/geoip/geo.py 文件，根据文件里的地址，下载ipcity和ipasn文件，并放到/geoip目录下。
+2.配置/configs/db.py 里的数据库连接参数。
+3.打开/configs/admin.py 修改查询密码
+4.打开/component/setup.py 在最后一行修改自己想要创建的项目名。运行setup.py程序，会完成数据表创建，鬼策服务端初始化完成。
+5.运行/flask_main.py 可以开始接收数据了。
+
