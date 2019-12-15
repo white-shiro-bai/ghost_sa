@@ -58,3 +58,4 @@ SDK的使用方法，可以直接查看神策官方文档 https://www.sensorsdat
 
 5.运行/flask_main.py 可以开始接收数据了。
 
+更多文档可以看 wiki  https://github.com/white-shiro-bai/ghost_sa/wiki
