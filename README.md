@@ -49,8 +49,12 @@ SDK的使用方法，可以直接查看神策官方文档 https://www.sensorsdat
 ！！！正式环境建议使用tidb或其他newsql。
 
 1.打开/geoip/geo.py 文件，根据文件里的地址，下载ipcity和ipasn文件，并放到/geoip目录下。
+
 2.配置/configs/db.py 里的数据库连接参数。
+
 3.打开/configs/admin.py 修改查询密码
+
 4.打开/component/setup.py 在最后一行修改自己想要创建的项目名。运行setup.py程序，会完成数据表创建，鬼策服务端初始化完成。
+
 5.运行/flask_main.py 可以开始接收数据了。
 
