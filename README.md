@@ -18,6 +18,8 @@ ghost_sa(鬼策)可以理解为不带前端界面的神策服务端。
 使用了flask框架，可以通过uwsgi部署。数据库建议使用TiDB，实测1天100万事件量，单次查询当天事件在10毫秒左右，查询1个月范围的数据，返回在30-60秒左右。
 如果只是体验和测试功能，也可以用MySQL 5.7（含）以上的版本，不过性能很差。
 
+支持使用Kafka。
+
 目前经过测试，支持IOS，JS，小程序，Python的SDK上报。
 SDK可以在神策的项目中下载 https://github.com/sensorsdata
 SDK的使用方法，可以直接查看神策官方文档 https://www.sensorsdata.cn/manual/
@@ -26,6 +28,8 @@ SDK的使用方法，可以直接查看神策官方文档 https://www.sensorsdat
 框架说明：
 
 /flash_main.py <--主程序，执行后即可开始接收数据
+
+/kafka_consumer.py <--Kafka订阅程序（如果开启Kafka支持，使用此程序订阅并写入数据库）
 
 /configs <--配置，包括查询密码，数据库密码，第三方依赖的密码都在这里配置
 
@@ -52,7 +56,7 @@ SDK的使用方法，可以直接查看神策官方文档 https://www.sensorsdat
 
 2.配置/configs/db.py 里的数据库连接参数。
 
-3.打开/configs/admin.py 修改查询密码
+3.打开/configs/admin.py 修改查询密码和Kafka支持（默认关闭，直接写入数据）。如果开启Kafka支持，需要配置/configs/kafka.py和运行/kafka_consumer.py来订阅数据。
 
 4.打开/component/setup.py 在最后一行修改自己想要创建的项目名。运行setup.py程序，会完成数据表创建，鬼策服务端初始化完成。
 
