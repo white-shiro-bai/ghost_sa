@@ -47,7 +47,7 @@ def insert_user(project,data_decode,created_at=None):
       user_id = data_decode['properties']['uid']
   else:
     user_id = None
-  all_user_profile = json.dumps(data_decode['properties']) if data_decode['type'] == 'profile_set' else None 
+  all_user_profile = json.dumps(data_decode['properties']) if data_decode['type'] == 'profile_set' else None
   update_content = []
   # if map_id:
   #   update_content.append("map_id = %(map_id)s")#.format(map_id=map_id))
@@ -84,50 +84,6 @@ def insert_device(project,data_decode,user_agent,accept_language,ip,ip_city,ip_i
   createVar = globals()
   for decode_value in decode_values:
     createVar[decode_value] = get_properties_value(name=decode_value,data_decode=data_decode)
-    # print(createVar)
-  #   # device_id = get_properties_value(name='device_id',data_decode=data_decode)
-  # manufacturer = get_properties_value(name='manufacturer',data_decode=data_decode)
-  # model = get_properties_value(name='model',data_decode=data_decode)
-  # os = get_properties_value(name='os',data_decode=data_decode)
-  # os_version = get_properties_value(name=os_version,data_decode=data_decode)
-  # screen_width = get_properties_value(name=screen_width,data_decode=data_decode)
-  # screen_height = get_properties_value(name=screen_height,data_decode=data_decode)
-  # network_type = get_properties_value(name=network_type,data_decode=data_decode)
-  # is_first_day = get_properties_value(name=is_first_day,data_decode=data_decode)
-  # is_first_time = get_properties_value(name=is_first_time,data_decode=data_decode)
-  # wifi = get_properties_value(name=wifi,data_decode=data_decode)
-  # app_version = get_properties_value(name=app_version,data_decode=data_decode)
-  # carrier = get_properties_value(name=carrier,data_decode=data_decode)
-  # referrer = get_properties_value(name=referrer,data_decode=data_decode)
-  # referrer_host = get_properties_value(name=referrer_host,data_decode=data_decode)
-  # bot_name = get_properties_value(name=bot_name,data_decode=data_decode)
-  # browser = get_properties_value(name=browser,data_decode=data_decode)
-  # browser_version = get_properties_value(name=browser_version,data_decode=data_decode)
-  # is_login_id = get_properties_value(name=is_login_id,data_decode=data_decode)
-  # screen_orientation = get_properties_value(name=screen_orientation,data_decode=data_decode)
-  # gps_latitude = get_properties_value(name=gps_latitude,data_decode=data_decode)
-  # gps_longitude = get_properties_value(name=gps_longitude,data_decode=data_decode)
-  # utm_content = get_properties_value(name=utm_content,data_decode=data_decode)
-  # utm_campaign = get_properties_value(name=utm_campaign,data_decode=data_decode)
-  # utm_medium = get_properties_value(name=utm_medium,data_decode=data_decode)
-  # utm_term = get_properties_value(name=utm_term,data_decode=data_decode)
-  # utm_source = get_properties_value(name=utm_source,data_decode=data_decode)
-  # latest_utm_content = get_properties_value(name=latest_utm_content,data_decode=data_decode)
-  # latest_utm_campaign = get_properties_value(name=deviclatest_utm_campaigne_id,data_decode=data_decode)
-  # latest_utm_medium = get_properties_value(name=latest_utm_medium,data_decode=data_decode)
-  # latest_utm_term = get_properties_value(name=latest_utm_term,data_decode=data_decode)
-  # latest_utm_source = get_properties_value(name=latest_utm_source,data_decode=data_decode)
-  # latest_referrer = get_properties_value(name=latest_referrer,data_decode=data_decode)
-  # latest_referrer_host = get_properties_value(name=latest_referrer_host,data_decode=data_decode)
-  # latest_search_keyword = get_properties_value(name=latest_search_keyword,data_decode=data_decode)
-  # latest_traffic_source_type = get_properties_value(name=latest_traffic_source_type,data_decode=data_decode)
-  # first_visit_time = get_properties_value(name=first_visit_time,data_decode=data_decode)
-  # first_referrer = get_properties_value(name=first_referrer,data_decode=data_decode)
-  # first_referrer_host = get_properties_value(name=first_referrer_host,data_decode=data_decode)
-  # first_browser_language = get_properties_value(name=first_browser_language,data_decode=data_decode)
-  # first_browser_charset = get_properties_value(name=first_browser_charset,data_decode=data_decode)
-  # first_search_keyword = get_properties_value(name=first_search_keyword,data_decode=data_decode)
-  # first_traffic_source_type = get_properties_value(name=first_traffic_source_type,data_decode=data_decode)
   update_content=''
 #修改可能出错的空值
   if ip_is_good ==0:

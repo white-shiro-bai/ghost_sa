@@ -7,7 +7,12 @@ sys.setrecursionlimit(10000000)
 
 from flask import request,jsonify,Response,redirect
 import traceback
+# from sa_report import sa_report
 import time
+# from public_value import get_start_end_days,date_diff,get_display_day
+# from db_op import select_online
+# from flask_api_error import api_error,api_response
+# import jmespath
 import urllib.parse
 import base64
 import json
@@ -21,11 +26,12 @@ from component.api_tools import insert_device,encode_urlutm,insert_user
 from configs.export import write_to_log
 from component.shorturl import get_suoim_short_url
 from configs import admin
+import time
+from component.kafka_op import insert_message_to_kafka
 
 
 
-
-def insert_data(project,data_decode,User_Agent,Host,Connection,Pragma,Cache_Control,Accept,Accept_Encoding,Accept_Language,ip,ip_city,ip_asn,url,referrer,remark,ua_platform,ua_browser,ua_version,ua_language,ip_is_good,ip_asn_is_good,created_at=None,updated_at=None):
+def insert_data(project,data_decode,User_Agent,Host,Connection,Pragma,Cache_Control,Accept,Accept_Encoding,Accept_Language,ip,ip_city,ip_asn,url,referrer,remark,ua_platform,ua_browser,ua_version,ua_language,ip_is_good,ip_asn_is_good,created_at=None,updated_at=None,use_kafka=admin.use_kafka):
   start_time = time.time()
   jsondump = json.dumps(data_decode,ensure_ascii=False)
   if '_track_id' in data_decode:
@@ -50,21 +56,30 @@ def insert_data(project,data_decode,User_Agent,Host,Connection,Pragma,Cache_Cont
   elif 'properties' in data_decode:
     if '$lib' in data_decode['properties']:
       lib = data_decode['properties']['$lib']
-  try:
-    count = insert_event(table=project,alljson=jsondump,track_id=track_id,distinct_id=distinct_id,lib=lib,event=event,type_1=type_1,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,created_at=created_at)
-    print('插入行数：'+str(count))
-    insert_device(project=project,data_decode=data_decode,user_agent=User_Agent,accept_language=Accept_Language,ip=ip,ip_city=ip_city,ip_is_good=ip_is_good,ip_asn=ip_asn,ip_asn_is_good=ip_asn_is_good,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,created_at=created_at)
-  except Exception:
-    error = traceback.format_exc()
-    write_to_log(filename='api',defname='insert_date',result=error)
-  # if type_1 == 'profile_set' or type_1 == 'track_signup' or type_1 =='profile_set_once' or event == '$SignUp':
-  if type_1 == 'profile_set' or type_1 == 'track_signup' or type_1 =='profile_set_once':
+  # else:
+  #   lib = None
+  if use_kafka is False:
     try:
-      insert_user(project=project,data_decode=data_decode,created_at=created_at)
+      # count = insert_event(table=project,alljson=jsondump.replace('\\','\\\\').replace("'","\\'"),track_id=track_id,distinct_id=distinct_id,lib=lib,event=event,type_1=type_1,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language)
+      count = insert_event(table=project,alljson=jsondump,track_id=track_id,distinct_id=distinct_id,lib=lib,event=event,type_1=type_1,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,created_at=created_at)
+      # print('插入行数：'+str(count))
+      insert_device(project=project,data_decode=data_decode,user_agent=User_Agent,accept_language=Accept_Language,ip=ip,ip_city=ip_city,ip_is_good=ip_is_good,ip_asn=ip_asn,ip_asn_is_good=ip_asn_is_good,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,created_at=created_at)
     except Exception:
       error = traceback.format_exc()
       write_to_log(filename='api',defname='insert_date',result=error)
-  print (time.time()-start_time)
+    # if type_1 == 'profile_set' or type_1 == 'track_signup' or type_1 =='profile_set_once' or event == '$SignUp':
+    if type_1 == 'profile_set' or type_1 == 'track_signup' or type_1 =='profile_set_once':
+      try:
+        insert_user(project=project,data_decode=data_decode,created_at=created_at)
+      except Exception:
+        error = traceback.format_exc()
+        write_to_log(filename='api',defname='insert_date',result=error)
+  elif use_kafka is True:
+    timenow = int(time.time())
+    timenow16 = int(round(time.time() * 1000))
+    msg = {"timestamp":timenow16,"data":{"project":project,"data_decode":data_decode,"User_Agent":User_Agent,"Host":Host,"Connection":Connection,"Pragma":Pragma,"Cache_Control":Cache_Control,"Accept":Accept,"Accept_Encoding":Accept_Encoding,"Accept_Language":Accept_Language,"ip":ip,"ip_city":ip_city,"ip_asn":ip_asn,"url":url,"referrer":referrer,"remark":remark,"ua_platform":ua_platform,"ua_browser":ua_browser,"ua_version":ua_version,"ua_language":ua_language,"ip_is_good":ip_is_good,"ip_asn_is_good":ip_asn_is_good,"created_at":timenow,"updated_at":timenow}}
+    insert_message_to_kafka(msg=msg)
+  print(time.time()-start_time)
 
 def get_data():
   remark = request.args.get('remark') if 'remark' in request.args else 'normal'
@@ -74,15 +89,17 @@ def get_data():
   Connection = request.headers.get('Connection')#: keep-alive
   Pragma = request.headers.get('Pragma')#: no-cache
   Cache_Control = request.headers.get('Cache-Control')#: no-cache
-  Accept = request.headers.get('Accept')#: image/webp,image/apng,image/*,*/*;q=0.8
-  Accept_Encoding = request.headers.get('Accept-Encoding')#: gzip, deflate
-  Accept_Language = request.headers.get('Accept-Language')#: zh-CN,zh;q=0.9
+  Accept = request.headers.get('Accept')[0:254] if request.headers.get('Accept') else None#: image/webp,image/apng,image/*,*/*;q=0.8
+  Accept_Encoding = request.headers.get('Accept-Encoding')[0:254] if request.headers.get('Accept-Encoding') else None#: gzip, deflate
+  Accept_Language = request.headers.get('Accept-Language')[0:254] if request.headers.get('Accept-Language') else None#: zh-CN,zh;q=0.9
   ua_platform = request.user_agent.platform #客户端操作系统
   ua_browser = request.user_agent.browser #客户端的浏览器
   ua_version = request.user_agent.version #客户端浏览器的版本
   ua_language = request.user_agent.language #客户端浏览器的语言
   ext = request.args.get('ext')
   url = request.url
+  # ip = '124.115.214.179' #测试西安bug
+  # ip = '36.5.99.68' #测试安徽bug
   if request.headers.get('X-Forwarded-For') is None:
     ip = request.remote_addr#服务器直接暴露
   else:
@@ -98,13 +115,21 @@ def get_data():
     # print(request.form.get())
     if 'data_list' in request.form:
       data_list = request.form.get('data_list')
-      data_decodes = json.loads(gzip.decompress(base64.b64decode(urllib.parse.unquote(data_list).encode('utf-8'))))
+      de64 = base64.b64decode(urllib.parse.unquote(data_list).encode('utf-8'))
+      try:
+        data_decodes = json.loads(gzip.decompress(de64))
+      except:
+        data_decodes = json.loads(de64)
       for data_decode in data_decodes:
         insert_data(project=project,data_decode=data_decode,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good)
     elif 'data' in request.form:
       # print(request.cookies)
       data = request.form.get('data')
-      data_decode = json.loads(gzip.decompress(base64.b64decode(urllib.parse.unquote(data).encode('utf-8'))))
+      de64 = base64.b64decode(urllib.parse.unquote(data).encode('utf-8'))
+      try:
+        data_decode = json.loads(gzip.decompress(de64))
+      except:
+        data_decode = json.loads(de64)
       insert_data(project=project,data_decode=data_decode,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good)
     else:
       write_to_log(filename='api',defname='get_datas',result=str(request.form))
@@ -113,7 +138,11 @@ def get_data():
     # try:
     if 'data' in request.args:
       data = request.args.get('data')
-      data_decode = json.loads(base64.b64decode(urllib.parse.unquote(data).encode('utf-8')))
+      de64 = base64.b64decode(urllib.parse.unquote(data).encode('utf-8'))
+      try:
+        data_decode = json.loads(gzip.decompress(de64))
+      except:
+        data_decode = json.loads(de64)
       insert_data(project=project,data_decode=data_decode,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good)
     else:
       write_to_log(filename='api',defname='get_datas',result=url)
@@ -130,6 +159,7 @@ def get_datas():
   except Exception:
     error = traceback.format_exc()
     write_to_log(filename='api',defname='get_datas',result=error)
+    return error
 
 def get_long(short_url):
   time1 = int(time.time())
@@ -199,6 +229,21 @@ def shortit():
     return jsonify(returnjson)
 
 def show_short_cut_list():
+  # #方法一
+  # paramses = request.args.to_dict()
+  # print(paramses)
+  # # createVar = globals()
+  # # add_on_paramas = ''
+  # count = 0
+  # for key in paramses:
+  #   # createVar[key] = paramses[key]
+  #   if count == 0:
+  #     add_on_paramas = 'where ' + key + ' = ' + "'" + paramses[key]+ "'"
+  #   else:
+  #     add_on_paramas = add_on_paramas + ' and ' + key + ' = ' + "'" + paramses[key]+ "'"
+  #   count = count + 1
+  # print (add_on_paramas)
+  #方法二
   page = int(request.args.get('page')) if 'page' in request.args else 1
   length = int(request.args.get('length')) if 'length' in request.args else 50
   sort  = '`shortcut`.created_at'
@@ -208,9 +253,49 @@ def show_short_cut_list():
     if sort_org == 'visit_times':
       sort = 'visit_times'
   way = request.args.get('way') if 'way' in request.args else 'desc'
+  # add_on_paramas = {}
+  # if 'short_url' in request.args:
+  #   add_on_paramas['short_url'] = request.args.get('short_url')
+  #   # add_on_paramas.append({'short_url':request.args.get('short_url')})
+  # if 'long_url' in request.args:
+  #   add_on_paramas['long_url'] = request.args.get('long_url')
+  # if 'utm_source' in request.args:
+  #   add_on_paramas['utm_source'] = request.args.get('utm_source')
+  # if 'utm_medium' in request.args:
+  #   add_on_paramas['utm_medium'] = request.args.get('utm_medium')
+  # if 'utm_campaign' in request.args:
+  #   add_on_paramas['utm_campaign'] = request.args.get('utm_campaign')
+  # if 'utm_content' in request.args:
+  #   add_on_paramas['utm_content'] = request.args.get('utm_content')
+  # if 'utm_term' in request.args:
+  #   add_on_paramas['utm_term'] = request.args.get('utm_term')
+  # if 'project' in request.args:
+  #   add_on_paramas['project'] = request.args.get('project')
+  # if 'submitter' in request.args:
+  #   add_on_paramas['submitter'] = request.args.get('submitter')
+  # if 'src' in request.args:
+  #   add_on_paramas['src'] = request.args.get('src')
+  # if 'src_short_url' in request.args:
+  #   add_on_paramas['src_short_url'] = request.args.get('src_short_url')
+  # if 'everywhere' in request.args:
+  #   add_on_paramas['concat(`shortcut`.project,`shortcut`.short_url,`shortcut`.long_url,`shortcut`.src,`shortcut`.src_short_url,`shortcut`.submitter,`shortcut`.utm_source,`shortcut`.utm_medium,`shortcut`.utm_campaign,`shortcut`.utm_content,`shortcut`.utm_term)'] = request.args.get('everywhere')
+  # count = 0
+  # add_on_params_str = ''
+  # print(len(add_on_params_str))
+  # print(add_on_paramas)
+  # for key in add_on_paramas:
+  #   print(key)
+  #   print(type(key))
+  #   if count == 0:
+  #     add_on_params_str = key + ' = ' + "'" + add_on_paramas[key]+ "'"
+  #   else:
+  #     add_on_params_str = add_on_params_str + ' and ' + key + ' = ' + "'" + add_on_paramas[key]+ "'"
+  #   count = count + 1
   add_on_parames = []
   if 'create_date_start' in request.args:
+    # print('kk1')
     add_on_parames.append('`shortcut`.created_at>={crstart}'.format(crstart=request.args.get('create_date_start')))
+    # print(add_on_params)
   if 'create_date_end' in request.args:
     add_on_parames.append('`shortcut`.created_at<={crend}'.format(crend=request.args.get('create_date_end')))
   if 'expired_date_start' in request.args:
@@ -244,6 +329,7 @@ def show_short_cut_list():
   add_on_params=''
   if add_on_parames:
     add_on_params = " where " + " and ".join(add_on_parames)
+  # print('output',add_on_params)
   total_count = count_shortcut(filters=add_on_params)
   if total_count[0][0] > 0:
     result,count = show_shortcut(page=page,length=length,filters=add_on_params,sort=sort,way=way)
@@ -282,9 +368,11 @@ def ghost_check():
       add_on_where = add_on_where+' and remark = \''+remark+'\''
     try:
       results,results_count= show_check(project=project,date=date,hour=hour,order=order,start=start,limit=limit,add_on_where=add_on_where)
+      # key=['distinct_id','event','type','all_json','host','user_agent','ip','url','remark','created_at']
       pending_result = []
       for item in results:
         row = {'distinct_id':item[0],'event':item[1],'type':item[2],'all_json':json.loads(item[3]),'host':item[4],'user_agent':item[5],'ip':item[6],'url':item[7],'remark':item[8],'created_at':item[9],}
+        # pending_result.append(dict(zip(key,item)))
         pending_result.append(row)
       time_cost = time.time() - start_time
       returnjson = {'result':'success','order':order,'results_count':results_count,'timecost':time_cost,'data':pending_result}
@@ -292,3 +380,4 @@ def ghost_check():
     except Exception:
       error = traceback.format_exc()
       write_to_log(filename='api',defname='ghost_check',result=error)
+  # return jsonify('少参数')    # return 
