@@ -22,7 +22,8 @@ def update_table_history(project_name):
   PRIMARY KEY (`distinct_id`,`lib`,`map_id`,`original_id`),
   KEY `distinct_id` (`distinct_id`),
   KEY `map_id` (`map_id`),
-  KEY `original_id` (`original_id`)
+  KEY `original_id` (`original_id`),
+  KEY `distinct_id_lib` (`distinct_id`,`lib`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 set @@session.tidb_batch_insert = 1;
 INSERT into {project_name}_user2 (
@@ -180,7 +181,11 @@ CREATE TABLE if not EXISTS `shortcut_history` (
   `created_at` int(11) DEFAULT NULL,
   `updated_at` int(11) DEFAULT NULL,
   PRIMARY KEY (`distinct_id`),
-  KEY `distinct_id` (`distinct_id`)
+  KEY `utm_campaign` (`utm_campaign`),
+  KEY `utm_source` (`utm_source`),
+  KEY `utm_medium` (`utm_medium`),
+  KEY `utm_term` (`utm_term`),
+  KEY `utm_content` (`utm_content`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;""".format(project_name=project_name)
     table_user_sql = """CREATE TABLE `{project_name}_user` (
   `distinct_id` varchar(255) NOT NULL,
@@ -195,7 +200,7 @@ CREATE TABLE if not EXISTS `shortcut_history` (
   KEY `distinct_id` (`distinct_id`),
   KEY `map_id` (`map_id`),
   KEY `original_id` (`original_id`),
-  KEY `distinct_id_lilb` (`distinct_id`,`lib`)
+  KEY `distinct_id_lib` (`distinct_id`,`lib`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;""".format(project_name=project_name)
     result_table,count_table = do_tidb_exe(table_sql)
     print(project_name+'table表单已插入')
