@@ -16,6 +16,7 @@ import pickle
 import os
 import datetime
 import traceback
+from configs import admin
 
 def import_events(project='your_project_name',remark='your_remark'):#填写要插入的项目
   sql="""select * from events where date='2019-11-18' and time< '2019-11-18 01:00:00.000'"""#选择要导入的时间段
@@ -172,7 +173,7 @@ def upload_events_from_pickle_to_sql(project='your_project_name',remark='your_re
       print(all_json)
       created_at=time.mktime(time.strptime(itemdict["time"].split('.')[0],'%Y-%m-%d %H:%M:%S'))
       # all_json = json.dumps(itemdict,ensure_ascii=False)
-      insert_data(project='tvcbook',data_decode=all_json,User_Agent=None,Host=None,Connection=None,Pragma=None,Cache_Control=None,Accept=None,Accept_Encoding=None,Accept_Language=None,ip=itemdict["$ip"] if "$ip" in itemdict else None,ip_city=ip_city,ip_asn=ip_asn,url=None,referrer=itemdict["$referrer"] if "$referrer" in itemdict else None,remark='production',ua_platform=itemdict["$lib"] if "$lib" in itemdict else None,ua_browser=itemdict["$browser"] if "$browser" in itemdict else None,ua_version=itemdict["$browser_version"] if "$browser_version" in itemdict else None,ua_language=None,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good,created_at=created_at)
+      insert_data(project='tvcbook',data_decode=all_json,User_Agent=None,Host=None,Connection=None,Pragma=None,Cache_Control=None,Accept=None,Accept_Encoding=None,Accept_Language=None,ip=itemdict["$ip"] if "$ip" in itemdict else None,ip_city=ip_city,ip_asn=ip_asn,url=None,referrer=itemdict["$referrer"] if "$referrer" in itemdict else None,remark='production',ua_platform=itemdict["$lib"] if "$lib" in itemdict else None,ua_browser=itemdict["$browser"] if "$browser" in itemdict else None,ua_version=itemdict["$browser_version"] if "$browser_version" in itemdict else None,ua_language=None,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good,created_at=created_at,use_kafka=admin.use_kafka)
     # f2.close()
     os.remove(pkl)
       #   p.apply_async(func=insert_data,kwds={

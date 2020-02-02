@@ -6,6 +6,7 @@ sys.path.append("./")
 from kafka import KafkaConsumer
 from geoip.geo import get_asn,get_addr
 from component.api import insert_data
+from configs import admin
 import json
 import pprint
 
@@ -30,7 +31,7 @@ def realtime_subscribe(project,broker):
     if ip_asn_is_good ==0:
       ip_asn = '{}'
     referrer = data['properties']['$latest_referrer'] if '$latest_referrer' in data['properties'] else ''
-    insert_data(project=project,data_decode=data,User_Agent='',Host='',Connection='',Pragma='',Cache_Control='',Accept='',Accept_Encoding='',Accept_Language='',ip=ip,ip_city=ip_city,ip_asn=ip_asn,url='',referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language='',ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good)
+    insert_data(project=project,data_decode=data,User_Agent='',Host='',Connection='',Pragma='',Cache_Control='',Accept='',Accept_Encoding='',Accept_Language='',ip=ip,ip_city=ip_city,ip_asn=ip_asn,url='',referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language='',ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good,use_kafka=admin.use_kafka)
 
 
 # consumer = KafkaConsumer('event_topic',bootstrap_servers=['data.tvcbook.sa:9092'])
