@@ -12,14 +12,15 @@ import pprint
 
 #这个工具用来在迁移过程中，实时订阅神策官方服务端的数据。使得在迁移过程中，神策官方版和鬼策
 
-def realtime_subscribe(project,broker):
+def realtime_subscribe(broker):
   consumer = KafkaConsumer('event_topic',bootstrap_servers=[broker])
   for message in consumer:
     data = json.loads(message.value.decode('utf-8'))
     # pprint.pprint(message.value.decode('utf-8'))
     json_data = json.dumps(data)
     # pprint.pprint(json_data)
-    remark = data['project']
+    remark = ''
+    project = data['project']
     ua_platform = data['properties']['$os'] if '$os' in data['properties'] else '' #客户端操作系统
     ua_browser = data['properties']['$browser'] if '$browser' in data['properties'] else '' #客户端的浏览器
     ua_version = data['properties']['$browser_version'] if '$browser_version' in data['properties'] else '' #客户端浏览器的版本
@@ -40,4 +41,4 @@ def realtime_subscribe(project,broker):
 #     print(message.value.decode('utf-8'))
 
 if __name__ == "__main__":
-    realtime_subscribe(project='your_project_name',broker='your_sa_kafka:9092')#从神策kafka上订阅数据到鬼策。二者同时进数据，都是完整的。
+    realtime_subscribe(broker='your_sa_kafka:9092')#从神策kafka上订阅数据到鬼策。二者同时进数据，都是完整的。
