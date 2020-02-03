@@ -116,7 +116,7 @@ def upload_events_from_pickle_to_sql(project='tvcbook',remark='production'):
       # p.join()
     os.remove(pkl)
 
-def upload_events_from_pickle_to_sql_m(project='tvcbook',remark='production'):
+def upload_events_from_pickle_to_sql_m(project='tvcbook',remark='production',process=8):
   #所有的文件
   filelist = []
   dirpath = os.path.join('data_export',project,remark,'events')
@@ -136,7 +136,7 @@ def upload_events_from_pickle_to_sql_m(project='tvcbook',remark='production'):
     # print(pkl)
     with open(pkl,"rb") as f2:
           results = pickle._loads(f2.read())
-    p = multiprocessing.Pool(processes = 8)
+    p = multiprocessing.Pool(processes = process)
     for item in results:
       # # print(item)
       try:
