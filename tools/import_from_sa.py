@@ -314,7 +314,7 @@ def upload_users_from_pickle_to_sql(project='tvcbook',remark='production'):
   os.remove(filepath)
 
 
-def import_shortcut_from_sa_to_sql():
+def import_shortcut_from_sa_to_sql(project='your_project_name',domain='your_domain'):
   sql = """select $short_url_key,$short_url_target from events where event='$ShortUrlRedirect' group by $short_url_key,$short_url_target"""
   # result = exesqlcs(sql).splitlines()
   result = exesqlsc(sql).splitlines()
@@ -341,7 +341,7 @@ def import_shortcut_from_sa_to_sql():
         utm_content = params.replace('utm_content=','')
       if 'utm_term' in params:
         utm_term = params.replace('utm_term=','')
-    insert_shortcut(project='tvcbook',short_url=short_url_key,long_url=short_url_target,expired_at=2147443200,src='sensors',src_short_url='https://t.tvcbook.com/t/'+short_url_key,submitter='importer',utm_source=utm_source,utm_medium=utm_medium,utm_campaign=utm_campaign,utm_content=utm_content,utm_term=utm_term)
+    insert_shortcut(project=project,short_url=short_url_key,long_url=short_url_target,expired_at=2147443200,src='sensors',src_short_url=domain+short_url_key,submitter='importer',utm_source=utm_source,utm_medium=utm_medium,utm_campaign=utm_campaign,utm_content=utm_content,utm_term=utm_term)
 
 
 if __name__ == "__main__":
