@@ -202,12 +202,26 @@ CREATE TABLE if not EXISTS `shortcut_history` (
   KEY `original_id` (`original_id`),
   KEY `distinct_id_lib` (`distinct_id`,`lib`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;""".format(project_name=project_name)
+    table_properties_sql = """CREATE TABLE `{project_name}_properties` (
+  `lib` varchar(255) NOT NULL,
+  `remark` varchar(255) NOT NULL,
+  `event` varchar(255) NOT NULL,
+  `properties` json DEFAULT NULL,
+  `properties_len` int(10) DEFAULT NULL,
+  `created_at` int(10) DEFAULT NULL,
+  `updated_at` int(10) DEFAULT NULL,
+  `lastinsert_at` int(10) DEFAULT NULL,
+  `total_count` bigint(20) DEFAULT NULL,
+  PRIMARY KEY (`lib`,`remark`,`event`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;;""".format(project_name=project_name)
     result_table,count_table = do_tidb_exe(table_sql)
     print(project_name+'table表单已插入')
     result_device,count_device = do_tidb_exe(table_device_sql)
     print(project_name+'device表单已插入')
     result_user,count_user = do_tidb_exe(table_user_sql)
     print(project_name+'user表单已插入')
+    result_properties,count_properties = do_tidb_exe(table_properties_sql)
+    print(project_name+'properties表单已插入')
     if expired == None:
       expired_at = 2147483647
     else:

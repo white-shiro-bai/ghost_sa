@@ -18,7 +18,7 @@ import base64
 import json
 import pprint
 import os
-from component.db_func import insert_event,get_long_url_from_short,insert_shortcut_history,check_long_url,insert_shortcut,show_shortcut,count_shortcut,show_check
+from component.db_func import insert_event,get_long_url_from_short,insert_shortcut_history,check_long_url,insert_shortcut,show_shortcut,count_shortcut,show_check,insert_properties
 from component.db_op import *
 from geoip.geo import get_addr,get_asn
 import gzip
@@ -64,6 +64,11 @@ def insert_data(project,data_decode,User_Agent,Host,Connection,Pragma,Cache_Cont
       count = insert_event(table=project,alljson=jsondump,track_id=track_id,distinct_id=distinct_id,lib=lib,event=event,type_1=type_1,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,created_at=created_at)
       # print('插入行数：'+str(count))
       insert_device(project=project,data_decode=data_decode,user_agent=User_Agent,accept_language=Accept_Language,ip=ip,ip_city=ip_city,ip_is_good=ip_is_good,ip_asn=ip_asn,ip_asn_is_good=ip_asn_is_good,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,created_at=created_at)
+      properties_key = []
+      for keys in data_decode['properties'].keys():
+        properties_key.append(keys)
+      if event and admin.use_properties is True:
+        insert_properties(project=project,lib=lib,remark=remark,event=event,properties=json.dumps(properties_key),properties_len=len(data_decode['properties'].keys()),created_at=created_at,updated_at=updated_at)
     except Exception:
       error = traceback.format_exc()
       write_to_log(filename='api',defname='insert_date',result=error)

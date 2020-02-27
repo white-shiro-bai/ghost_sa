@@ -61,6 +61,17 @@ set @@tidb_retry_limit = 10;
   result,count = do_tidb_exe(sql=sql, args=key)
   return count
 
+def insert_properties(project,lib,remark,event,properties,properties_len,created_at=None,updated_at=None):
+  if created_at is None:
+    created_at = int(time.time())
+  if updated_at is None:
+    updated_at = int(time.time())
+  sql = """set @@tidb_disable_txn_auto_retry = 0;
+set @@tidb_retry_limit = 10;
+  insert HIGH_PRIORITY into `{table}_properties` (`lib`,`remark`,`event`,`properties`,`properties_len`,`created_at`,`updated_at`,`total_count`,`lastinsert_at`) values ( %(lib)s,%(remark)s,%(event)s,%(properties)s,%(properties_len)s,%(created_at)s,%(updated_at)s,1,%(updated_at)s) ON DUPLICATE KEY UPDATE `properties`=if(properties_len<%(properties_len)s,%(properties)s,properties),`properties_len`=if(properties_len<%(properties_len)s,%(properties_len)s,properties_len),updated_at=if(properties_len<%(properties_len)s,%(updated_at)s,updated_at),total_count=total_count+1,lastinsert_at=%(updated_at)s;""".format(table=project)
+  key = {'lib':lib,'remark':remark,'event':event,'properties':properties,'properties_len':properties_len,'created_at':created_at,'updated_at':updated_at}
+  result,count = do_tidb_exe(sql=sql, args=key)
+
 def check_user_device(project,distinct_id,first_id):
   #仅用于导入神策旧数据
   sql = """select first_id,second_id from users where first_id = '{first_id}'""".format(first_id=first_id)
