@@ -27,7 +27,7 @@ SDK的使用方法，可以直接查看神策官方文档 https://www.sensorsdat
 
 框架说明：
 
-/flash_main.py <--主程序，执行后即可开始接收数据
+/flask_main.py <--主程序，执行后即可开始接收数据
 
 /kafka_consumer.py <--Kafka订阅程序（如果开启Kafka支持，使用此程序订阅并写入数据库）
 
