@@ -27,7 +27,8 @@ from configs.export import write_to_log
 from component.shorturl import get_suoim_short_url
 from configs import admin
 import time
-from component.kafka_op import insert_message_to_kafka
+if admin.use_kafka is True:
+  from component.kafka_op import insert_message_to_kafka
 
 
 
