@@ -54,7 +54,7 @@ def insert_data(project,data_decode,User_Agent,Host,Connection,Pragma,Cache_Cont
   if 'lib' in data_decode:
     if '$lib' in data_decode['lib']:
       lib = data_decode['lib']['$lib']
-  elif 'properties' in data_decode:
+  if lib is None and 'properties' in data_decode:
     if '$lib' in data_decode['properties']:
       lib = data_decode['properties']['$lib']
   # else:
