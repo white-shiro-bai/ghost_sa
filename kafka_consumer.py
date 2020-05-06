@@ -6,27 +6,24 @@ import json
 from component.kafka_op import get_message_from_kafka
 import sys
 import traceback
-import multiprocessing
+# import multiprocessing
 from configs.export import write_to_log
 sys.path.append("./")
 sys.setrecursionlimit(10000000)
-
+from concurrent.futures import ThreadPoolExecutor,ProcessPoolExecutor
 
 def use_kafka():
     results = get_message_from_kafka()
-    p = multiprocessing.Pool(processes=8)
-    for result in results:
-        # do_insert(msg=result)
-        try:
-            p.apply_async(func=do_insert, kwds={
-                "msg": result})
-        except Exception:
-            error = traceback.format_exc()
-            write_to_log(filename='kafka_consumer',
-                     defname='use_kafka', result=error)
-    p.close()
-    p.join()
-
+    with ThreadPoolExecutor(max_workers=8) as worker:
+        for result in results:
+            # print(result)
+            worker.submit(do_insert,result)
+    # try:
+        # executor.shutdown(False)
+    # except Exception:
+        # error = traceback.format_exc()
+        # write_to_log(filename='kafka_consumer',
+                    #  defname='use_kafka', result=error)
 
 def do_insert(msg):
     try:
