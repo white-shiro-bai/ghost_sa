@@ -20,7 +20,7 @@ ghost_sa(鬼策)可以理解为不带前端界面的神策服务端。
 
 支持使用Kafka。
 
-目前经过测试，支持IOS，JS，小程序，Python的SDK上报。
+目前经过测试，支持IOS，Android，JS，小程序，Python的SDK上报。
 SDK可以在神策的项目中下载 https://github.com/sensorsdata
 SDK的使用方法，可以直接查看神策官方文档 https://www.sensorsdata.cn/manual/
 
