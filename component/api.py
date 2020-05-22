@@ -18,7 +18,7 @@ import base64
 import json
 import pprint
 import os
-from component.db_func import insert_event,get_long_url_from_short,insert_shortcut_history,check_long_url,insert_shortcut,show_shortcut,count_shortcut,show_check,insert_properties
+from component.db_func import insert_event,get_long_url_from_short,insert_shortcut_history,check_long_url,insert_shortcut,show_shortcut,count_shortcut,show_check,insert_properties,insert_user_db
 from component.db_op import *
 from geoip.geo import get_addr,get_asn
 import gzip
@@ -387,3 +387,71 @@ def ghost_check():
       error = traceback.format_exc()
       write_to_log(filename='api',defname='ghost_check',result=error)
   # return jsonify('少参数')    # return 
+
+def installation_track():
+  start_time = time.time()
+  project = request.args.get('project')
+  User_Agent = request.headers.get('User-Agent') #Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36
+  Host = request.headers.get('Host') #: 10.16.5.241:5000
+  Connection = request.headers.get('Connection')#: keep-alive
+  Pragma = request.headers.get('Pragma')#: no-cache
+  Cache_Control = request.headers.get('Cache-Control')#: no-cache
+  Accept = request.headers.get('Accept')[0:254] if request.headers.get('Accept') else None#: image/webp,image/apng,image/*,*/*;q=0.8
+  Accept_Encoding = request.headers.get('Accept-Encoding')[0:254] if request.headers.get('Accept-Encoding') else None #: gzip, deflate
+  remark = request.args.get('remark') if 'remark' in request.args else 'normal'
+  Accept_Language = request.headers.get('Accept-Language')[0:254] if request.headers.get('Accept-Language') else None#: zh-CN,zh;q=0.9
+  ua_platform = request.user_agent.platform #客户端操作系统
+  ua_browser = request.user_agent.browser #客户端的浏览器
+  ua_version = request.user_agent.version #客户端浏览器的版本
+  ua_language = request.user_agent.language #客户端浏览器的语言
+  ext = request.args.get('ext')
+  url = request.url
+  args = request.args.to_dict(request.args)
+  # ip = '124.115.214.179' #测试西安bug
+  # ip = '36.5.99.68' #测试安徽bug
+  if 'ip' in args:
+    ip = args['ip']
+  elif request.headers.get('X-Forwarded-For') is not None:
+    ip = request.headers.get('X-Forwarded-For') #获取SLB真实地址
+  else:
+    ip = request.remote_addr#服务器直接暴露
+  ip_city,ip_is_good = get_addr(ip)
+  ip_asn,ip_asn_is_good = get_asn(ip)
+  if ip_is_good ==0:
+    ip_city = '{}'
+  if ip_asn_is_good ==0:
+    ip_asn = '{}'
+  referrer = request.referrer
+  try:
+    insert_installation_track(project=project,data_decode=args,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma, Cache_Control=Cache_Control, Accept=Accept, Accept_Encoding=Accept_Encoding, Accept_Language=Accept_Language, ip=ip, ip_city=ip_city,ip_asn=ip_asn, url=url, referrer=referrer, remark=remark, ua_platform=ua_platform, ua_browser=ua_browser, ua_version=ua_version, ua_language=ua_language, ip_is_good=ip_is_good, ip_asn_is_good=ip_asn_is_good)
+    bitimage1 = os.path.join('image','43byte.gif')
+    with open(bitimage1, 'rb') as f:
+      returnimage = f.read()
+    return Response(returnimage, mimetype="image/gif")
+  except Exception:
+    error = traceback.format_exc()
+    write_to_log(filename='api',defname='installation_track',result=error)
+
+
+def insert_installation_track(project, data_decode, User_Agent, Host, Connection, Pragma, Cache_Control, Accept, Accept_Encoding, Accept_Language, ip, ip_city,
+                    ip_asn, url, referrer, remark, ua_platform, ua_browser, ua_version, ua_language, ip_is_good, ip_asn_is_good, created_at=None, updated_at=None,use_kafka=admin.use_kafka):
+  start_time = time.time()
+  timenow16 = int(round(time.time() * 1000))
+  distinct_id = 'undefined'
+  track_id  = 0
+  dist_id_name = ['idfa','IDFA','imei','IMEI','Idfa','Imei']
+  for i in dist_id_name:
+    if i in data_decode.keys():
+      distinct_id = data_decode[i]
+  if 'ts' in  data_decode:
+    track_id = data_decode['ts']
+  
+  if use_kafka is False:
+  
+    insert_event(table=project,alljson=json.dumps(data_decode),track_id=track_id,distinct_id=distinct_id,lib='ghost_sa',event='admaster',type_1='installation_track',User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,created_at=created_at if created_at else start_time)
+    insert_user_db(project=project,distinct_id=distinct_id,lib='ghost_sa',map_id='',original_id='',user_id='',all_user_profile=json.dumps(data_decode),update_params='',created_at=created_at if created_at else start_time,updated_at=created_at if created_at else start_time)
+    print(time.time()-start_time)
+  elif use_kafka is True:
+    msg = {"group":"installation_track","timestamp":timenow16,"data":{"project":project,"data_decode":data_decode,"User_Agent":User_Agent,"Host":Host,"Connection":Connection,"Pragma":Pragma,"Cache_Control":Cache_Control,"Accept":Accept,"Accept_Encoding":Accept_Encoding,"Accept_Language":Accept_Language,"ip":ip,"ip_city":ip_city,"ip_asn":ip_asn,"url":url,"referrer":referrer,"remark":remark,"ua_platform":ua_platform,"ua_browser":ua_browser,"ua_version":ua_version,"ua_language":ua_language,"ip_is_good":ip_is_good,"ip_asn_is_good":ip_asn_is_good,"created_at":created_at if created_at else start_time,"updated_at":created_at if created_at else start_time}}
+    insert_message_to_kafka(msg=msg)
+    print(time.time()-start_time)

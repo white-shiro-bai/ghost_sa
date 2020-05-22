@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*
 # author: unknowwhite@outlook.com
 # wechat: Ben_Xiaobai
-from component.api import get_datas, get_long, shortit, show_short_cut_list, ghost_check
+from component.api import get_datas, get_long, shortit, show_short_cut_list, ghost_check ,installation_track
 from flask_cors import CORS
 from flask import jsonify
 from flask import make_response
@@ -44,6 +44,7 @@ app.add_url_rule('/shortit', view_func=shortit, methods=['POST'])
 app.add_url_rule('/shortlist', view_func=show_short_cut_list,
                  methods=['GET', 'POST'])
 app.add_url_rule('/ghost_check', view_func=ghost_check, methods=['POST'])
+app.add_url_rule('/cb/installation_track', view_func=installation_track, methods=['GET'])
 
 if __name__ == '__main__':
     app.run(threaded=True, host='0.0.0.0', port=8000)  # 默认不填写的话，是5000端口；
