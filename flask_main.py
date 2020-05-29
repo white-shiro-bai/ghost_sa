@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*
 # author: unknowwhite@outlook.com
 # wechat: Ben_Xiaobai
-from component.api import get_datas, get_long, shortit, show_short_cut_list, ghost_check ,installation_track
+from component.api import get_datas, get_long, shortit, show_short_cut_list, ghost_check ,installation_track ,show_project_list
 from flask_cors import CORS
 from flask import jsonify
 from flask import make_response
@@ -39,7 +39,7 @@ def index():
 
 
 #项目管理
-app.add_url_rule('/ghost_check', view_func=ghost_check, methods=['POST'])#查询已有项目信息
+app.add_url_rule('/show_project_list', view_func=show_project_list, methods=['POST'])#查询已有项目信息
 #数据收集
 app.add_url_rule('/sa.gif', view_func=get_datas, methods=['GET', 'POST'])#神策SDK上报接口
 #短连接
