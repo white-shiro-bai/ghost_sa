@@ -38,13 +38,18 @@ def index():
     return ad_words
 
 
-app.add_url_rule('/sa.gif', view_func=get_datas, methods=['GET', 'POST'])
-app.add_url_rule('/t/<short_url>', view_func=get_long, methods=['GET', 'POST'])
-app.add_url_rule('/shortit', view_func=shortit, methods=['POST'])
-app.add_url_rule('/shortlist', view_func=show_short_cut_list,
-                 methods=['GET', 'POST'])
-app.add_url_rule('/ghost_check', view_func=ghost_check, methods=['POST'])
-app.add_url_rule('/cb/installation_track', view_func=installation_track, methods=['GET'])
+#项目管理
+app.add_url_rule('/ghost_check', view_func=ghost_check, methods=['POST'])#查询已有项目信息
+#数据收集
+app.add_url_rule('/sa.gif', view_func=get_datas, methods=['GET', 'POST'])#神策SDK上报接口
+#短连接
+app.add_url_rule('/t/<short_url>', view_func=get_long, methods=['GET', 'POST'])#解析接口
+app.add_url_rule('/shortit', view_func=shortit, methods=['POST'])#短链创建接口
+app.add_url_rule('/shortlist', view_func=show_short_cut_list,methods=['GET', 'POST'])#短链列表
+#埋点管理
+app.add_url_rule('/ghost_check', view_func=ghost_check, methods=['POST'])#埋点校验接口
+#移动广告跟踪
+app.add_url_rule('/cb/installation_track', view_func=installation_track, methods=['GET'])#DSP上报接口
 
 if __name__ == '__main__':
     app.run(threaded=True, host='0.0.0.0', port=8000)  # 默认不填写的话，是5000端口；
