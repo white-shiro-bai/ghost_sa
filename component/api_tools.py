@@ -11,9 +11,7 @@ import json
 
 def get_properties_value(name,data_decode):
   if '$'+name in data_decode['properties']:
-    # print(name)
     res = data_decode['properties']['$'+name]
-    # print(res)
   else:
     res = None
   return res
@@ -47,12 +45,8 @@ def insert_user(project,data_decode,created_at=None):
       user_id = data_decode['properties']['uid']
   else:
     user_id = None
-  all_user_profile = json.dumps(data_decode['properties']) if data_decode['type'] == 'profile_set' else None
+  all_user_profile = json.dumps(data_decode['properties']) if data_decode['type'] == 'profile_set' else None 
   update_content = []
-  # if map_id:
-  #   update_content.append("map_id = %(map_id)s")#.format(map_id=map_id))
-  # if original_id:
-  #   update_content.append("original_id = %(original_id)s")#.format(original_id=original_id))
   if user_id:
     update_content.append("user_id = %(user_id)s")#.format(user_id=user_id))
   if all_user_profile:
@@ -62,9 +56,6 @@ def insert_user(project,data_decode,created_at=None):
     #更新更新时间
     update_params = update_params + ' , ' + item
     #不更新更新时间
-    # if len(update_params)>0:
-      # update_params = update_params + ' , ' + item
-    # update_params = item
   insert_count = insert_user_db(project=project,distinct_id=distinct_id,lib=lib,map_id=map_id,original_id=original_id,user_id=user_id,all_user_profile=all_user_profile,update_params=update_params,created_at=created_at)
   print('插入或更新user'+str(insert_count)+'条')
 
@@ -213,16 +204,18 @@ def insert_device(project,data_decode,user_agent,accept_language,ip,ip_city,ip_i
 
 def encode_urlutm(utm_source,utm_medium,utm_campaign,utm_content,utm_term):
   url_add_on = ''
+  utm_list = []
   if utm_source:
-    url_add_on = url_add_on+'utm_source='+str(urllib.parse.quote(utm_source))+'&'
+    utm_list.append('utm_source='+str(urllib.parse.quote(utm_source)))
   if utm_medium:
-    url_add_on = url_add_on+'utm_medium='+str(urllib.parse.quote(utm_medium))+'&'
+    utm_list.append('utm_medium='+str(urllib.parse.quote(utm_medium)))
   if utm_content:
-    url_add_on = url_add_on+'utm_content='+str(urllib.parse.quote(utm_content))+'&'
+    utm_list.append('utm_content='+str(urllib.parse.quote(utm_content)))
   if utm_campaign:
-    url_add_on = url_add_on+'utm_campaign='+str(urllib.parse.quote(utm_campaign))+'&'
+    utm_list.append('utm_campaign='+str(urllib.parse.quote(utm_campaign)))
   if utm_term:
-    url_add_on = url_add_on+'utm_term='+str(urllib.parse.quote(utm_term))+'&'
+    utm_list.append('utm_term='+str(urllib.parse.quote(utm_term)))
+  url_add_on = '&'.join(utm_list)
   return url_add_on
 
 if __name__ == "__main__":
