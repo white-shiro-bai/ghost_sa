@@ -407,14 +407,16 @@ def installation_track():
   ext = request.args.get('ext')
   url = request.url
   args = request.args.to_dict(request.args)
+  data = {"properties":args}
   # ip = '124.115.214.179' #测试西安bug
   # ip = '36.5.99.68' #测试安徽bug
-  if 'ip' in args:
-    ip = args['ip']
-  elif request.headers.get('X-Forwarded-For') is not None:
+  if request.headers.get('X-Forwarded-For') is not None:
     ip = request.headers.get('X-Forwarded-For') #获取SLB真实地址
   else:
     ip = request.remote_addr#服务器直接暴露
+  if 'ip' in args:
+    if len(args['ip']) - len( args['ip'].replace('.','') ) == 3:#判断IP里是否存在IP地址
+      ip = args['ip']
   ip_city,ip_is_good = get_addr(ip)
   ip_asn,ip_asn_is_good = get_asn(ip)
   if ip_is_good ==0:
@@ -423,7 +425,7 @@ def installation_track():
     ip_asn = '{}'
   referrer = request.referrer
   try:
-    insert_installation_track(project=project,data_decode=args,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma, Cache_Control=Cache_Control, Accept=Accept, Accept_Encoding=Accept_Encoding, Accept_Language=Accept_Language, ip=ip, ip_city=ip_city,ip_asn=ip_asn, url=url, referrer=referrer, remark=remark, ua_platform=ua_platform, ua_browser=ua_browser, ua_version=ua_version, ua_language=ua_language, ip_is_good=ip_is_good, ip_asn_is_good=ip_asn_is_good)
+    insert_installation_track(project=project,data_decode=data,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma, Cache_Control=Cache_Control, Accept=Accept, Accept_Encoding=Accept_Encoding, Accept_Language=Accept_Language, ip=ip, ip_city=ip_city,ip_asn=ip_asn, url=url, referrer=referrer, remark=remark, ua_platform=ua_platform, ua_browser=ua_browser, ua_version=ua_version, ua_language=ua_language, ip_is_good=ip_is_good, ip_asn_is_good=ip_asn_is_good)
     bitimage1 = os.path.join('image','43byte.gif')
     with open(bitimage1, 'rb') as f:
       returnimage = f.read()
@@ -441,14 +443,15 @@ def insert_installation_track(project, data_decode, User_Agent, Host, Connection
   track_id  = 0
   dist_id_name = ['idfa','IDFA','imei','IMEI','Idfa','Imei']
   for i in dist_id_name:
-    if i in data_decode.keys():
-      distinct_id = data_decode[i]
-  if 'ts' in  data_decode:
-    track_id = data_decode['ts']
-  
+    if i in data_decode['properties'].keys():
+      distinct_id = data_decode['properties'][i]
+  if 'ts' in  data_decode['properties']:
+    track_id = re.sub("\D","",data_decode['properties']['ts'])
+    if track_id == '':
+      track_id  = 0
   if use_kafka is False:
   
-    insert_event(table=project,alljson=json.dumps(data_decode),track_id=track_id,distinct_id=distinct_id,lib='ghost_sa',event='admaster',type_1='installation_track',User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,created_at=created_at if created_at else start_time)
+    insert_event(table=project,alljson=json.dumps(data_decode),track_id=track_id,distinct_id=distinct_id,lib='ghost_sa',event='$AppChannelMatching',type_1='installation_track',User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,created_at=created_at if created_at else start_time)
     insert_user_db(project=project,distinct_id=distinct_id,lib='ghost_sa',map_id='',original_id='',user_id='',all_user_profile=json.dumps(data_decode),update_params='',created_at=created_at if created_at else start_time,updated_at=created_at if created_at else start_time)
     print(time.time()-start_time)
   elif use_kafka is True:
