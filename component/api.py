@@ -29,7 +29,7 @@ from configs import admin
 import time
 if admin.use_kafka is True:
   from component.kafka_op import insert_message_to_kafka
-
+import re
 
 
 def insert_data(project,data_decode,User_Agent,Host,Connection,Pragma,Cache_Control,Accept,Accept_Encoding,Accept_Language,ip,ip_city,ip_asn,url,referrer,remark,ua_platform,ua_browser,ua_version,ua_language,ip_is_good,ip_asn_is_good,created_at=None,updated_at=None,use_kafka=admin.use_kafka):
