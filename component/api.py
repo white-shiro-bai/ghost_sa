@@ -18,7 +18,7 @@ import base64
 import json
 import pprint
 import os
-from component.db_func import insert_event,get_long_url_from_short,insert_shortcut_history,check_long_url,insert_shortcut,show_shortcut,count_shortcut,show_check,insert_properties,insert_user_db
+from component.db_func import insert_event,get_long_url_from_short,insert_shortcut_history,check_long_url,insert_shortcut,show_shortcut,count_shortcut,show_check,insert_properties,insert_user_db,distinct_id_query
 from component.db_op import *
 from geoip.geo import get_addr,get_asn
 import gzip
@@ -388,6 +388,7 @@ def ghost_check():
       write_to_log(filename='api',defname='ghost_check',result=error)
   # return jsonify('少参数')    # return 
 
+
 def installation_track():
   start_time = time.time()
   project = request.args.get('project')
@@ -410,13 +411,12 @@ def installation_track():
   data = {"properties":args}
   # ip = '124.115.214.179' #测试西安bug
   # ip = '36.5.99.68' #测试安徽bug
-  if request.headers.get('X-Forwarded-For') is not None:
+  if  'ip' in args and len(args['ip']) - len( args['ip'].replace('.','') ) == 3:#判断IP里是否存在IP地址
+    ip = args['ip']
+  elif request.headers.get('X-Forwarded-For') is not None:
     ip = request.headers.get('X-Forwarded-For') #获取SLB真实地址
   else:
     ip = request.remote_addr#服务器直接暴露
-  if 'ip' in args:
-    if len(args['ip']) - len( args['ip'].replace('.','') ) == 3:#判断IP里是否存在IP地址
-      ip = args['ip']
   ip_city,ip_is_good = get_addr(ip)
   ip_asn,ip_asn_is_good = get_asn(ip)
   if ip_is_good ==0:
@@ -425,15 +425,25 @@ def installation_track():
     ip_asn = '{}'
   referrer = request.referrer
   try:
-    insert_installation_track(project=project,data_decode=data,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma, Cache_Control=Cache_Control, Accept=Accept, Accept_Encoding=Accept_Encoding, Accept_Language=Accept_Language, ip=ip, ip_city=ip_city,ip_asn=ip_asn, url=url, referrer=referrer, remark=remark, ua_platform=ua_platform, ua_browser=ua_browser, ua_version=ua_version, ua_language=ua_language, ip_is_good=ip_is_good, ip_asn_is_good=ip_asn_is_good)
-    bitimage1 = os.path.join('image','43byte.gif')
-    with open(bitimage1, 'rb') as f:
-      returnimage = f.read()
-    return Response(returnimage, mimetype="image/gif")
+    if 'properties' in data and 'is_offerwall' in  data['properties'] and data['properties']['is_offerwall']=='1':
+      count_event,count_user,time_cost = insert_installation_track(project=project,data_decode=data,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma, Cache_Control=Cache_Control, Accept=Accept, Accept_Encoding=Accept_Encoding, Accept_Language=Accept_Language, ip=ip, ip_city=ip_city,ip_asn=ip_asn, url=url, referrer=referrer, remark=remark, ua_platform=ua_platform, ua_browser=ua_browser, ua_version=ua_version, ua_language=ua_language, ip_is_good=ip_is_good, ip_asn_is_good=ip_asn_is_good)
+      if count_event and count_event>0 or count_user and count_user>0:
+        code = 0
+        msg = "success"
+      else:
+        code = -1
+        msg = 'failed'
+      returnjson = {'count_event':count_event,'count_user':count_user,'timecost':round(time_cost,4),'code':code,'msg':msg,'args':args}
+      return jsonify(returnjson)
+    else:
+      insert_installation_track(project=project,data_decode=data,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma, Cache_Control=Cache_Control, Accept=Accept, Accept_Encoding=Accept_Encoding, Accept_Language=Accept_Language, ip=ip, ip_city=ip_city,ip_asn=ip_asn, url=url, referrer=referrer, remark=remark, ua_platform=ua_platform, ua_browser=ua_browser, ua_version=ua_version, ua_language=ua_language, ip_is_good=ip_is_good, ip_asn_is_good=ip_asn_is_good)
+      bitimage1 = os.path.join('image','43byte.gif')
+      with open(bitimage1, 'rb') as f:
+        returnimage = f.read()
+      return Response(returnimage, mimetype="image/gif")
   except Exception:
     error = traceback.format_exc()
     write_to_log(filename='api',defname='installation_track',result=error)
-
 
 def insert_installation_track(project, data_decode, User_Agent, Host, Connection, Pragma, Cache_Control, Accept, Accept_Encoding, Accept_Language, ip, ip_city,
                     ip_asn, url, referrer, remark, ua_platform, ua_browser, ua_version, ua_language, ip_is_good, ip_asn_is_good, created_at=None, updated_at=None,use_kafka=admin.use_kafka):
@@ -449,8 +459,12 @@ def insert_installation_track(project, data_decode, User_Agent, Host, Connection
     track_id = re.sub("\D","",data_decode['properties']['ts'])
     if track_id == '':
       track_id  = 0
-  if use_kafka is False:
-  
+  if 'properties' in data_decode and 'is_offerwall' in  data_decode['properties'] and data_decode['properties']['is_offerwall']=='1':
+    count_event = insert_event(table=project,alljson=json.dumps(data_decode),track_id=track_id,distinct_id=distinct_id,lib='ghost_sa',event='$AppChannelMatching',type_1='installation_track',User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,created_at=created_at if created_at else start_time)
+    count_user = insert_user_db(project=project,distinct_id=distinct_id,lib='ghost_sa',map_id='',original_id='',user_id='',all_user_profile=json.dumps(data_decode),update_params='',created_at=created_at if created_at else start_time,updated_at=created_at if created_at else start_time)
+    time_cost = time.time()-start_time
+    return count_event,count_user,time_cost
+  elif use_kafka is False:
     insert_event(table=project,alljson=json.dumps(data_decode),track_id=track_id,distinct_id=distinct_id,lib='ghost_sa',event='$AppChannelMatching',type_1='installation_track',User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,created_at=created_at if created_at else start_time)
     insert_user_db(project=project,distinct_id=distinct_id,lib='ghost_sa',map_id='',original_id='',user_id='',all_user_profile=json.dumps(data_decode),update_params='',created_at=created_at if created_at else start_time,updated_at=created_at if created_at else start_time)
     print(time.time()-start_time)
@@ -458,3 +472,67 @@ def insert_installation_track(project, data_decode, User_Agent, Host, Connection
     msg = {"group":"installation_track","timestamp":timenow16,"data":{"project":project,"data_decode":data_decode,"User_Agent":User_Agent,"Host":Host,"Connection":Connection,"Pragma":Pragma,"Cache_Control":Cache_Control,"Accept":Accept,"Accept_Encoding":Accept_Encoding,"Accept_Language":Accept_Language,"ip":ip,"ip_city":ip_city,"ip_asn":ip_asn,"url":url,"referrer":referrer,"remark":remark,"ua_platform":ua_platform,"ua_browser":ua_browser,"ua_version":ua_version,"ua_language":ua_language,"ip_is_good":ip_is_good,"ip_asn_is_good":ip_asn_is_good,"created_at":created_at if created_at else start_time,"updated_at":created_at if created_at else start_time}}
     insert_message_to_kafka(msg=msg)
     print(time.time()-start_time)
+
+
+def check_exist_distinct_id():
+  start_time = time.time()
+  password = request.args.get('password')
+  project = request.args.get('project')
+  distinct_id = request.args.get('distinct_id')
+  query_from = request.args.get('query_from')
+
+  User_Agent = request.headers.get('User-Agent') #Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36
+  Host = request.headers.get('Host') #: 10.16.5.241:5000
+  Connection = request.headers.get('Connection')#: keep-alive
+  Pragma = request.headers.get('Pragma')#: no-cache
+  Cache_Control = request.headers.get('Cache-Control')#: no-cache
+  Accept = request.headers.get('Accept')[0:254] if request.headers.get('Accept') else None#: image/webp,image/apng,image/*,*/*;q=0.8
+  Accept_Encoding = request.headers.get('Accept-Encoding')[0:254] if request.headers.get('Accept-Encoding') else None #: gzip, deflate
+  remark = request.args.get('remark') if 'remark' in request.args else 'normal'
+  Accept_Language = request.headers.get('Accept-Language')[0:254] if request.headers.get('Accept-Language') else None#: zh-CN,zh;q=0.9
+  ua_platform = request.user_agent.platform #客户端操作系统
+  ua_browser = request.user_agent.browser #客户端的浏览器
+  ua_version = request.user_agent.version #客户端浏览器的版本
+  ua_language = request.user_agent.language #客户端浏览器的语言
+  ext = request.args.get('ext')
+  url = request.url
+  args = request.args.to_dict(request.args)
+  data = {"properties":args}
+  # ip = '124.115.214.179' #测试西安bug
+  # ip = '36.5.99.68' #测试安徽bug
+  if  'ip' in args and len(args['ip']) - len( args['ip'].replace('.','') ) == 3:#判断IP里是否存在IP地址
+    ip = args['ip']
+  elif request.headers.get('X-Forwarded-For') is not None:
+    ip = request.headers.get('X-Forwarded-For') #获取SLB真实地址
+  else:
+    ip = request.remote_addr#服务器直接暴露
+  ip_city,ip_is_good = get_addr(ip)
+  ip_asn,ip_asn_is_good = get_asn(ip)
+  if ip_is_good ==0:
+    ip_city = '{}'
+  if ip_asn_is_good ==0:
+    ip_asn = '{}'
+  referrer = request.referrer
+
+  if password == admin.admin_password and project and distinct_id and query_from:#只有正确的密码才能触发动作
+    try:
+      results_count= distinct_id_query(distinct_id=distinct_id,project=project)
+      # key=['distinct_id','event','type','all_json','host','user_agent','ip','url','remark','created_at']
+      if results_count==0:
+        row = {}
+        # pending_result.append(dict(zip(key,item)))
+        time_cost = time.time() - start_time
+        # returnjson = {'result':'success','results_count':results_count,'code':0,'msg':'not_exists'}
+        returnjson = {'result':'success','results_count':results_count,'timecost':round(time_cost,4),'code':0,'msg':'not_exists','query_from':query_from}
+        data['returnjson'] = returnjson
+        insert_event(table=project,alljson=json.dumps(data),track_id=0,distinct_id=query_from,lib='ghost_sa',event='check_exist',type_1='ghost_sa_func',User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,created_at=start_time)
+        return jsonify(returnjson)
+      time_cost = time.time() - start_time
+      returnjson = {'result':'success','results_count':results_count,'timecost':round(time_cost,4),'code':-1,'msg':'exists','query_from':query_from}
+      # returnjson = {'result':'success','results_count':results_count,'code':-1,'msg':'exists'}
+      data['returnjson'] = returnjson
+      insert_event(table=project,alljson=json.dumps(data),track_id=0,distinct_id=query_from,lib='ghost_sa',event='check_exist',type_1='ghost_sa_func',User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,created_at=start_time)
+      return jsonify(returnjson)
+    except Exception:
+      error = traceback.format_exc()
+      write_to_log(filename='api',defname='check_exist_distinct_id',result=error)

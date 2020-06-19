@@ -172,3 +172,9 @@ def show_check(project,date,hour,order,start,limit,add_on_where):
     write_to_log(filename='db_func',defname='show_check',result=str(result)+sql)
     return '',0
   return result,count
+
+
+def distinct_id_query(distinct_id,project):
+  sql = """SELECT 1 FROM {project} where distinct_id ='{distinct_id}' limit 1""".format(distinct_id=distinct_id,project=project)
+  result,count = do_tidb_select(sql)
+  return count
