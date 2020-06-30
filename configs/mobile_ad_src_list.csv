@@ -1,0 +1,7 @@
+"src","src_name","src_args","utm_source","utm_medium","utm_campaign","utm_content","utm_term"
+"oceanengine_ios","巨量引擎iOS","aid=__AID__&aid_name=__AID_NAME__&cid=__CID__&cid_name=__CID_NAME__&campaign_name=__CAMPAIGN_ID__&campaign_name=__CAMPAIGN_NAME__&ctype=__CTYPE__&csite=__CSITE__&sl=__SL__&os=__OS__&mac=__MAC__&ip=__IP__&geo=__GEO__&ts=__TS__&callback_url=__CALLBACK_URL__&idfa=__IDFA__","巨量位置__CSITE__","样式__CTYPE__","__CAMPAIGN_NAME__","__CID_NAME__","__AID_NAME__"
+"oceanengine_android","巨量引擎android","aid=__AID__&aid_name=__AID_NAME__&cid=__CID__&cid_name=__CID_NAME__&campaign_name=__CAMPAIGN_ID__&campaign_name=__CAMPAIGN_NAME__&ctype=__CTYPE__&csite=__CSITE__&sl=__SL__&os=__OS__&mac=__MAC__&ip=__IP__&geo=__GEO__&ts=__TS__&callback_url=__CALLBACK_URL__&imei=__IMEI__&androidid=__ANDROIDID__&oaid=__OAID__","巨量位置__CSITE__","样式__CTYPE__","__CAMPAIGN_NAME__","__CID_NAME__","__AID_NAME__"
+"youmi_aso_android","有米ASO_Android","imei={imei}&callback_url={callback_url}&ip={ip}&is_offerwall=1","有米ASO","Android_ASO",,,
+"youmi_aso_ios","有米ASO_iOS","idfa={idfa}&callback_url={callback_url}&ip={ip}&is_offerwall=1","有米ASO","iOS_ASO",,,
+"aso100_aso_android","七麦ASO_Android","idfa={idfa}&callback_url={callback}&ip={ip}&is_offerwall=1","七麦ASO","Android_ASO",,,
+"aso100_aso_ios","七麦ASO_iOS","idfa={idfa}&callback_url={callback}&ip={ip}&is_offerwall=1","七麦ASO","iOS_ASO",,,

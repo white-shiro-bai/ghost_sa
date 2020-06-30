@@ -8,6 +8,7 @@ import time
 from component.db_op import do_tidb_exe,do_tidb_select
 from configs.export import write_to_log
 import traceback
+from configs import admin
 # import pymysql
 
 def insert_event(table,alljson,track_id,distinct_id,lib,event,type_1,User_Agent,Host,Connection,Pragma,Cache_Control,Accept,Accept_Encoding,Accept_Language,ip,ip_city,ip_asn,url,referrer,remark,ua_platform,ua_browser,ua_version,ua_language,created_at=None):
@@ -157,12 +158,6 @@ def insert_shortcut_history(short_url,result,cost_time,ip,user_agent,accept_lang
   print('已插入解析记录'+str(count))
 
 
-
-# def insert_export_user(project):
-#   timenow = int(time.time())
-#   sql = """insert `sa_export`.`users` (`first_id`,`second_id`,`unionid`,`id`,`all_json`,`export_at`) values ('{first_id}','{second_id}','{union_id}','{id}','{all_json}',{export_at})""".format(first_id=first_id,second_id=second_id,id=id,all_json=all_json)
-
-
 def show_check(project,date,hour,order,start,limit,add_on_where):
   sql = """select distinct_id,event,type,all_json,host,user_agent,ip,url,remark,from_unixtime(created_at) from {project} where date = '{date}' and hour = {hour} {add_on_where} order by created_at {order} limit {start},{limit}""".format(project=project,date=date,hour=hour,order=order,start=start,limit=limit,add_on_where=add_on_where)
   # print(sql)
@@ -173,8 +168,106 @@ def show_check(project,date,hour,order,start,limit,add_on_where):
     return '',0
   return result,count
 
+def show_project():
+  sql = """select project_name,FROM_UNIXTIME(created_at),FROM_UNIXTIME(expired_at) from project_list order by project_name"""
+  result,count = do_tidb_select(sql)
+  if count == 0:
+    # print(result,sql)
+    write_to_log(filename='db_func',defname='show_project',result=str(result)+sql)
+    return '',0
+  return result,count
+
+def insert_mobile_ad_src(src,src_name,src_args,utm_source,utm_medium,utm_campaign,utm_content,utm_term):
+  timenow = int(time.time())
+  sql = """insert mobile_ad_src (`src`,`src_name`,`src_args`,`created_at`,`updated_at`,`utm_source`,`utm_medium`,`utm_campaign`,`utm_content`,`utm_term`) values ('{src}','{src_name}','{src_args}',{created_at},{updated_at},'{utm_source}','{utm_medium}','{utm_campaign}','{utm_content}','{utm_term}') ON DUPLICATE KEY UPDATE `src_name`='{src_name}',`src_args`='{src_args}',`updated_at`={updated_at},`utm_source`='{utm_source}',`utm_medium`='{utm_medium}',`utm_campaign`='{utm_campaign}',`utm_content`='{utm_content}',`utm_term`='{utm_term}' """.format(src=src,src_name=src_name,src_args=src_args,created_at=timenow,updated_at=timenow,utm_source=utm_source,utm_medium=utm_medium,utm_campaign=utm_campaign,utm_content=utm_content,utm_term=utm_term).replace("'None'","Null").replace("None","Null")
+  result,count = do_tidb_exe(sql)
+  if count == 0:
+    # print(result,sql)
+    write_to_log(filename='db_func',defname='insert_mobile_ad_src',result=str(result)+sql)
+    return '',0
+  return result,count
+
+
+
+def insert_mobile_ad_list(project,url,src,src_url,submitter,utm_source,utm_medium,utm_campaign,utm_content,utm_term,expired_at=2147483647):
+  timenow = int(time.time())
+  sql="""insert mobile_ad_list (`project`,`url`,`expired_at`,`created_at`,`src`,`src_url`,`submitter`,`utm_source`,`utm_medium`,`utm_campaign`,`utm_content`,`utm_term`) values ('{project}','{url}',{expired_at},{created_at},'{src}','{src_url}','{submitter}','{utm_source}','{utm_medium}','{utm_campaign}','{utm_content}','{utm_term}')""".format(project=project,url=url,expired_at=expired_at,created_at=timenow,src=src,src_url=src_url,submitter=submitter,utm_source=utm_source,utm_medium=utm_medium,utm_campaign=utm_campaign,utm_content=utm_content,utm_term=utm_term).replace("'None'","Null").replace("None","Null")
+  result,count = do_tidb_exe(sql)
+  if count == 0:
+    # print(result,sql)
+    write_to_log(filename='db_func',defname='insert_mobile_ad_list',result=str(result)+sql)
+    return '',0
+  return result,count
+
+def read_mobile_ad_list(page,length,filters='',sort='created_at',way='desc'):
+  sort = 'mobile_ad_list.'+ sort
+  sql ="""select mobile_ad_list.project,
+  mobile_ad_list.url,
+  mobile_ad_list.src,
+  mobile_ad_src.src_name,
+  mobile_ad_list.src_url,
+  mobile_ad_list.submitter,
+  mobile_ad_list.utm_source,
+  mobile_ad_list.utm_medium,
+  mobile_ad_list.utm_campaign,
+  mobile_ad_list.utm_content,
+  mobile_ad_list.utm_term,
+  from_unixtime(mobile_ad_list.created_at,'%Y-%m-%d'),
+  from_unixtime(mobile_ad_list.expired_at,'%Y-%m-%d')
+  from mobile_ad_list left join mobile_ad_src on mobile_ad_list.src=mobile_ad_src.src {filters} ORDER BY {sort} {way} Limit {start_pageline},{length}""".format(start_pageline=(page-1)*length,length=length,filters=filters,sort=sort,way=way)
+  print(sql)
+  result,count = do_tidb_select(sql)
+  if count == 0:
+    # print(result,sql)
+    write_to_log(filename='db_func',defname='read_mobile_ad_list',result=str(result)+sql)
+    return '',0
+  return result,count
+
+
+def count_mobile_ad_list(filters=''):
+  sql = """SELECT count(*) FROM `mobile_ad_list` {filters} """.format(filters=filters)
+  result,count = do_tidb_select(sql)
+  if count == 0:
+    # print(result,sql)
+    write_to_log(filename='db_func',defname='count_mobile_ad_list',result=str(result)+sql)
+    return '',0
+  return result
+
+def read_mobile_ad_src_list(add_on_where=''):
+  timenow = int(time.time())
+  sql = """select src,src_name,src_args,from_unixtime(created_at),from_unixtime(updated_at),if({timenow}-created_at<=604800,1,0),utm_source,utm_medium,utm_campaign,utm_content,utm_term from mobile_ad_src {add_on_where} order by src_name""".format(add_on_where=add_on_where,timenow=timenow)
+  result,count = do_tidb_select(sql)
+  if count == 0:
+    # print(result,sql)
+    write_to_log(filename='db_func',defname='read_mobile_ad_src_list',result=str(result)+sql)
+    return '',0
+  return result,count
+
+def check_mobile_ad_url(url):
+  timenow = int(time.time())
+  sql = """select project,url,from_unixtime(expired_at),from_unixtime(created_at),src,src_url,submitter,utm_source,utm_medium,utm_campaign,utm_content,utm_term from mobile_ad_list where url = '{url}' and expired_at > {timenow}""".format(url=url,timenow=timenow)
+  result,count = do_tidb_select(sql)
+  if count>0:
+    result_dict = []
+    for item in result:
+      result_dict.append({'project':item[0],'url':item[1],'expired_at':item[2],'created_at':item[3],'src':item[4],'src_url':item[5],'submitter':item[6],'utm_source':item[7],'utm_medium':item[8],'utm_campaign':item[9],'utm_content':item[10],'utm_term':item[11]})
+    return result_dict,'exist'
+  else:
+    return '','empty'
 
 def distinct_id_query(distinct_id,project):
   sql = """SELECT 1 FROM {project} where distinct_id ='{distinct_id}' limit 1""".format(distinct_id=distinct_id,project=project)
   result,count = do_tidb_select(sql)
   return count
+
+def find_recall_url(project,device_id,created_at):
+  date = time.strftime("%Y-%m-%d", time.localtime(created_at))
+  sql = """select JSON_EXTRACT(all_json,'$."properties"."callback_url"'),all_json from {project} where date >= DATE_SUB('{date}',INTERVAL {day_diff} day) and date <= '{date}' and `event` = '$AppChannelMatching' and (distinct_id = '{device_id}' or distinct_id = md5('{device_id}')) order by created_at desc limit 1""".format(project=project,device_id=device_id,date=date,day_diff=admin.aso_dsp_callback_interval_days)
+  result,count = do_tidb_select(sql)
+  return result,count
+
+def find_recall_history(project,device_id,created_at):
+  date = time.strftime("%Y-%m-%d", time.localtime(created_at))
+  sql = """select count(1) from {project} where date >= DATE_SUB('{date}',INTERVAL {day_diff}  day) and date <= '{date}' and `event` = '$is_channel_callback_event' and (distinct_id = '{device_id}' or distinct_id = md5('{device_id}'))""".format(project=project,device_id=device_id,date=date,day_diff=admin.aso_dsp_callback_interval_days)
+  result,count = do_tidb_select(sql)
+  return result[0][0]

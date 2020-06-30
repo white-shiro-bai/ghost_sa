@@ -5,8 +5,10 @@ import sys
 sys.path.append("./")
 sys.setrecursionlimit(10000000)
 from component.db_op import do_tidb_exe,do_tidb_select
+from component.db_func import insert_mobile_ad_src
 import time
-
+import csv
+import os
 
 def update_table_history(project_name):
   #升级user表支持多个设备绑定。2019-12-11
@@ -75,6 +77,34 @@ CREATE TABLE if not EXISTS `shortcut_history` (
   `ua_version` varchar(255) DEFAULT NULL,
   `ua_language` varchar(255) DEFAULT NULL,
   KEY `created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+CREATE TABLE if not EXISTS `mobile_ad_src` (
+  `src` varchar(255) NOT NULL COMMENT '创建源名称',
+  `src_name` varchar(255) DEFAULT NULL COMMENT '创建源的中文名字',
+  `src_args` varchar(1024) DEFAULT NULL COMMENT '创建源自带参数',
+  `created_at` int(11) DEFAULT NULL COMMENT '创建时间',
+  `updated_at` int(11) DEFAULT NULL COMMENT '维护时间',
+  `utm_source` varchar(255) DEFAULT NULL COMMENT '预制的utm_source',
+  `utm_medium` varchar(255) DEFAULT NULL COMMENT '预制的utm_medium',
+  `utm_campaign` varchar(255) DEFAULT NULL COMMENT '预制的utm_campaign',
+  `utm_content` varchar(255) DEFAULT NULL COMMENT '预制的utm_content',
+  `utm_term` varchar(255) DEFAULT NULL COMMENT '预制的utm_term',
+  PRIMARY KEY (`src`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+CREATE TABLE if not EXISTS `mobile_ad_list` (
+  `project` varchar(255) DEFAULT NULL COMMENT '项目名',
+  `url` varchar(2048) NOT NULL COMMENT '监测地址',
+  `expired_at` int(11) DEFAULT NULL COMMENT '过期时间',
+  `created_at` int(11) DEFAULT NULL COMMENT '创建时间',
+  `src` varchar(255) DEFAULT NULL COMMENT '使用的检测原id',
+  `src_url` varchar(1024) DEFAULT NULL COMMENT '使用的检测模板',
+  `submitter` varchar(255) DEFAULT NULL COMMENT '由谁提交',
+  `utm_source` varchar(2048) DEFAULT NULL COMMENT 'utm_source',
+  `utm_medium` varchar(2048) DEFAULT NULL COMMENT 'utm_medium',
+  `utm_campaign` varchar(2048) DEFAULT NULL COMMENT 'utm_campaign',
+  `utm_content` varchar(2048) DEFAULT NULL COMMENT 'utm_content',
+  `utm_term` varchar(2048) DEFAULT NULL COMMENT 'utm_term',
+  PRIMARY KEY (`url`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;"""
   do_tidb_exe(create_project_list)
   # print('project_list已生成')
@@ -230,6 +260,19 @@ CREATE TABLE if not EXISTS `shortcut_history` (
     insert_project_list = """insert project_list (`project_name`,`created_at`,`expired_at`) values ('{project_name}',{created_at},{expired_at})""".format(project_name=project_name,created_at=timenow,expired_at=expired_at)
     insert_project_list_result,insert_project_list_count = do_tidb_exe(insert_project_list)
     print(project_name+'project列表已插入')
+
+def update_mobile_ad_src():
+  with open(os.path.join(os.path.dirname(__file__).replace('component',''),'configs','mobile_ad_src_list.csv'),encoding='utf-8') as f:
+    row = csv.reader(f, delimiter = ',')
+    next(row)  #跳过首行
+    total_count= 0
+    for r in row:
+      result,count =insert_mobile_ad_src(src=r[0],src_name=r[1],src_args=r[2],utm_source=r[3],utm_medium=r[4],utm_campaign=r[5],utm_content=r[6],utm_term=r[7])
+      total_count = total_count+count
+  print(str(total_count)+'条移动广告来源插入或更新完成（更新会记2次）')
+
+
 if __name__ == "__main__":
-    # create_project(project_name='fideo_v1',expired='2020-01-01')
+    # create_project(project_name='test_app_with_date',expired='2020-01-01')
     create_project(project_name='test_app')
+    update_mobile_ad_src()

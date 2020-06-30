@@ -4,7 +4,7 @@
 import sys
 sys.path.append("..")
 # sys.setrecursionlimt(10000000)
-from component.db_func import insert_devicedb,insert_user_db
+from component.db_func import insert_devicedb,insert_user_db,find_recall_url,insert_event,find_recall_history,insert_properties
 import urllib.parse
 import base64
 import json
@@ -218,5 +218,24 @@ def encode_urlutm(utm_source,utm_medium,utm_campaign,utm_content,utm_term):
   url_add_on = '&'.join(utm_list)
   return url_add_on
 
+def recall_dsp(project,device_id,created_at):
+  history_count = find_recall_history(project=project,device_id=device_id,created_at=created_at)
+  if history_count == 0 or admin.aso_dsp_callback_repeat is True:
+    results,count = find_recall_url(project=project,device_id=device_id,created_at=created_at)
+    for result in results:
+      all_json = {}
+      result_json = get_json_from_api(url=result[0].replace('"',''))
+      all_json['src'] = json.loads(result[1])
+      all_json['recall_result'] = result_json
+      count = insert_event(table=project,alljson=json.dumps(all_json,ensure_ascii=False),track_id=0,distinct_id=device_id,lib='ghost_sa',event='$is_channel_callback_event',type_1='ghost_sa_func',User_Agent=None,Host=None,Connection=None,Pragma=None,Cache_Control=None,Accept=None,Accept_Encoding=None,Accept_Language=None,ip=None,ip_city=None,ip_asn=None,url=None,referrer=None,remark='normal',ua_platform=None,ua_browser=None,ua_version=None,ua_language=None,created_at=created_at)
+      if admin.use_properties is True:
+          properties_key = []
+          for keys in all_json.keys():
+            properties_key.append(keys)
+          insert_properties(project=project,lib='ghost_sa',remark='normal',event='$is_channel_callback_event',properties=json.dumps(properties_key),properties_len=len(all_json.keys()),created_at=created_at,updated_at=created_at)
+      return count
+  else:
+    return 0
 if __name__ == "__main__":
-    encode_url(utm_source='测试')
+    # encode_url(utm_source='测试')
+    print(recall_dsp(project='fideo_v1',device_id='48D32705-BCC2-4BBC-A637-D1FFB572C96C',created_at=1592899611))
