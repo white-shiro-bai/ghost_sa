@@ -89,7 +89,7 @@ def insert_data(project,data_decode,User_Agent,Host,Connection,Pragma,Cache_Cont
 def get_data():
   remark = request.args.get('remark') if 'remark' in request.args else 'normal'
   project = request.args.get('project')
-  User_Agent = request.headers.get('User-Agent') #Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36
+  User_Agent = request.headers.get('User-Agent')[0:2047] if request.headers.get('User-Agent') else None #Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36
   Host = request.headers.get('Host') #: 10.16.5.241:5000
   Connection = request.headers.get('Connection')#: keep-alive
   Pragma = request.headers.get('Pragma')#: no-cache
@@ -334,7 +334,7 @@ def ghost_check():
 def installation_track():
   start_time = time.time()
   project = request.args.get('project')
-  User_Agent = request.headers.get('User-Agent') #Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36
+  User_Agent = request.headers.get('User-Agent')[0:2047] if request.headers.get('User-Agent') else None #Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36
   Host = request.headers.get('Host') #: 10.16.5.241:5000
   Connection = request.headers.get('Connection')#: keep-alive
   Pragma = request.headers.get('Pragma')#: no-cache
@@ -437,7 +437,7 @@ def check_exist_distinct_id():
   distinct_id = request.args.get('distinct_id')
   query_from = request.args.get('query_from')
 
-  User_Agent = request.headers.get('User-Agent') #Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36
+  User_Agent = request.headers.get('User-Agent')[0:2047] if request.headers.get('User-Agent') else None #Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36
   Host = request.headers.get('Host') #: 10.16.5.241:5000
   Connection = request.headers.get('Connection')#: keep-alive
   Pragma = request.headers.get('Pragma')#: no-cache
