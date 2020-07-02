@@ -262,7 +262,7 @@ def distinct_id_query(distinct_id,project):
 
 def find_recall_url(project,device_id,created_at):
   date = time.strftime("%Y-%m-%d", time.localtime(created_at))
-  sql = """select JSON_EXTRACT(all_json,'$."properties"."callback_url"'),all_json from {project} where date >= DATE_SUB('{date}',INTERVAL {day_diff} day) and date <= '{date}' and `event` = '$AppChannelMatching' and distinct_id in ('{device_id}',md5('{device_id}'),replace('{device_id}','"',''),md5(replace('{device_id}','"',''))) order by created_at desc limit 1""".format(project=project,device_id=device_id,date=date,day_diff=admin.aso_dsp_callback_interval_days)
+  sql = """select JSON_EXTRACT(all_json,'$."properties"."callback_url"'),all_json,distinct_id from {project} where date >= DATE_SUB('{date}',INTERVAL {day_diff} day) and date <= '{date}' and `event` = '$AppChannelMatching' and distinct_id in ('{device_id}',md5('{device_id}'),replace('{device_id}','"',''),md5(replace('{device_id}','"',''))) order by created_at desc limit 1""".format(project=project,device_id=device_id,date=date,day_diff=admin.aso_dsp_callback_interval_days)
   result,count = do_tidb_select(sql)
   return result,count
 
