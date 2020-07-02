@@ -72,17 +72,20 @@ def insert_data(project,data_decode,User_Agent,Host,Connection,Pragma,Cache_Cont
       # if type_1 == 'profile_set' or type_1 == 'track_signup' or type_1 =='profile_set_once' or event == '$SignUp':
       if type_1 == 'profile_set' or type_1 == 'track_signup' or type_1 =='profile_set_once':
         insert_user(project=project,data_decode=data_decode,created_at=created_at)
-      if admin.aso_dsp_callback == True and event == admin.aso_dsp_callback_event and data_decode['properties']['$is_first_day'] is True:
-        ids = []
-        if '$device_id' in data_decode['properties']:
-          ids.append(data_decode['properties']['$device_id'])
-        if 'imei' in data_decode['properties']:
-          ids.append(data_decode['properties']['imei'])
-        if 'idfa' in data_decode['properties']:
-          ids.append(data_decode['properties']['idfa'])
-        for did in ids:
-          dsp_count = recall_dsp(project=project,device_id=did,created_at=created_at)
-          print('回调DSP',dsp_count)
+      if admin.aso_dsp_callback == True and event == admin.aso_dsp_callback_event:
+        if data_decode['properties']['$is_first_day'] is True or admin.aso_dsp_callback_history is True:
+          ids = []
+          if "anonymous_id" in data_decode:
+            ids.append(data_decode["anonymous_id"])
+          if "$device_id" in data_decode["properties"]:
+            ids.append(data_decode["properties"]["$device_id"])
+          if "imei" in data_decode["properties"]:
+            ids.append(data_decode["properties"]["imei"])
+          if "idfa" in data_decode["properties"]:
+            ids.append(data_decode["properties"]["idfa"])
+          for did in ids:
+            dsp_count = recall_dsp(project=project,device_id=did,created_at=created_at)
+            print('回调DSP',dsp_count)
     except Exception:
       error = traceback.format_exc()
       write_to_log(filename='api',defname='insert_data',result=error)
