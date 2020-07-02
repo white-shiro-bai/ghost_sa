@@ -73,9 +73,16 @@ def insert_data(project,data_decode,User_Agent,Host,Connection,Pragma,Cache_Cont
       if type_1 == 'profile_set' or type_1 == 'track_signup' or type_1 =='profile_set_once':
         insert_user(project=project,data_decode=data_decode,created_at=created_at)
       if admin.aso_dsp_callback == True and event == admin.aso_dsp_callback_event and data_decode['properties']['$is_first_day'] is True:
-        device_id = data_decode['properties']['$device_id']
-        dsp_count = recall_dsp(project=project,device_id=device_id,created_at=created_at)
-        print('回调DSP',dsp_count)
+        ids = []
+        if '$device_id' in data_decode['properties']:
+          ids.append(data_decode['properties']['$device_id'])
+        if 'imei' in data_decode['properties']:
+          ids.append(data_decode['properties']['imei'])
+        if 'idfa' in data_decode['properties']:
+          ids.append(data_decode['properties']['idfa'])
+        for did in ids:
+          dsp_count = recall_dsp(project=project,device_id=did,created_at=created_at)
+          print('回调DSP',dsp_count)
     except Exception:
       error = traceback.format_exc()
       write_to_log(filename='api',defname='insert_data',result=error)
@@ -397,7 +404,7 @@ def insert_installation_track(project, data_decode, User_Agent, Host, Connection
   timenow16 = int(round(time.time() * 1000))
   distinct_id = 'undefined'
   track_id  = 0
-  dist_id_name = ['idfa','IDFA','imei','IMEI','Idfa','Imei','androidid']
+  dist_id_name = ['IDFA','androidid','IMEI','Idfa','Imei','imei','idfa']
   for i in dist_id_name:
     if i in data_decode['properties'].keys() and data_decode['properties'][i] :
       distinct_id = data_decode['properties'][i]
