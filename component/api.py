@@ -75,13 +75,13 @@ def insert_data(project,data_decode,User_Agent,Host,Connection,Pragma,Cache_Cont
       if admin.aso_dsp_callback == True and event == admin.aso_dsp_callback_event:
         if data_decode['properties']['$is_first_day'] is True or admin.aso_dsp_callback_history is True:
           ids = []
-          if "anonymous_id" in data_decode:
+          if "anonymous_id" in data_decode and data_decode["anonymous_id"] not in ids:
             ids.append(data_decode["anonymous_id"])
-          if "$device_id" in data_decode["properties"]:
+          if "$device_id" in data_decode["properties"] and data_decode["properties"]["$device_id"] not in ids:
             ids.append(data_decode["properties"]["$device_id"])
-          if "imei" in data_decode["properties"]:
+          if "imei" in data_decode["properties"] and data_decode["properties"]["imei"] not in ids:
             ids.append(data_decode["properties"]["imei"])
-          if "idfa" in data_decode["properties"]:
+          if "idfa" in data_decode["properties"] and data_decode["properties"]["idfa"] not in ids:
             ids.append(data_decode["properties"]["idfa"])
           for did in ids:
             dsp_count = recall_dsp(project=project,device_id=did,created_at=created_at)
