@@ -5,3 +5,5 @@
 "youmi_aso_ios","有米ASO_iOS","idfa={idfa}&callback_url={callback_url}&ip={ip}&is_offerwall=1","有米ASO","iOS_ASO",,,
 "aso100_aso_android","七麦ASO_Android","imei={imei}&callback_url={callback}&ip={ip}&is_offerwall=1","七麦ASO","Android_ASO",,,
 "aso100_aso_ios","七麦ASO_iOS","idfa={idfa}&callback_url={callback}&ip={ip}&is_offerwall=1","七麦ASO","iOS_ASO",,,
+"baidu_dsp_ios","百度信息流_iOS","idfa={{IDFA}}&ip={{IP}}&os={{OS}}&ua={{UA}}&ts={{TS}}&callback_url={{CALLBACK_URL}}&size={{SIZE}}&plan_id={{PLAN_ID}}&unit_id={{UNIT_ID}}&idea_id={{IDEA_ID}}","百度信息流","iOS_DSP","{{PLAN_ID}}","{{UNIT_ID}}","{{IDEA_ID}}"
+"baidu_dsp_android","百度信息流_Android","imei={{IMEI_MD5}}&android_id={{ANDROID_ID_MD5}}&ip={{IP}}&os={{OS}}&ua={{UA}}&ts={{TS}}&callback_url={{CALLBACK_URL}}&size={{SIZE}}&plan_id={{PLAN_ID}}&unit_id={{UNIT_ID}}&idea_id={{IDEA_ID}}","百度信息流","Android_DSP","{{PLAN_ID}}","{{UNIT_ID}}","{{IDEA_ID}}"

@@ -224,7 +224,7 @@ def recall_dsp(project,device_id,created_at):
     results,count = find_recall_url(project=project,device_id=device_id,created_at=created_at)
     for result in results:
       all_json = {}
-      result_json = get_json_from_api(url=result[0].replace('"',''))
+      result_json = get_json_from_api(url=result[0].replace('"','').replace('{{ATYPE}}','activate').replace('{{AVALUE}}','0').replace('\\u0026','&'))
       org_distinct_id = result[2]
       all_json['src'] = json.loads(result[1])
       all_json['recall_result'] = result_json
