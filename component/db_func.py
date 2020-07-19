@@ -7,9 +7,8 @@ sys.setrecursionlimit(10000000)
 import time
 from component.db_op import do_tidb_exe,do_tidb_select
 from configs.export import write_to_log
-import traceback
 from configs import admin
-# import pymysql
+import traceback
 
 def insert_event(table,alljson,track_id,distinct_id,lib,event,type_1,User_Agent,Host,Connection,Pragma,Cache_Control,Accept,Accept_Encoding,Accept_Language,ip,ip_city,ip_asn,url,referrer,remark,ua_platform,ua_browser,ua_version,ua_language,created_at=None):
   if created_at is None:
@@ -271,3 +270,22 @@ def find_recall_history(project,device_id,created_at):
   sql = """select count(1) from {project} where date >= DATE_SUB('{date}',INTERVAL {day_diff}  day) and date <= '{date}' and `event` = '$is_channel_callback_event' and distinct_id in ('{device_id}',md5('{device_id}'),replace('{device_id}','"',''),md5(replace('{device_id}','"','')))""".format(project=project,device_id=device_id,date=date,day_diff=admin.aso_dsp_callback_interval_days)
   result,count = do_tidb_select(sql)
   return result[0][0]
+
+def check_utm(project,distinct_id):
+  sql = """select distinct_id,
+lib,
+utm_content,
+utm_campaign,
+utm_medium,
+utm_term,
+utm_source,
+latest_utm_content,
+latest_utm_campaign,
+latest_utm_medium,
+latest_utm_term,
+latest_utm_source,
+first_traffic_source_type,
+latest_traffic_source_type
+from {project}_device where distinct_id = '{distinct_id}'""".format(project=project,distinct_id=distinct_id)
+  result,count = do_tidb_select(sql)
+  return result,count

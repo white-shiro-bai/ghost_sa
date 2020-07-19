@@ -22,7 +22,7 @@ from component.db_func import insert_event,get_long_url_from_short,insert_shortc
 from component.db_op import *
 from geoip.geo import get_addr,get_asn
 import gzip
-from component.api_tools import insert_device,encode_urlutm,insert_user,recall_dsp
+from component.api_tools import insert_device,encode_urlutm,insert_user,recall_dsp,return_dsp_utm
 from configs.export import write_to_log
 from component.shorturl import get_suoim_short_url
 from configs import admin
@@ -72,20 +72,24 @@ def insert_data(project,data_decode,User_Agent,Host,Connection,Pragma,Cache_Cont
       # if type_1 == 'profile_set' or type_1 == 'track_signup' or type_1 =='profile_set_once' or event == '$SignUp':
       if type_1 == 'profile_set' or type_1 == 'track_signup' or type_1 =='profile_set_once':
         insert_user(project=project,data_decode=data_decode,created_at=created_at)
-      if admin.aso_dsp_callback == True and event == admin.aso_dsp_callback_event:
-        if data_decode['properties']['$is_first_day'] is True or admin.aso_dsp_callback_history is True:
-          ids = []
-          if "anonymous_id" in data_decode and data_decode["anonymous_id"] not in ids:
-            ids.append(data_decode["anonymous_id"])
-          if "$device_id" in data_decode["properties"] and data_decode["properties"]["$device_id"] not in ids:
-            ids.append(data_decode["properties"]["$device_id"])
-          if "imei" in data_decode["properties"] and data_decode["properties"]["imei"] not in ids:
-            ids.append(data_decode["properties"]["imei"])
-          if "idfa" in data_decode["properties"] and data_decode["properties"]["idfa"] not in ids:
-            ids.append(data_decode["properties"]["idfa"])
-          for did in ids:
-            dsp_count = recall_dsp(project=project,device_id=did,created_at=created_at)
-            print('回调DSP',dsp_count)
+      if event == admin.aso_dsp_callback_event:
+        ids = []
+        if "anonymous_id" in data_decode and data_decode["anonymous_id"] not in ids:
+          ids.append(data_decode["anonymous_id"])
+        if "$device_id" in data_decode["properties"] and data_decode["properties"]["$device_id"] not in ids:
+          ids.append(data_decode["properties"]["$device_id"])
+        if "imei" in data_decode["properties"] and data_decode["properties"]["imei"] not in ids:
+          ids.append(data_decode["properties"]["imei"])
+        if "idfa" in data_decode["properties"] and data_decode["properties"]["idfa"] not in ids:
+          ids.append(data_decode["properties"]["idfa"])
+        for did in ids:
+          insert_device_count = return_dsp_utm(project=project,distinct_id=distinct_id,device_id=did,created_at=created_at)
+          print('更新地址来源',insert_device_count)
+        if admin.aso_dsp_callback == True:
+          if data_decode['properties']['$is_first_day'] is True or admin.aso_dsp_callback_history is True:
+            for did in ids:
+              dsp_count = recall_dsp(project=project,device_id=did,created_at=created_at,ids=ids)
+              print('回调DSP',dsp_count)
     except Exception:
       error = traceback.format_exc()
       write_to_log(filename='api',defname='insert_data',result=error)
