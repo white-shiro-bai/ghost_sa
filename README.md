@@ -62,7 +62,7 @@ SDK的使用方法，可以直接查看神策官方文档 https://www.sensorsdat
 
 3.打开/configs/admin.py 修改查询密码和Kafka支持（默认关闭，直接写入数据）。如果开启Kafka支持，需要配置/configs/kafka.py和运行/kafka_consumer.py来订阅数据。
 
-4.打开/component/setup.py 在最后一行修改自己想要创建的项目名。运行setup.py程序，会完成数据表创建，鬼策服务端初始化完成。
+4.打开/component/setup.py 在最后一行修改自己想要创建的项目名。运行setup.py程序，会完成数据表创建，鬼策服务端初始化完成。使用mysql测试可以用/component/setup_mysql.py创建，会相应缩短字段长度来适应MySQL的限制。
 
 5.运行/flask_main.py 可以开始接收数据了。
 
@@ -71,5 +71,7 @@ SDK的使用方法，可以直接查看神策官方文档 https://www.sensorsdat
 
 
 国内用户可以加我微信 Ben_Xiaobai ，加入鬼策微信群
+
 也可以通过视频，了解鬼策。这里有一个以鬼策为基础的视频分析课（还在佛系更新）
+
 https://space.bilibili.com/920446/channel/detail?cid=124583
