@@ -19,6 +19,7 @@ ghost_sa(鬼策)可以理解为不带前端界面的神策服务端。
 4.移动端激活回调
 
 使用了flask框架，可以通过uwsgi部署。数据库建议使用TiDB，实测1天200万事件量，单次查询当天事件在10毫秒左右，查询1个月范围的数据，返回在30-60秒左右。
+实际使用在TiDB最低的配置3x8c_32g的情况下，每天可以支持500万的事件量。
 如果只是体验和测试功能，也可以用MySQL 5.7（含）以上的版本，不过性能很差。
 
 支持使用Kafka。
@@ -66,3 +67,9 @@ SDK的使用方法，可以直接查看神策官方文档 https://www.sensorsdat
 5.运行/flask_main.py 可以开始接收数据了。
 
 更多文档可以看 wiki  https://github.com/white-shiro-bai/ghost_sa/wiki
+
+
+
+国内用户可以加我微信 Ben_Xiaobai ，加入鬼策微信群
+也可以通过视频，了解鬼策。这里有一个以鬼策为基础的视频分析课（还在佛系更新）
+https://space.bilibili.com/920446/channel/detail?cid=124583
