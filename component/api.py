@@ -413,7 +413,7 @@ def insert_installation_track(project, data_decode, User_Agent, Host, Connection
   track_id  = 0
   dist_id_name = ['IDFA','androidid','IMEI','Idfa','Imei','imei','idfa']
   for i in dist_id_name:
-    if i in data_decode['properties'].keys() and data_decode['properties'][i] :
+    if i in data_decode['properties'].keys() and data_decode['properties'][i] and  data_decode['properties'][i]!='':
       distinct_id = data_decode['properties'][i]
   if 'ts' in  data_decode['properties']:
     track_id = re.sub("\D","",data_decode['properties']['ts'])
