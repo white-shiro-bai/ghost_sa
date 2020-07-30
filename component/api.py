@@ -103,74 +103,80 @@ def insert_data(project,data_decode,User_Agent,Host,Connection,Pragma,Cache_Cont
 def get_data():
   remark = request.args.get('remark') if 'remark' in request.args else 'normal'
   project = request.args.get('project')
-  User_Agent = request.headers.get('User-Agent')[0:2047] if request.headers.get('User-Agent') else None #Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36
-  Host = request.headers.get('Host') #: 10.16.5.241:5000
-  Connection = request.headers.get('Connection')#: keep-alive
-  Pragma = request.headers.get('Pragma')#: no-cache
-  Cache_Control = request.headers.get('Cache-Control')#: no-cache
-  Accept = request.headers.get('Accept')[0:254] if request.headers.get('Accept') else None#: image/webp,image/apng,image/*,*/*;q=0.8
-  Accept_Encoding = request.headers.get('Accept-Encoding')[0:254] if request.headers.get('Accept-Encoding') else None#: gzip, deflate
-  Accept_Language = request.headers.get('Accept-Language')[0:254] if request.headers.get('Accept-Language') else None#: zh-CN,zh;q=0.9
-  ua_platform = request.user_agent.platform #客户端操作系统
-  ua_browser = request.user_agent.browser #客户端的浏览器
-  ua_version = request.user_agent.version #客户端浏览器的版本
-  ua_language = request.user_agent.language #客户端浏览器的语言
-  ext = request.args.get('ext')
-  url = request.url
-  # ip = '124.115.214.179' #测试西安bug
-  # ip = '36.5.99.68' #测试安徽bug
-  if request.headers.get('X-Forwarded-For') is None:
-    ip = request.remote_addr#服务器直接暴露
-  else:
-    ip = request.headers.get('X-Forwarded-For') #获取SLB真实地址
-  ip_city,ip_is_good = get_addr(ip)
-  ip_asn,ip_asn_is_good = get_asn(ip)
-  if ip_is_good ==0:
-    ip_city = '{}'
-  if ip_asn_is_good ==0:
-    ip_asn = '{}'
-  referrer = request.referrer
-  if request.method == 'POST':
-    # print(request.form.get())
-    if 'data_list' in request.form:
-      data_list = request.form.get('data_list')
-      de64 = base64.b64decode(urllib.parse.unquote(data_list).encode('utf-8'))
-      try:
-        data_decodes = json.loads(gzip.decompress(de64))
-      except:
-        data_decodes = json.loads(de64)
-      for data_decode in data_decodes:
+  if project:
+    User_Agent = request.headers.get('User-Agent')[0:2047] if request.headers.get('User-Agent') else None#Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36
+    Host = request.headers.get('Host') #: 10.16.5.241:5000
+    Connection = request.headers.get('Connection')#: keep-alive
+    Pragma = request.headers.get('Pragma')#: no-cache
+    Cache_Control = request.headers.get('Cache-Control')#: no-cache
+    Accept = request.headers.get('Accept')[0:254] if request.headers.get('Accept') else None#: image/webp,image/apng,image/*,*/*;q=0.8
+    Accept_Encoding = request.headers.get('Accept-Encoding')[0:254] if request.headers.get('Accept-Encoding') else None#: gzip, deflate
+    Accept_Language = request.headers.get('Accept-Language')[0:254] if request.headers.get('Accept-Language') else None#: zh-CN,zh;q=0.9
+    ua_platform = request.user_agent.platform #客户端操作系统
+    ua_browser = request.user_agent.browser #客户端的浏览器
+    ua_version = request.user_agent.version #客户端浏览器的版本
+    ua_language = request.user_agent.language #客户端浏览器的语言
+    ext = request.args.get('ext')
+    url = request.url
+    # ip = '124.115.214.179' #测试西安bug
+    # ip = '36.5.99.68' #测试安徽bug
+    if request.headers.get('X-Forwarded-For') is None:
+      ip = request.remote_addr#服务器直接暴露
+    else:
+      ip = request.headers.get('X-Forwarded-For') #获取SLB真实地址
+    ip_city,ip_is_good = get_addr(ip)
+    ip_asn,ip_asn_is_good = get_asn(ip)
+    if ip_is_good ==0:
+      ip_city = '{}'
+    if ip_asn_is_good ==0:
+      ip_asn = '{}'
+    referrer = request.referrer
+    if request.method == 'POST':
+      # print(request.form.get())
+      if 'data_list' in request.form:
+        data_list = request.form.get('data_list')
+        de64 = base64.b64decode(urllib.parse.unquote(data_list).encode('utf-8'))
+        try:
+          data_decodes = json.loads(gzip.decompress(de64))
+        except:
+          data_decodes = json.loads(de64)
+        for data_decode in data_decodes:
+          insert_data(project=project,data_decode=data_decode,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good)
+      elif 'data' in request.form:
+        # print(request.cookies)
+        data = request.form.get('data')
+        de64 = base64.b64decode(urllib.parse.unquote(data).encode('utf-8'))
+        try:
+          data_decode = json.loads(gzip.decompress(de64))
+        except:
+          data_decode = json.loads(de64)
         insert_data(project=project,data_decode=data_decode,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good)
-    elif 'data' in request.form:
-      # print(request.cookies)
-      data = request.form.get('data')
-      de64 = base64.b64decode(urllib.parse.unquote(data).encode('utf-8'))
-      try:
-        data_decode = json.loads(gzip.decompress(de64))
-      except:
-        data_decode = json.loads(de64)
-      insert_data(project=project,data_decode=data_decode,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good)
+      else:
+        write_to_log(filename='api',defname='get_datas',result=str(request.form))
+        # print(request.form)
+    elif request.method == 'GET':
+      # try:
+      if 'data' in request.args:
+        data = request.args.get('data')
+        de64 = base64.b64decode(urllib.parse.unquote(data).encode('utf-8'))
+        try:
+          data_decode = json.loads(gzip.decompress(de64))
+        except:
+          data_decode = json.loads(de64)
+        insert_data(project=project,data_decode=data_decode,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good)
+      else:
+        write_to_log(filename='api',defname='get_datas',result=url)
     else:
-      write_to_log(filename='api',defname='get_datas',result=str(request.form))
-      # print(request.form)
-  elif request.method == 'GET':
-    # try:
-    if 'data' in request.args:
-      data = request.args.get('data')
-      de64 = base64.b64decode(urllib.parse.unquote(data).encode('utf-8'))
-      try:
-        data_decode = json.loads(gzip.decompress(de64))
-      except:
-        data_decode = json.loads(de64)
-      insert_data(project=project,data_decode=data_decode,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good)
-    else:
-      write_to_log(filename='api',defname='get_datas',result=url)
+      write_to_log(filename='api',defname='get_datas',result=str(request.method)+url)
+    bitimage1 = os.path.join('image','43byte.gif')
+    with open(bitimage1, 'rb') as f:
+          returnimage = f.read()
+    return Response(returnimage, mimetype="image/gif")
   else:
-    write_to_log(filename='api',defname='get_datas',result=str(request.method)+url)
-  bitimage1 = os.path.join('image','43byte.gif')
-  with open(bitimage1, 'rb') as f:
-        returnimage = f.read()
-  return Response(returnimage, mimetype="image/gif")
+    bitimage1 = os.path.join('image','43byte.gif')
+    with open(bitimage1, 'rb') as f:
+          returnimage = f.read()
+    return Response(returnimage, mimetype="image/gif")
 
 def get_datas():
   try:
@@ -348,62 +354,68 @@ def ghost_check():
 def installation_track():
   start_time = time.time()
   project = request.args.get('project')
-  User_Agent = request.headers.get('User-Agent')[0:2047] if request.headers.get('User-Agent') else None #Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36
-  Host = request.headers.get('Host') #: 10.16.5.241:5000
-  Connection = request.headers.get('Connection')#: keep-alive
-  Pragma = request.headers.get('Pragma')#: no-cache
-  Cache_Control = request.headers.get('Cache-Control')#: no-cache
-  Accept = request.headers.get('Accept')[0:254] if request.headers.get('Accept') else None#: image/webp,image/apng,image/*,*/*;q=0.8
-  Accept_Encoding = request.headers.get('Accept-Encoding')[0:254] if request.headers.get('Accept-Encoding') else None #: gzip, deflate
-  remark = request.args.get('remark') if 'remark' in request.args else 'normal'
-  Accept_Language = request.headers.get('Accept-Language')[0:254] if request.headers.get('Accept-Language') else None#: zh-CN,zh;q=0.9
-  ua_platform = request.user_agent.platform #客户端操作系统
-  ua_browser = request.user_agent.browser #客户端的浏览器
-  ua_version = request.user_agent.version #客户端浏览器的版本
-  ua_language = request.user_agent.language #客户端浏览器的语言
-  ext = request.args.get('ext')
-  url = request.url
-  args = request.args.to_dict(request.args)
-  data = {"properties":args}
-  # ip = '124.115.214.179' #测试西安bug
-  # ip = '36.5.99.68' #测试安徽bug
-  if  'ip' in args and len(args['ip']) - len( args['ip'].replace('.','') ) == 3:#判断IP里是否存在IP地址
-    ip = args['ip']
-  elif request.headers.get('X-Forwarded-For') is not None:
-    ip = request.headers.get('X-Forwarded-For') #获取SLB真实地址
-  else:
-    ip = request.remote_addr#服务器直接暴露
-  ip_city,ip_is_good = get_addr(ip)
-  ip_asn,ip_asn_is_good = get_asn(ip)
-  if ip_is_good ==0:
-    ip_city = '{}'
-  if ip_asn_is_good ==0:
-    ip_asn = '{}'
-  referrer = request.referrer
-  try:
-    if 'properties' in data and 'is_offerwall' in  data['properties'] and data['properties']['is_offerwall']=='1':
-      count_event,count_user,time_cost = insert_installation_track(project=project,data_decode=data,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma, Cache_Control=Cache_Control, Accept=Accept, Accept_Encoding=Accept_Encoding, Accept_Language=Accept_Language, ip=ip, ip_city=ip_city,ip_asn=ip_asn, url=url, referrer=referrer, remark=remark, ua_platform=ua_platform, ua_browser=ua_browser, ua_version=ua_version, ua_language=ua_language, ip_is_good=ip_is_good, ip_asn_is_good=ip_asn_is_good)
-      if count_event and count_event>0 or count_user and count_user>0:
-        code = 0 #有米标准
-        msg = "success" #有米标准
-        result = 1 #七麦标准
-        error = '成功' #七麦标准
-      else:
-        code = -1 #有米标准
-        msg = 'failed' #有米标准
-        result = 0 #七麦标准
-        error = '没有记录插入' #七麦标准
-      returnjson = {'count_event':count_event,'count_user':count_user,'timecost':round(time_cost,4),'code':code,'msg':msg,'args':args,'result':result,'error':error}
-      return jsonify(returnjson)
+  if project:
+    User_Agent = request.headers.get('User-Agent') #Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36
+    Host = request.headers.get('Host') #: 10.16.5.241:5000
+    Connection = request.headers.get('Connection')#: keep-alive
+    Pragma = request.headers.get('Pragma')#: no-cache
+    Cache_Control = request.headers.get('Cache-Control')#: no-cache
+    Accept = request.headers.get('Accept')[0:254] if request.headers.get('Accept') else None#: image/webp,image/apng,image/*,*/*;q=0.8
+    Accept_Encoding = request.headers.get('Accept-Encoding')[0:254] if request.headers.get('Accept-Encoding') else None #: gzip, deflate
+    remark = request.args.get('remark') if 'remark' in request.args else 'normal'
+    Accept_Language = request.headers.get('Accept-Language')[0:254] if request.headers.get('Accept-Language') else None#: zh-CN,zh;q=0.9
+    ua_platform = request.user_agent.platform #客户端操作系统
+    ua_browser = request.user_agent.browser #客户端的浏览器
+    ua_version = request.user_agent.version #客户端浏览器的版本
+    ua_language = request.user_agent.language #客户端浏览器的语言
+    ext = request.args.get('ext')
+    url = request.url
+    args = request.args.to_dict(request.args)
+    data = {"properties":args}
+    # ip = '124.115.214.179' #测试西安bug
+    # ip = '36.5.99.68' #测试安徽bug
+    if  'ip' in args and len(args['ip']) - len( args['ip'].replace('.','') ) == 3:#判断IP里是否存在IP地址
+      ip = args['ip']
+    elif request.headers.get('X-Forwarded-For') is not None:
+      ip = request.headers.get('X-Forwarded-For') #获取SLB真实地址
     else:
-      insert_installation_track(project=project,data_decode=data,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma, Cache_Control=Cache_Control, Accept=Accept, Accept_Encoding=Accept_Encoding, Accept_Language=Accept_Language, ip=ip, ip_city=ip_city,ip_asn=ip_asn, url=url, referrer=referrer, remark=remark, ua_platform=ua_platform, ua_browser=ua_browser, ua_version=ua_version, ua_language=ua_language, ip_is_good=ip_is_good, ip_asn_is_good=ip_asn_is_good)
-      bitimage1 = os.path.join('image','43byte.gif')
-      with open(bitimage1, 'rb') as f:
-        returnimage = f.read()
-      return Response(returnimage, mimetype="image/gif")
-  except Exception:
-    error = traceback.format_exc()
-    write_to_log(filename='api',defname='installation_track',result=error)
+      ip = request.remote_addr#服务器直接暴露
+    ip_city,ip_is_good = get_addr(ip)
+    ip_asn,ip_asn_is_good = get_asn(ip)
+    if ip_is_good ==0:
+      ip_city = '{}'
+    if ip_asn_is_good ==0:
+      ip_asn = '{}'
+    referrer = request.referrer
+    try:
+      if 'properties' in data and 'is_offerwall' in  data['properties'] and data['properties']['is_offerwall']=='1':
+        count_event,count_user,time_cost = insert_installation_track(project=project,data_decode=data,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma, Cache_Control=Cache_Control, Accept=Accept, Accept_Encoding=Accept_Encoding, Accept_Language=Accept_Language, ip=ip, ip_city=ip_city,ip_asn=ip_asn, url=url, referrer=referrer, remark=remark, ua_platform=ua_platform, ua_browser=ua_browser, ua_version=ua_version, ua_language=ua_language, ip_is_good=ip_is_good, ip_asn_is_good=ip_asn_is_good)
+        if count_event and count_event>0 or count_user and count_user>0:
+          code = 0 #有米标准
+          msg = "success" #有米标准
+          result = 1 #七麦标准
+          error = '成功' #七麦标准
+        else:
+          code = -1 #有米标准
+          msg = 'failed' #有米标准
+          result = 0 #七麦标准
+          error = '没有记录插入' #七麦标准
+        returnjson = {'count_event':count_event,'count_user':count_user,'timecost':round(time_cost,4),'code':code,'msg':msg,'args':args,'result':result,'error':error}
+        return jsonify(returnjson)
+      else:
+        insert_installation_track(project=project,data_decode=data,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma, Cache_Control=Cache_Control, Accept=Accept, Accept_Encoding=Accept_Encoding, Accept_Language=Accept_Language, ip=ip, ip_city=ip_city,ip_asn=ip_asn, url=url, referrer=referrer, remark=remark, ua_platform=ua_platform, ua_browser=ua_browser, ua_version=ua_version, ua_language=ua_language, ip_is_good=ip_is_good, ip_asn_is_good=ip_asn_is_good)
+        bitimage1 = os.path.join('image','43byte.gif')
+        with open(bitimage1, 'rb') as f:
+          returnimage = f.read()
+        return Response(returnimage, mimetype="image/gif")
+    except Exception:
+      error = traceback.format_exc()
+      write_to_log(filename='api',defname='installation_track',result=error)
+  else:
+    bitimage1 = os.path.join('image','43byte.gif')
+    with open(bitimage1, 'rb') as f:
+      returnimage = f.read()
+    return Response(returnimage, mimetype="image/gif")
 
 def insert_installation_track(project, data_decode, User_Agent, Host, Connection, Pragma, Cache_Control, Accept, Accept_Encoding, Accept_Language, ip, ip_city,
                     ip_asn, url, referrer, remark, ua_platform, ua_browser, ua_version, ua_language, ip_is_good, ip_asn_is_good, created_at=None, updated_at=None,use_kafka=admin.use_kafka):
@@ -676,3 +688,32 @@ def create_mobile_ad_link():
   else:
     returnjson = {'result':'error','error':'参数不全'}
     return jsonify(returnjson)
+
+def who_am_i():
+  if request.headers.get('X-Forwarded-For') is None:
+    ip = request.remote_addr#服务器直接暴露
+  else:
+    ip = request.headers.get('X-Forwarded-For') #获取SLB真实地址
+  ip_city,ip_is_good = get_addr(ip)
+  ip_asn,ip_asn_is_good = get_asn(ip)
+  if ip_is_good ==0:
+    ip_city = '{}'
+  if ip_asn_is_good ==0:
+    ip_asn = '{}'
+  User_Agent = request.headers.get('User-Agent')[0:2047] if request.headers.get('User-Agent') else None#Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36
+  Host = request.headers.get('Host') #: 10.16.5.241:5000
+  Connection = request.headers.get('Connection')#: keep-alive
+  Pragma = request.headers.get('Pragma')#: no-cache
+  Cache_Control = request.headers.get('Cache-Control')#: no-cache
+  Accept = request.headers.get('Accept')[0:254] if request.headers.get('Accept') else None#: image/webp,image/apng,image/*,*/*;q=0.8
+  Accept_Encoding = request.headers.get('Accept-Encoding')[0:254] if request.headers.get('Accept-Encoding') else None#: gzip, deflate
+  Accept_Language = request.headers.get('Accept-Language')[0:254] if request.headers.get('Accept-Language') else None#: zh-CN,zh;q=0.9
+  ua_platform = request.user_agent.platform #客户端操作系统
+  ua_browser = request.user_agent.browser #客户端的浏览器
+  ua_version = request.user_agent.version #客户端浏览器的版本
+  ua_language = request.user_agent.language #客户端浏览器的语言
+  url = request.url
+  referrer = request.referrer
+
+  returnjson = {'ip':ip,'ip_city':ip_city,'ip_asn':ip_asn,'ip_is_good':ip_is_good,'ip_asn_is_good':ip_asn_is_good,'User_Agent':User_Agent,'Host':Host,'Connection':Connection,'Pragma':Pragma,'Cache_Control':Cache_Control,'Accept':Accept,'Accept_Encoding':Accept_Encoding,'Accept_Language':Accept_Language,'ua_platform':ua_platform,'ua_browser':ua_browser,'ua_version':ua_version,'ua_language':ua_language,'url':url,'referrer':referrer}
+  return jsonify(returnjson)

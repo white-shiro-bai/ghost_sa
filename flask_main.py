@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*
 # author: unknowwhite@outlook.com
 # wechat: Ben_Xiaobai
-from component.api import get_datas, get_long, shortit, show_short_cut_list, ghost_check ,installation_track,show_project_list,show_mobile_ad_list,show_mobile_src_list,create_mobile_ad_link,check_exist_distinct_id
+from component.api import get_datas, get_long, shortit, show_short_cut_list, ghost_check ,installation_track,show_project_list,show_mobile_ad_list,show_mobile_src_list,create_mobile_ad_link,check_exist_distinct_id,who_am_i
 from flask_cors import CORS
 from flask import jsonify
 from flask import make_response
@@ -53,6 +53,8 @@ app.add_url_rule('/show_mobile_ad_list', view_func=show_mobile_ad_list, methods=
 app.add_url_rule('/create_mobile_ad_link', view_func=create_mobile_ad_link, methods=['POST'])#创建移动广告跟踪链接
 app.add_url_rule('/show_mobile_src_list', view_func=show_mobile_src_list, methods=['GET','POST'])#获取支持的跟踪列表
 app.add_url_rule('/check_exist', view_func=check_exist_distinct_id, methods=['GET'])#查询idfa或其他id是否已存在
+#辅助功能
+app.add_url_rule('/who_am_i', view_func=who_am_i, methods=['GET'])#获取自身ip
 
 if __name__ == '__main__':
     app.run(threaded=True, host='0.0.0.0', port=8000)  # 默认不填写的话，是5000端口；
