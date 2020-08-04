@@ -95,8 +95,8 @@ def insert_data(project,data_decode,User_Agent,Host,Connection,Pragma,Cache_Cont
       write_to_log(filename='api',defname='insert_data',result=error)
   elif use_kafka is True:
     timenow = int(time.time())
-    timenow16 = int(round(time.time() * 1000))
-    msg = {"timestamp":timenow16,"data":{"project":project,"data_decode":data_decode,"User_Agent":User_Agent,"Host":Host,"Connection":Connection,"Pragma":Pragma,"Cache_Control":Cache_Control,"Accept":Accept,"Accept_Encoding":Accept_Encoding,"Accept_Language":Accept_Language,"ip":ip,"ip_city":ip_city,"ip_asn":ip_asn,"url":url,"referrer":referrer,"remark":remark,"ua_platform":ua_platform,"ua_browser":ua_browser,"ua_version":ua_version,"ua_language":ua_language,"ip_is_good":ip_is_good,"ip_asn_is_good":ip_asn_is_good,"created_at":timenow,"updated_at":timenow}}
+    timenow13 = int(round(time.time() * 1000))
+    msg = {"timestamp":timenow13,"data":{"project":project,"data_decode":data_decode,"User_Agent":User_Agent,"Host":Host,"Connection":Connection,"Pragma":Pragma,"Cache_Control":Cache_Control,"Accept":Accept,"Accept_Encoding":Accept_Encoding,"Accept_Language":Accept_Language,"ip":ip,"ip_city":ip_city,"ip_asn":ip_asn,"url":url,"referrer":referrer,"remark":remark,"ua_platform":ua_platform,"ua_browser":ua_browser,"ua_version":ua_version,"ua_language":ua_language,"ip_is_good":ip_is_good,"ip_asn_is_good":ip_asn_is_good,"created_at":timenow,"updated_at":timenow}}
     insert_message_to_kafka(msg=msg)
   print(time.time()-start_time)
 
@@ -420,12 +420,12 @@ def installation_track():
 def insert_installation_track(project, data_decode, User_Agent, Host, Connection, Pragma, Cache_Control, Accept, Accept_Encoding, Accept_Language, ip, ip_city,
                     ip_asn, url, referrer, remark, ua_platform, ua_browser, ua_version, ua_language, ip_is_good, ip_asn_is_good, created_at=None, updated_at=None,use_kafka=admin.use_kafka):
   start_time = time.time()
-  timenow16 = int(round(time.time() * 1000))
-  distinct_id = 'undefined'
+  timenow13 = int(round(time.time() * 1000))
   track_id  = 0
-  dist_id_name = ['IDFA','androidid','IMEI','Idfa','Imei','imei','idfa']
+  dist_id_name = ['IDFA','androidid','android_id','IMEI','Idfa','Imei','imei','idfa']
+  distinct_id = 'undefined'
   for i in dist_id_name:
-    if i in data_decode['properties'].keys() and data_decode['properties'][i] and  data_decode['properties'][i]!='':
+    if i in data_decode['properties'].keys() and data_decode['properties'][i] and data_decode['properties'][i]!='' and data_decode['properties'][i]!='undefined':
       distinct_id = data_decode['properties'][i]
   if 'ts' in  data_decode['properties']:
     track_id = re.sub("\D","",data_decode['properties']['ts'])
@@ -451,7 +451,7 @@ def insert_installation_track(project, data_decode, User_Agent, Host, Connection
       insert_properties(project=project,lib='ghost_sa',remark=remark,event='$AppChannelMatching',properties=json.dumps(properties_key),properties_len=len(data_decode['properties'].keys()),created_at=created_at if created_at else start_time,updated_at=created_at if created_at else start_time)
     print(time.time()-start_time)
   elif use_kafka is True:
-    msg = {"group":"installation_track","timestamp":timenow16,"data":{"project":project,"data_decode":data_decode,"User_Agent":User_Agent,"Host":Host,"Connection":Connection,"Pragma":Pragma,"Cache_Control":Cache_Control,"Accept":Accept,"Accept_Encoding":Accept_Encoding,"Accept_Language":Accept_Language,"ip":ip,"ip_city":ip_city,"ip_asn":ip_asn,"url":url,"referrer":referrer,"remark":remark,"ua_platform":ua_platform,"ua_browser":ua_browser,"ua_version":ua_version,"ua_language":ua_language,"ip_is_good":ip_is_good,"ip_asn_is_good":ip_asn_is_good,"created_at":created_at if created_at else start_time,"updated_at":created_at if created_at else start_time}}
+    msg = {"group":"installation_track","timestamp":timenow13,"data":{"project":project,"data_decode":data_decode,"User_Agent":User_Agent,"Host":Host,"Connection":Connection,"Pragma":Pragma,"Cache_Control":Cache_Control,"Accept":Accept,"Accept_Encoding":Accept_Encoding,"Accept_Language":Accept_Language,"ip":ip,"ip_city":ip_city,"ip_asn":ip_asn,"url":url,"referrer":referrer,"remark":remark,"ua_platform":ua_platform,"ua_browser":ua_browser,"ua_version":ua_version,"ua_language":ua_language,"ip_is_good":ip_is_good,"ip_asn_is_good":ip_asn_is_good,"created_at":created_at if created_at else start_time,"updated_at":created_at if created_at else start_time}}
     insert_message_to_kafka(msg=msg)
     print(time.time()-start_time)
 
