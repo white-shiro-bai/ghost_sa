@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*
 # author: unknowwhite@outlook.com
 # wechat: Ben_Xiaobai
-from component.api import insert_data,insert_installation_track
+from component.api import insert_data,insert_installation_track,insert_shortcut_history,insert_shortcut_read
 import json
 from component.kafka_op import get_message_from_kafka
 import sys
