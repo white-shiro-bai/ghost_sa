@@ -111,12 +111,27 @@ CREATE TABLE if not EXISTS `mobile_ad_src` (
   `event_count` bigint(20) DEFAULT NULL COMMENT '事件量',
   `device_count` bigint(20) DEFAULT NULL COMMENT '设备数',
   `user_count` bigint(20) DEFAULT NULL COMMENT '用户数'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+"""
+  created_shortcut_read="""CREATE TABLE if not EXISTS `shortcut_read` (
+  `short_url` varchar(255) NOT NULL COMMENT '短链地址',
+  `ip` varchar(20) DEFAULT NULL COMMENT 'ip',
+  `created_at` int(11) DEFAULT NULL COMMENT '时间',
+  `user_agent` text DEFAULT NULL COMMENT 'ua',
+  `accept_language` text DEFAULT NULL COMMENT '语言',
+  `ua_platform` varchar(255) DEFAULT NULL COMMENT '平台',
+  `ua_browser` varchar(255) DEFAULT NULL COMMENT '浏览器',
+  `ua_version` varchar(255) DEFAULT NULL COMMENT '版本号',
+  `ua_language` varchar(255) DEFAULT NULL COMMENT '语言',
+  `referrer` text DEFAULT NULL COMMENT '页面',
+  KEY `short_url` (`short_url`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;"""
   do_tidb_exe(create_shortcut)
   do_tidb_exe(create_shortcut_history)
   do_tidb_exe(create_mobile_ad_src)
   do_tidb_exe(create_mobile_ad_list)
   do_tidb_exe(create_project_list)
+  do_tidb_exe(created_shortcut_read)
   # print('project_list已生成')
   check_sql = "show tables"
   check_result,check_count = do_tidb_select(check_sql)

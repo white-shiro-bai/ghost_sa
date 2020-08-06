@@ -131,7 +131,7 @@ def insert_shortcut(project,short_url,long_url,expired_at,src,src_short_url,subm
 
 
 def show_shortcut(page,length,filters='',sort='`shortcut`.created_at',way='desc'):
-  sql = """SELECT `shortcut`.project,`shortcut`.short_url,`shortcut`.long_url,from_unixtime(`shortcut`.expired_at),from_unixtime(`shortcut`.created_at),`shortcut`.src,`shortcut`.src_short_url,`shortcut`.submitter,`shortcut`.utm_source,`shortcut`.utm_medium,`shortcut`.utm_campaign,`shortcut`.utm_content,`shortcut`.utm_term,shortcut.created_at,shortcut.expired_at,count(shortcut_history.created_at) as visit_times FROM `shortcut` left join `shortcut_history` on `shortcut`.short_url = `shortcut_history`.`short_url` {filters} GROUP BY `shortcut`.project,`shortcut`.short_url,`shortcut`.long_url,from_unixtime(`shortcut`.expired_at),from_unixtime(`shortcut`.created_at),`shortcut`.src,`shortcut`.src_short_url,`shortcut`.submitter,`shortcut`.utm_source,`shortcut`.utm_medium,`shortcut`.utm_campaign,`shortcut`.utm_content,`shortcut`.utm_term,shortcut.created_at,shortcut.expired_at ORDER BY {sort} {way} Limit {start_pageline},{length}""".format(start_pageline=(page-1)*length,length=length,filters=filters,sort=sort,way=way)
+  sql = """SELECT `shortcut`.project,`shortcut`.short_url,`shortcut`.long_url,from_unixtime(`shortcut`.expired_at),from_unixtime(`shortcut`.created_at),`shortcut`.src,`shortcut`.src_short_url,`shortcut`.submitter,`shortcut`.utm_source,`shortcut`.utm_medium,`shortcut`.utm_campaign,`shortcut`.utm_content,`shortcut`.utm_term,shortcut.created_at,shortcut.expired_at,count(shortcut_history.created_at) as visit_times,count(shortcut_read.created_at) as read_times FROM `shortcut` left join `shortcut_history` on `shortcut`.short_url = `shortcut_history`.`short_url`  left join `shortcut_read` on `shortcut`.short_url = `shortcut_read`.`short_url` {filters} GROUP BY `shortcut`.project,`shortcut`.short_url,`shortcut`.long_url,from_unixtime(`shortcut`.expired_at),from_unixtime(`shortcut`.created_at),`shortcut`.src,`shortcut`.src_short_url,`shortcut`.submitter,`shortcut`.utm_source,`shortcut`.utm_medium,`shortcut`.utm_campaign,`shortcut`.utm_content,`shortcut`.utm_term,shortcut.created_at,shortcut.expired_at ORDER BY {sort} {way} Limit {start_pageline},{length}""".format(start_pageline=(page-1)*length,length=length,filters=filters,sort=sort,way=way)
   # print(sql)
   result,count = do_tidb_select(sql)
   if count == 0:
@@ -150,9 +150,9 @@ def count_shortcut(filters=''):
   return result
 
 
-def insert_shortcut_history(short_url,result,cost_time,ip,user_agent,accept_language,ua_platform,ua_browser,ua_version,ua_language):
+def insert_shortcut_history(short_url,result,cost_time,ip,user_agent,accept_language,ua_platform,ua_browser,ua_version,ua_language,created_at=None):
   timenow = int(time.time())
-  sql = """insert HIGH_PRIORITY shortcut_history (`short_url`,`result`,`cost_time`,`ip`,`created_at`,`user_agent`,`accept_language`,`ua_platform`,`ua_browser`,`ua_version`,`ua_language`) values ('{short_url}','{result}',{cost_time},'{ip}',{created_at},'{user_agent}','{accept_language}','{ua_platform}','{ua_browser}','{ua_version}','{ua_language}')""".format(short_url=short_url,result=result,cost_time=cost_time,ip=ip,created_at=timenow,user_agent=user_agent,accept_language=accept_language,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language).replace("'None'","Null").replace("None","Null")
+  sql = """insert HIGH_PRIORITY shortcut_history (`short_url`,`result`,`cost_time`,`ip`,`created_at`,`user_agent`,`accept_language`,`ua_platform`,`ua_browser`,`ua_version`,`ua_language`) values ('{short_url}','{result}',{cost_time},'{ip}',{created_at},'{user_agent}','{accept_language}','{ua_platform}','{ua_browser}','{ua_version}','{ua_language}')""".format(short_url=short_url,result=result,cost_time=cost_time,ip=ip,created_at= created_at if created_at else timenow,user_agent=user_agent,accept_language=accept_language,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language).replace("'None'","Null").replace("None","Null")
   result,count = do_tidb_exe(sql)
   print('已插入解析记录'+str(count))
 
@@ -289,3 +289,10 @@ latest_traffic_source_type
 from {project}_device where distinct_id = '{distinct_id}'""".format(project=project,distinct_id=distinct_id)
   result,count = do_tidb_select(sql)
   return result,count
+
+
+def insert_shortcut_read(short_url,ip,user_agent,accept_language,ua_platform,ua_browser,ua_version,ua_language,referrer,created_at=None):
+  timenow = int(time.time())
+  sql = """insert HIGH_PRIORITY shortcut_read (`short_url`,`ip`,`created_at`,`user_agent`,`accept_language`,`ua_platform`,`ua_browser`,`ua_version`,`ua_language`,`referrer`) values ('{short_url}','{ip}',{created_at},'{user_agent}','{accept_language}','{ua_platform}','{ua_browser}','{ua_version}','{ua_language}','{referrer}')""".format(short_url=short_url,ip=ip,created_at=created_at if created_at else timenow,user_agent=user_agent,accept_language=accept_language,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,referrer=referrer).replace("'None'","Null").replace("None","Null")
+  result,count = do_tidb_exe(sql)
+  print('已插入解析记录'+str(count))

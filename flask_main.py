@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*
 # author: unknowwhite@outlook.com
 # wechat: Ben_Xiaobai
-from component.api import get_datas, get_long, shortit, show_short_cut_list, ghost_check ,installation_track,show_project_list,show_mobile_ad_list,show_mobile_src_list,create_mobile_ad_link,check_exist_distinct_id,who_am_i
+from component.api import get_datas, get_long, shortit, show_short_cut_list, ghost_check ,installation_track,show_project_list,show_mobile_ad_list,show_mobile_src_list,create_mobile_ad_link,check_exist_distinct_id,who_am_i,shortcut_read
 from flask_cors import CORS
 from flask import jsonify
 from flask import make_response
@@ -43,6 +43,7 @@ app.add_url_rule('/show_project_list', view_func=show_project_list, methods=['PO
 app.add_url_rule('/sa.gif', view_func=get_datas, methods=['GET', 'POST'])#神策SDK上报接口
 #短连接
 app.add_url_rule('/t/<short_url>', view_func=get_long, methods=['GET', 'POST'])#解析接口
+app.add_url_rule('/<short_url>.gif', view_func=shortcut_read, methods=['GET'])#站外跟踪
 app.add_url_rule('/shortit', view_func=shortit, methods=['POST'])#短链创建接口
 app.add_url_rule('/shortlist', view_func=show_short_cut_list,methods=['GET', 'POST'])#短链列表
 #埋点管理

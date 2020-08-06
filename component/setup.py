@@ -105,6 +105,19 @@ CREATE TABLE if not EXISTS `mobile_ad_list` (
   `utm_content` varchar(2048) DEFAULT NULL COMMENT 'utm_content',
   `utm_term` varchar(2048) DEFAULT NULL COMMENT 'utm_term',
   PRIMARY KEY (`url`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+CREATE TABLE if not EXISTS `shortcut_read` (
+  `short_url` varchar(255) NOT NULL COMMENT '短链地址',
+  `ip` varchar(20) DEFAULT NULL COMMENT 'ip',
+  `created_at` int(11) DEFAULT NULL COMMENT '时间',
+  `user_agent` text DEFAULT NULL COMMENT 'ua',
+  `accept_language` text DEFAULT NULL COMMENT '语言',
+  `ua_platform` varchar(255) DEFAULT NULL COMMENT '平台',
+  `ua_browser` varchar(255) DEFAULT NULL COMMENT '浏览器',
+  `ua_version` varchar(255) DEFAULT NULL COMMENT '版本号',
+  `ua_language` varchar(255) DEFAULT NULL COMMENT '语言',
+  `referrer` text DEFAULT NULL COMMENT '页面',
+  KEY `short_url` (`short_url`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;"""
   do_tidb_exe(create_project_list)
   # print('project_list已生成')

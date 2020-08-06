@@ -18,7 +18,7 @@ import base64
 import json
 import pprint
 import os
-from component.db_func import insert_event,get_long_url_from_short,insert_shortcut_history,check_long_url,insert_shortcut,show_shortcut,count_shortcut,show_check,insert_properties,insert_user_db,show_project,read_mobile_ad_list,count_mobile_ad_list,read_mobile_ad_src_list,check_mobile_ad_url,insert_mobile_ad_list,distinct_id_query
+from component.db_func import insert_event,get_long_url_from_short,insert_shortcut_history,check_long_url,insert_shortcut,show_shortcut,count_shortcut,show_check,insert_properties,insert_user_db,show_project,read_mobile_ad_list,count_mobile_ad_list,read_mobile_ad_src_list,check_mobile_ad_url,insert_mobile_ad_list,distinct_id_query,insert_shortcut_read
 from component.db_op import *
 from geoip.geo import get_addr,get_asn
 import gzip
@@ -200,9 +200,12 @@ def get_long(short_url):
     ip = request.remote_addr#服务器直接暴露
   else:
     ip = request.headers.get('X-Forwarded-For') #获取SLB真实地址
-  time2 = timenow = int(time.time()) - time1
-  insert_shortcut_history(short_url=short_url,result=status,cost_time=time2,ip=ip,user_agent=User_Agent,accept_language=Accept_Language,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language)
-  print(short_url,long_url,status)
+  time2 = int(time.time()) - time1
+  if admin.use_kafka is False:
+    insert_shortcut_history(short_url=short_url,result=status,cost_time=time2,ip=ip,user_agent=User_Agent,accept_language=Accept_Language,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,created_at=time1)
+  elif admin.use_kafka is True:
+    msg = {"group":"shortcut_history","data":{"short_url":short_url,"status":status,"time2":time2,"ip":ip,"user_agent":User_Agent,"accept_language":Accept_Language,"ua_platform":ua_platform,"ua_browser":ua_browser,"ua_version":ua_version,"ua_language":ua_language,"created_at":time1}}
+    insert_message_to_kafka(msg=msg)
   if status == 'success':
     return redirect(long_url)
   elif status == 'expired':
@@ -303,7 +306,7 @@ def show_short_cut_list():
   if total_count[0][0] > 0:
     result,count = show_shortcut(page=page,length=length,filters=add_on_params,sort=sort,way=way)
     if count >0:
-      result_name = ['project','short_url','long_url','expired_at_str','created_at_str','src','src_short_url','submitter','utm_source','utm_medium','utm_campaign','utm_content','utm_term','created_at','expired_at','visit_times']
+      result_name = ['project','short_url','long_url','expired_at_str','created_at_str','src','src_short_url','submitter','utm_source','utm_medium','utm_campaign','utm_content','utm_term','created_at','expired_at','visit_times','read_times']
       return_data = []
       for item in result:
         zipped = dict(zip(result_name,item))
@@ -421,6 +424,7 @@ def insert_installation_track(project, data_decode, User_Agent, Host, Connection
                     ip_asn, url, referrer, remark, ua_platform, ua_browser, ua_version, ua_language, ip_is_good, ip_asn_is_good, created_at=None, updated_at=None,use_kafka=admin.use_kafka):
   start_time = time.time()
   timenow13 = int(round(time.time() * 1000))
+  distinct_id = 'undefined'
   track_id  = 0
   dist_id_name = ['IDFA','androidid','android_id','IMEI','Idfa','Imei','imei','idfa']
   distinct_id = 'undefined'
@@ -717,3 +721,27 @@ def who_am_i():
 
   returnjson = {'ip':ip,'ip_city':ip_city,'ip_asn':ip_asn,'ip_is_good':ip_is_good,'ip_asn_is_good':ip_asn_is_good,'User_Agent':User_Agent,'Host':Host,'Connection':Connection,'Pragma':Pragma,'Cache_Control':Cache_Control,'Accept':Accept,'Accept_Encoding':Accept_Encoding,'Accept_Language':Accept_Language,'ua_platform':ua_platform,'ua_browser':ua_browser,'ua_version':ua_version,'ua_language':ua_language,'url':url,'referrer':referrer}
   return jsonify(returnjson)
+
+def shortcut_read(short_url):
+  time1 = int(time.time())
+  User_Agent = request.headers.get('User-Agent') 
+  Accept_Language = request.headers.get('Accept-Language')#: zh-CN,zh;q=0.9
+  ua_platform = request.user_agent.platform #客户端操作系统
+  ua_browser = request.user_agent.browser #客户端的浏览器
+  ua_version = request.user_agent.version #客户端浏览器的版本
+  ua_language = request.user_agent.language #客户端浏览器的语言
+  url = request.url
+  referrer = request.referrer
+  if request.headers.get('X-Forwarded-For') is None:
+    ip = request.remote_addr#服务器直接暴露
+  else:
+    ip = request.headers.get('X-Forwarded-For') #获取SLB真实地址
+  if admin.use_kafka is False:
+    insert_shortcut_read(short_url=short_url,ip=ip,user_agent=User_Agent,accept_language=Accept_Language,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,referrer=referrer,created_at=time1)
+  elif admin.use_kafka is True:
+    msg = {"group":"shortcut_read","data":{"short_url":short_url,"ip":ip,"user_agent":User_Agent,"accept_language":Accept_Language,"ua_platform":ua_platform,"ua_browser":ua_browser,"ua_version":ua_version,"ua_language":ua_language,"referrer":referrer,"created_at":time1}}
+    insert_message_to_kafka(msg=msg)
+  bitimage1 = os.path.join('image','43byte.gif')
+  with open(bitimage1, 'rb') as f:
+    returnimage = f.read()
+  return Response(returnimage, mimetype="image/gif")
