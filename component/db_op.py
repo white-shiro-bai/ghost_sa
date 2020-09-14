@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*
 # author: unknowwhite@outlook.com
 # wechat: Ben_Xiaobai
+import sys
+sys.path.append("./")
+sys.setrecursionlimit(10000000)
 from configs.export import write_to_log
 import traceback
 import time
 from configs.db import *
-import sys
-sys.path.append("./")
-sys.setrecursionlimit(10000000)
 
 # 数据库操作
 

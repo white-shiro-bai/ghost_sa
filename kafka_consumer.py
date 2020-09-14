@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*
 # author: unknowwhite@outlook.com
 # wechat: Ben_Xiaobai
+import sys
+sys.path.append("./")
+sys.setrecursionlimit(10000000)
 from component.api import insert_data,insert_installation_track,insert_shortcut_history,insert_shortcut_read
 import json
 from component.kafka_op import get_message_from_kafka
-import sys
 import traceback
 # import multiprocessing
 from configs.export import write_to_log
-sys.path.append("./")
-sys.setrecursionlimit(10000000)
 from concurrent.futures import ThreadPoolExecutor,ProcessPoolExecutor
 
 def use_kafka():

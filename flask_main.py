@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*
 # author: unknowwhite@outlook.com
 # wechat: Ben_Xiaobai
+import sys
+sys.path.append("..")
+sys.setrecursionlimit(10000000)
 from component.api import get_datas, get_long, shortit, show_short_cut_list, ghost_check ,installation_track,show_project_list,show_mobile_ad_list,show_mobile_src_list,create_mobile_ad_link,check_exist_distinct_id,who_am_i,shortcut_read
 from flask_cors import CORS
 from flask import jsonify
 from flask import make_response
 from flask import request
 from flask import Flask
-import sys
-sys.path.append("..")
-sys.setrecursionlimit(10000000)
 
 
 app = Flask(__name__)
