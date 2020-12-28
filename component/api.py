@@ -109,6 +109,8 @@ def get_data():
     project = request.args.get('project')
     if project:
         User_Agent = request.headers.get('User-Agent')[0:2047] if request.headers.get('User-Agent') else None#Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36
+        if 'spider' in User_Agent.lower() :
+            remark = 'spider'
         Host = request.headers.get('Host') #: 10.16.5.241:5000
         Connection = request.headers.get('Connection')#: keep-alive
         Pragma = request.headers.get('Pragma')#: no-cache
@@ -147,7 +149,6 @@ def get_data():
                 for data_decode in data_decodes:
                     insert_data(project=project,data_decode=data_decode,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good)
             elif 'data' in request.form:
-                # print(request.cookies)
                 data = request.form.get('data')
                 de64 = base64.b64decode(urllib.parse.unquote(data).encode('utf-8'))
                 try:
@@ -156,7 +157,7 @@ def get_data():
                     data_decode = json.loads(de64)
                 insert_data(project=project,data_decode=data_decode,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good)
             else:
-                write_to_log(filename='api',defname='get_datas',result=str(request.form))
+                write_to_log(filename='api',defname='get_data',result=str(request.form))
                 # print(request.form)
         elif request.method == 'GET':
             # try:
@@ -169,9 +170,9 @@ def get_data():
                     data_decode = json.loads(de64)
                 insert_data(project=project,data_decode=data_decode,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good)
             else:
-                write_to_log(filename='api',defname='get_datas',result=url)
+                write_to_log(filename='api',defname='get_data',result=url)
         else:
-            write_to_log(filename='api',defname='get_datas',result=str(request.method)+url)
+            write_to_log(filename='api',defname='get_data',result=str(request.method)+url)
         bitimage1 = os.path.join('image','43byte.gif')
         with open(bitimage1, 'rb') as f:
                     returnimage = f.read()
@@ -191,7 +192,7 @@ def get_datas():
         return error
 
 def get_long(short_url):
-    time1 = int(time.time())
+    time1 = int(time.time()*1000)
     long_url,status = get_long_url_from_short(short_url=short_url)
     User_Agent = request.headers.get('User-Agent') 
     Accept_Language = request.headers.get('Accept-Language')#: zh-CN,zh;q=0.9
@@ -204,11 +205,11 @@ def get_long(short_url):
         ip = request.remote_addr#服务器直接暴露
     else:
         ip = request.headers.get('X-Forwarded-For') #获取SLB真实地址
-    time2 = int(time.time()) - time1
+    time2 = int(time.time()*1000) - time1
     if admin.use_kafka is False:
-        insert_shortcut_history(short_url=short_url,result=status,cost_time=time2,ip=ip,user_agent=User_Agent,accept_language=Accept_Language,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,created_at=time1)
+        insert_shortcut_history(short_url=short_url,result=status,cost_time=time2,ip=ip,user_agent=User_Agent,accept_language=Accept_Language,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,created_at=time1/1000)
     elif admin.use_kafka is True:
-        msg = {"group":"shortcut_history","data":{"short_url":short_url,"status":status,"time2":time2,"ip":ip,"user_agent":User_Agent,"accept_language":Accept_Language,"ua_platform":ua_platform,"ua_browser":ua_browser,"ua_version":ua_version,"ua_language":ua_language,"created_at":time1}}
+        msg = {"group":"shortcut_history","data":{"short_url":short_url,"status":status,"time2":time2,"ip":ip,"user_agent":User_Agent,"accept_language":Accept_Language,"ua_platform":ua_platform,"ua_browser":ua_browser,"ua_version":ua_version,"ua_language":ua_language,"created_at":time1/1000}}
         insert_message_to_kafka(msg=msg)
     if status == 'success':
         return redirect(long_url)
@@ -263,7 +264,7 @@ def shortit():
 def show_short_cut_list():
     page = int(request.args.get('page')) if 'page' in request.args else 1
     length = int(request.args.get('length')) if 'length' in request.args else 50
-    sort    = '`shortcut`.created_at'
+    sort = '`shortcut`.created_at'
     if 'sort' in request.args:
         sort_org = request.args.get('sort')
         sort = '`shortcut`.'+sort_org
@@ -569,7 +570,7 @@ def show_project_list():
             # key=['distinct_id','event','type','all_json','host','user_agent','ip','url','remark','created_at']
             pending_result = []
             for item in results:
-                row = {'project':item[0],'created_at':item[1],'expired_at':item[2]}
+                row = {'project':item[0],'created_at':item[1],'expired_at':item[2],'enable_scheduler':item[3]}
                 # pending_result.append(dict(zip(key,item)))
                 pending_result.append(row)
             time_cost = time.time() - start_time

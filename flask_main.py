@@ -5,6 +5,7 @@ import sys
 sys.path.append("..")
 sys.setrecursionlimit(10000000)
 from component.api import get_datas, get_long, shortit, show_short_cut_list, ghost_check ,installation_track,show_project_list,show_mobile_ad_list,show_mobile_src_list,create_mobile_ad_link,check_exist_distinct_id,who_am_i,shortcut_read
+from component.api_noti import show_usergroup_plan,show_usergroup_list,duplicate_scheduler_jobs,show_usergroup_data,disable_usergroup_data,show_temples,apply_temples_list,show_noti_group,show_noti_detial,manual_send,disable_single,show_scheduler_jobs
 from flask_cors import CORS
 from flask import jsonify
 from flask import make_response
@@ -57,5 +58,21 @@ app.add_url_rule('/check_exist', view_func=check_exist_distinct_id, methods=['GE
 #辅助功能
 app.add_url_rule('/who_am_i', view_func=who_am_i, methods=['GET'])#获取自身ip
 
+#用户分群与召回
+# app.add_url_rule('/usergroups/check_enable_project', view_func=create_mobile_ad_link, methods=['POST'])#查询开启了用户分群与召回的项目列表
+app.add_url_rule('/usergroups/show_usergroup_plan', view_func=show_usergroup_plan, methods=['POST'])#查询用户分群计划列表
+app.add_url_rule('/usergroups/show_usergroup_list', view_func=show_usergroup_list, methods=['POST'])#查询计划下的用户分群列表
+app.add_url_rule('/usergroups/duplicate_scheduler_jobs', view_func=duplicate_scheduler_jobs, methods=['POST'])#重新执行该分群
+app.add_url_rule('/usergroups/show_usergroup_data', view_func=show_usergroup_data, methods=['POST'])#查询计划下的用户分群列表的详情
+app.add_url_rule('/usergroups/disable_usergroup_data', view_func=disable_usergroup_data, methods=['POST'])#禁用单条分群结果
+app.add_url_rule('/usergroups/show_temples', view_func=show_temples, methods=['POST'])#查询可用的模板列表
+app.add_url_rule('/usergroups/apply_temples_list', view_func=apply_temples_list, methods=['POST'])#对单个分群列表应用模板
+app.add_url_rule('/usergroups/show_noti_group', view_func=show_noti_group, methods=['POST'])#查询消息群组
+app.add_url_rule('/usergroups/show_noti_detial', view_func=show_noti_detial, methods=['POST'])#查询消息群组详情
+app.add_url_rule('/usergroups/manual_send', view_func=manual_send, methods=['POST'])#手动推送消息群组
+# app.add_url_rule('/create_mobile_ad_link', view_func=create_mobile_ad_link, methods=['POST'])#手动推送单条消息
+app.add_url_rule('/usergroups/disable_single_noti', view_func=disable_single, methods=['POST'])#禁用单条消息
+app.add_url_rule('/usergroups/show_scheduler_jobs', view_func=show_scheduler_jobs, methods=['POST'])#查询分群任务列表
+# app.add_url_rule('/create_mobile_ad_link', view_func=create_mobile_ad_link, methods=['POST'])#手动插入推送消息
 if __name__ == '__main__':
     app.run(threaded=True, host='0.0.0.0', port=8000)  # 默认不填写的话，是5000端口；
