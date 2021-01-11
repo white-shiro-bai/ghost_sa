@@ -12,5 +12,5 @@ def get_conn_sqldb():
     user = 'olap'  # 用户名
     passwd = 'olap'
     db = 'events'  # 库名
-    conn = pymysql.connect(host=host, port=port, user=user,passwd=passwd, db=db, charset='utf8mb4')
+    conn = pymysql.connect(host=host, port=port, user=user,passwd=passwd, db=db, charset='utf8mb4', client_flag=pymysql.constants.CLIENT.MULTI_STATEMENTS)
     return conn
