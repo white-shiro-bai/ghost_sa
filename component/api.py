@@ -31,6 +31,8 @@ if admin.use_kafka is True:
     from component.kafka_op import insert_message_to_kafka
 import re
 from trigger import trigger
+from component.qrcode import gen_qrcode
+from component.url_tools import get_url_params
 
 
 def insert_data(project,data_decode,User_Agent,Host,Connection,Pragma,Cache_Control,Accept,Accept_Encoding,Accept_Language,ip,ip_city,ip_asn,url,referrer,remark,ua_platform,ua_browser,ua_version,ua_language,ip_is_good,ip_asn_is_good,created_at=None,updated_at=None,use_kafka=admin.use_kafka):
@@ -750,3 +752,34 @@ def shortcut_read(short_url):
     with open(bitimage1, 'rb') as f:
         returnimage = f.read()
     return Response(returnimage, mimetype="image/gif")
+
+def show_qrcode(short_url):
+    short = short_url.split("_____")[0]
+    logo = short_url.split("_____")[1] if len(short_url.split("_____"))>1 else None
+    returnimage = gen_qrcode(args={"qrdata":request.host_url+"t/"+short,"logo":os.path.join('image',logo) if logo and logo != "" else None})
+    shortcut_read(short_url=short_url.split("_____")[0])
+    return Response(returnimage, mimetype="image/png")
+    # return returnimage
+
+def show_long_qrcode():
+    long_url = request.url.split('/qrcode?url=')[1]
+    logo = long_url.split("_____")[1] if len(urllib.parse.unquote(long_url).split("_____"))>1 else None
+    returnimage = gen_qrcode(args={"qrdata":urllib.parse.unquote(long_url).split("_____")[0],"logo":os.path.join('image',logo) if logo and logo != "" else None})
+    shortcut_read(short_url=urllib.parse.unquote(long_url).split("_____")[0].split("_____")[0][0:200])
+    return Response(returnimage, mimetype="image/png")
+
+
+def show_all_logos():
+    password = get_url_params('password')
+    if password == admin.admin_password:#只有正确的密码才能触发动作
+        logo_list = {'logo_list':[]}
+        for maindir, subdir, file_name_list in os.walk('./image'):
+            for file in file_name_list:
+                logo_list['logo_list'].append({'file_name':file,'image_url':request.host_url+'image/'+file})
+        return jsonify(logo_list)
+
+
+def show_logo(filename):
+    with open(os.path.join('image',filename), 'rb') as f:
+        returnimage = f.read()
+    return Response(returnimage, mimetype="image")

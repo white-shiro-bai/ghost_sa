@@ -364,6 +364,11 @@ def select_usergroup_jobs_plan(project):
     result = do_tidb_select(sql=sql)
     return result[0],result[1]
 
+def select_usergroup_jobs_plan_manual(project,plan_id):
+    sql = """select id,func,repeatable,priority from {project}_usergroup_plan where id={plan_id}""".format(project=project,plan_id=int(plan_id))
+    result = do_tidb_select(sql=sql)
+    return result[0],result[1]
+
 def select_usergroup_data(project,group_list_id):
     #整组选择要套模板的分群
     sql = f"""SELECT

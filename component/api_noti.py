@@ -7,14 +7,15 @@ sys.setrecursionlimit(10000000)
 from component.url_tools import get_url_params
 from configs.export import write_to_log
 from configs import admin
-from component.public_value import getdate
+from component.public_value import get_next_time
 import time
 from flask import request,jsonify,Response,redirect
 import traceback
-from component.db_func import show_project_usergroup_plan,show_project_usergroup_list,duplicate_scheduler_jobs_sql,select_usergroup_data_for_api,select_usergroup_datacount_for_api,disable_usergroup_data_db,show_temples_db,show_noti_group_db,show_noti_group_count_db,show_noti_db,show_noti_count_db,select_noti_group,select_noti_single,disable_noti_db,show_scheduler_jobs_db,show_scheduler_jobs_count_db
+from component.db_func import show_project_usergroup_plan,show_project_usergroup_list,duplicate_scheduler_jobs_sql,select_usergroup_data_for_api,select_usergroup_datacount_for_api,disable_usergroup_data_db,show_temples_db,show_noti_group_db,show_noti_group_count_db,show_noti_db,show_noti_count_db,select_noti_group,select_noti_single,disable_noti_db,show_scheduler_jobs_db,show_scheduler_jobs_count_db,select_usergroup_jobs_plan_manual,insert_scheduler_job
 import json
 from scheduler import create_noti_group
 from component.messenger import send_manual
+
 
 
 def show_usergroup_plan():
@@ -382,5 +383,29 @@ def show_scheduler_jobs():
         except Exception:
             error = traceback.format_exc()
             write_to_log(filename='api_noti',defname='manual_send',result=error)
+            returnjson = {'result':'fail','error':error}
+            return jsonify(returnjson)
+
+def create_scheduler_jobs_manual():
+    #手动创建分群任务
+    project = get_url_params('project')
+    plan_id = get_url_params('plan_id')
+    send_at = get_url_params('send_at') if get_url_params('send_at') else int(time.time())
+    password = get_url_params('password')
+    if password == admin.admin_password and request.method == 'POST':
+        try:
+            count = 0
+            plan_result,plan_count = select_usergroup_jobs_plan_manual(project=project,plan_id=plan_id)
+            for plan in plan_result:
+                times = get_next_time(current_time = int(send_at))
+                for time_1 in times:
+                    insert_result,insert_count = insert_scheduler_job(project = project,group_id = plan[0],datetime = time_1['time_int'],data = {'datetime_int':time_1['time_int'],'datetime_tuple':time_1['time_tuple'],'datetime':time.strftime("%Y-%m-%d %H:%M:%S", time_1['time_tuple']),'date':time.strftime("%Y-%m-%d", time_1['time_tuple']),'func':json.loads(plan[1])},priority=plan[3] if plan[3] else 13,status=16)
+                    write_to_log(filename = 'api_noti', defname = 'create_scheduler_jobs_manual', result = '项目'+str(project)+'计划'+str(plan[0])+'已添加时间'+time.strftime("%Y-%m-%d %H:%M:%S", time_1['time_tuple']))
+                    count = count+insert_count
+            returnjson = {'result':'success','insert_count':count}
+            return jsonify(returnjson)
+        except Exception:
+            error = traceback.format_exc()
+            write_to_log(filename='api_noti',defname='create_scheduler_jobs_manual',result=error)
             returnjson = {'result':'fail','error':error}
             return jsonify(returnjson)

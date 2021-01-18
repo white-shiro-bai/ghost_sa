@@ -172,33 +172,36 @@ def get_time_str(inttime):
     return strtime
 
 
-def get_next_time(timer,current_time=None):
+def get_next_time(timer=None,current_time=None):
     #该工具用来把corn的定时格式，转化为一个可执行的时间。多个时间选择的时候只支持 用','区分，如1,2,3,4,5。暂时不支持'-'如'1-10'和'/'如'3/15'。其中周位0表示周一。该工具只输出current_time时间当天的所有日期点。
     current_time=int(time.time()) if not current_time else current_time
-    timer_array = timer.split(' ')
-    mins=timer_array[0].split(',')
-    hours=timer_array[1].split(',')
-    days=timer_array[2].split(',')
-    mons=timer_array[3].split(',')
-    weeks=timer_array[4].split(',')
-    cmin = str(time.localtime(current_time).tm_min)
     chour = str(time.localtime(current_time).tm_hour)
     cday = str(time.localtime(current_time).tm_mday)
     cmon = str(time.localtime(current_time).tm_mon)
     cweek = str(time.localtime(current_time).tm_wday)
     cyear = str(time.localtime(current_time).tm_year)
-    tmins = ['00'] if '*' in mins else mins
-    thours = ['00'] if '*' in hours else hours
-    tday = cday if '*' in days or cday in days else None
-    tmon = cmon if '*' in mons or cmon in mons else None
-    tweek = cweek if '*' in weeks or cweek in weeks else None
-    write_to_log(filename='public_value',defname='get_next_time',result=str(current_time))
-    times = []
-    # print(weeks,cweek,tweek)
-    if tday and tmon and tweek:
-        for thour in thours:
-            for tmin in tmins:
-                times.append({'time_tuple':time.strptime('{yy}-{mm}-{dd} {hh}:{mi}:00'.format(yy=cyear,mm=cmon,dd=cday,hh=thour,mi=tmin), '%Y-%m-%d %H:%M:%S'),'time_int':int(time.mktime(time.strptime('{yy}-{mm}-{dd} {hh}:{mi}:00'.format(yy=cyear,mm=cmon,dd=cday,hh=thour,mi=tmin), '%Y-%m-%d %H:%M:%S')))})
+    cmin = str(time.localtime(current_time).tm_min)
+    if timer:
+        timer_array = timer.split(' ')
+        mins=timer_array[0].split(',')
+        hours=timer_array[1].split(',')
+        days=timer_array[2].split(',')
+        mons=timer_array[3].split(',')
+        weeks=timer_array[4].split(',')
+        tmins = ['00'] if '*' in mins else mins
+        thours = ['00'] if '*' in hours else hours
+        tday = cday if '*' in days or cday in days else None
+        tmon = cmon if '*' in mons or cmon in mons else None
+        tweek = cweek if '*' in weeks or cweek in weeks else None
+        write_to_log(filename='public_value',defname='get_next_time',result=str(current_time))
+        times = []
+        # print(weeks,cweek,tweek)
+        if tday and tmon and tweek:
+            for thour in thours:
+                for tmin in tmins:
+                    times.append({'time_tuple':time.strptime('{yy}-{mm}-{dd} {hh}:{mi}:00'.format(yy=cyear,mm=cmon,dd=cday,hh=thour,mi=tmin), '%Y-%m-%d %H:%M:%S'),'time_int':int(time.mktime(time.strptime('{yy}-{mm}-{dd} {hh}:{mi}:00'.format(yy=cyear,mm=cmon,dd=cday,hh=thour,mi=tmin), '%Y-%m-%d %H:%M:%S')))})
+    else:
+        times = [{'time_tuple':time.strptime('{yy}-{mm}-{dd} {hh}:{mi}:00'.format(yy=cyear,mm=cmon,dd=cday,hh=chour,mi=cmin), '%Y-%m-%d %H:%M:%S'),'time_int':int(time.mktime(time.strptime('{yy}-{mm}-{dd} {hh}:{mi}:00'.format(yy=cyear,mm=cmon,dd=cday,hh=chour,mi=cmin), '%Y-%m-%d %H:%M:%S')))}]
     return times
 
 
