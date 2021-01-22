@@ -360,7 +360,7 @@ def select_all_project():
     return result[0],result[1]
 
 def select_usergroup_jobs_plan(project):
-    sql = """select id,func,repeatable,priority from {project}_usergroup_plan where enable_policy in (8,28)""".format(project=project)
+    sql = """select id,func,repeatable,priority,enable_policy from {project}_usergroup_plan where enable_policy in (8,28)""".format(project=project)
     result = do_tidb_select(sql=sql)
     return result[0],result[1]
 

@@ -25,7 +25,9 @@ def get_task_day():
         for plan in plan_result:
             times = get_next_time(timer = plan[2],current_time = int(time.time()))
             for time_1 in times:
-                insert_scheduler_job(project = project[0],group_id = plan[0],datetime = time_1['time_int'],data = {'datetime_int':time_1['time_int'],'datetime_tuple':time_1['time_tuple'],'datetime':time.strftime("%Y-%m-%d %H:%M:%S", time_1['time_tuple']),'date':time.strftime("%Y-%m-%d", time_1['time_tuple']),'func':json.loads(plan[1])},priority=plan[3] if plan[3] else 13,status=16)
+                func_loads = json.loads(plan[1])
+                func_loads['args']['noti_status'] = plan[4]
+                insert_scheduler_job(project = project[0],group_id = plan[0],datetime = time_1['time_int'],data = {'datetime_int':time_1['time_int'],'datetime_tuple':time_1['time_tuple'],'datetime':time.strftime("%Y-%m-%d %H:%M:%S", time_1['time_tuple']),'date':time.strftime("%Y-%m-%d", time_1['time_tuple']),'func':func_loads},priority=plan[3] if plan[3] else 13,status=16)
                 write_to_log(filename = 'scheduler', defname = 'get_task_day', result = '项目'+str(project[0])+'计划'+str(plan[0])+'已添加时间'+time.strftime("%Y-%m-%d %H:%M:%S", time_1['time_tuple']))
             write_to_log(filename = 'scheduler', defname = 'get_task_day', result = '项目'+str(project[0])+'计划'+str(plan[0])+'已添加计划条目'+str(len(times)))
 def do_all_task():
