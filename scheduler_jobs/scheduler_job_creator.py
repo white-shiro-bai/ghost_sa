@@ -199,7 +199,44 @@ def create_noti_temple():
     pending_content = {"content": content, "mail_from": mail_from, "mail_to": mail_to, "subject": subject}
     result = insert_noti_temple(project=project,name=name,args=json.dumps(pending_args,ensure_ascii=False),content=json.dumps(pending_content,ensure_ascii=False),temple_desc=temple_desc)
     
+def create_noti_temple_wechat():
+    #这是一个适用于发微信消息的特殊模板
+    #模板信息
+    name = '会员订阅成功' #模板的名称
+    temple_desc = '用户成功订阅会员时发送微信通知' #描述模板
+
+    #模板策略
+    project = 'demo_app' #项目名称
+    track_url = 'https://yourdomain/sa.gif' #鬼策的监测地址（用来接收数据的地址）
+    remark = 'production' #鬼策的remark标记
+    default_send_time = '* * * * *' #自动发送的时间，分，时，日，月，周。不填的用*代替。跟crontab一个逻辑，但不支持1-10的方式表达，多日的需要1,2,3,4,5,6,7,8这样的形式填 如'* 1 1,2,3 * *'即为每月1,2,3日的凌晨1点执行。其中周位0表示周一，6表示周日
+
+    #附加组件调用
+    required = True #模板是否需要调用外部程序补充数据，True时会调用func_dir和func_name所指定的程序。调用外部程序的功能主要用来解决用户分群时无法创建千人千面结果的情况，如分群只分出了用户信息，但是推送内容并不同步生产，如一个分群对应多次个模板套用的情况。
+    func_dir = "trigger_jobs.sample" #模板所需要调用的外部程序目录
+    func_name = "vip_order_complated" #模板所需要调用的外部程序名称
+
+    #meta信息（模板描述信息）
+    medium = "wechat_official_account" #模板适配的媒介名称（对应status_code表）
+    medium_id = 29 #模板适配的媒介id（对应status_code表）
+
+    #替换参数
+    args = {"content": "___content___", "wechat_openid":"___wechat_openid___","order_id":"___order_id___","nickname": "___nickname___", "utm_campaign": "___owner___", "utm_content": "vip_purchased","utm_medium": "noti_temple_1", "utm_source": medium, "utm_term": "___vip_type___"} #temple_args,data_args和func里返回的内容会替换content里的___key___部分，
+
+    #推送正文
+    content = {"first": {"value":"恭喜您于 ___order_date___ 成功开通优视会员！","color":"#173177"},"keyword1":{"value":"___order_id___","color":"#173177"},"keyword2": {"value":"___vip_type___","color":"#173177"},"keyword3": {"value":"___totalpay_sum___","color":"#173177"},"keyword4": {"value":"___expire_at_str___","color":"#173177"},"remark":{"value":"___remark___","color":"#173177"}} #推送的正文内容，需要替换的部分前后加上___，应用模板的时候，会被temple_args,data_args和func里返回的内容替换.
+    wechat_openid = "___wechat_openid___" #openid
+    wechat_template_id = "wyCHxVmQ4AbtDjE5pVXyDCSm0jsLE3irOv4BfEwDT3k"#模板id
+    target_url = "http://www.qq.com/" #目标的url
+
+
+    #入库
+    pending_args = {"add_on_func": {"dir": func_dir, "name": func_name , "required": required}, "args": args, "ghost_sa": {"remark": remark, "track_url": track_url}, "meta": {"medium": medium, "medium_id": medium_id, "default_send_time":default_send_time}}
+    pending_content = {'content':json.dumps({'wechat_openid':wechat_openid,'wechat_template_id':wechat_template_id,'target_url':target_url,'data':content})}
+    result = insert_noti_temple(project=project,name=name,args=json.dumps(pending_args,ensure_ascii=False),content=json.dumps(pending_content,ensure_ascii=False),temple_desc=temple_desc)
+
 
 if __name__ == "__main__":
     # create_usergroup_plan()
+	# create_noti_temple_wechat()
     create_noti_temple()

@@ -11,10 +11,11 @@ from component.public_value import get_next_time
 import time
 from flask import request,jsonify,Response,redirect
 import traceback
-from component.db_func import show_project_usergroup_plan,show_project_usergroup_list,duplicate_scheduler_jobs_sql,select_usergroup_data_for_api,select_usergroup_datacount_for_api,disable_usergroup_data_db,show_temples_db,show_noti_group_db,show_noti_group_count_db,show_noti_db,show_noti_count_db,select_noti_group,select_noti_single,disable_noti_db,show_scheduler_jobs_db,show_scheduler_jobs_count_db,select_usergroup_jobs_plan_manual,insert_scheduler_job
+from component.db_func import show_project_usergroup_plan,show_project_usergroup_list,duplicate_scheduler_jobs_sql,select_usergroup_data_for_api,select_usergroup_datacount_for_api,disable_usergroup_data_db,show_temples_db,show_noti_group_db,show_noti_group_count_db,show_noti_db,show_noti_count_db,select_noti_group,select_noti_single,disable_noti_db,show_scheduler_jobs_db,show_scheduler_jobs_count_db,select_usergroup_jobs_plan_manual,insert_scheduler_job,select_noti_temple
 import json
 from scheduler import create_noti_group
-from component.messenger import send_manual
+from component.messenger import send_manual,create_non_usergroup_noti,create_non_usergroup_non_temple_noti
+from scheduler_jobs.etl_model import apply_temple
 
 
 
@@ -409,3 +410,74 @@ def create_scheduler_jobs_manual():
             write_to_log(filename='api_noti',defname='create_scheduler_jobs_manual',result=error)
             returnjson = {'result':'fail','error':error}
             return jsonify(returnjson)
+
+
+def create_manual_temple_noti():
+    #外部触发模板消息
+    project = get_url_params('project')
+    temple_id = get_url_params('temple_id')
+    send_at = get_url_params('send_at') if get_url_params('send_at') else int(time.time())
+    password = get_url_params('password')
+    owner = get_url_params('owner')
+    data = get_url_params('data')
+    if password == admin.admin_password and request.method == 'POST' and owner and owner !='' and project:
+        try:
+            data_jsons = json.loads(data)
+            data_list = []
+            for item in data_jsons:
+                print(item)
+                if 'distinct_id' in item and 'data_json' in item:
+                    result_temple = select_noti_temple(project=project,temple_id=temple_id)
+                    result = apply_temple(project=project,temple_args=json.loads(result_temple[0][0][2]),temple_content=json.loads(result_temple[0][0][3]),data_json=item['data_json'],data_key=item['distinct_id'],send_at=send_at,group_id=None,owner='system')
+                    data_list.append(result)
+            result_insert = create_non_usergroup_noti(args={'owner':owner,'temple_id':temple_id,'project':project,'data':data_list})
+            return jsonify(result_insert)
+        except Exception:
+            error = traceback.format_exc()
+            write_to_log(filename='api_noti',defname='create_manual_temple_noti',result=error)
+            returnjson = {'result':'fail','error':error}
+            return jsonify(returnjson)
+
+def create_manual_non_temple_noti():
+    #外部触发非模板消息
+    project = get_url_params('project')
+    send_at = get_url_params('send_at') if get_url_params('send_at') else int(time.time())
+    password = get_url_params('password')
+    medium_id = get_url_params('medium_id')
+    owner = get_url_params('owner')
+    data = get_url_params('data')
+    if password == admin.admin_password and request.method == 'POST' and owner and owner !='' and project:
+        try:
+            data_jsons = json.loads(data)
+            data_list = []
+            for item in data_jsons:
+                if 'send_tracker' in item and 'distinct_id' in item['send_tracker'] and item['send_tracker']['distinct_id'] != '':
+                    item['distinct_id'] = item['send_tracker']['distinct_id']
+                    item['send_at'] = send_at
+                    data_list.append(item)
+                elif 'distinct_id' in item and item['distinct_id'] !='':
+                    item['send_at'] = send_at
+                    data_list.append(item)
+            result = create_non_usergroup_non_temple_noti(args={'owner':owner,'project':project,'data':data_list,'medium_id':medium_id})
+            return jsonify(result)
+        except Exception:
+            error = traceback.format_exc()
+            write_to_log(filename='api_noti',defname='create_manual_temple_noti',result=error)
+            returnjson = {'result':'fail','error':error}
+            return jsonify(returnjson)
+
+def show_temple_args():
+    #查询模板需要的参数
+    # project = get_url_params('project')
+    # password = get_url_params('password')
+    # data = get_url_params('data')
+    # if password == admin.admin_password and request.method == 'POST' and owner and owner !='' and project:
+    result_temple = select_noti_temple(project='tvcbook',temple_id=1011)
+    args = json.loads(result_temple[0][0][2])
+    print(args)
+    for arg in args:
+        for key in args[arg]:
+            print(arg,key,args[arg][key])
+    
+if __name__ == "__main__":
+    show_temple_args()

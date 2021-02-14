@@ -20,9 +20,9 @@ def apply_temple(project,temple_args,temple_content,data_json,data_key,send_at=N
     read_tracker = {"distinct_id": data_key,"event": "recall","lib": {"$lib": "noti"},"project": project,"properties": {"$latest_utm_campaign": "___utm_campaign___","$latest_utm_content": "___utm_content___","$latest_utm_medium": "___utm_medium___","$latest_utm_source": "___utm_source___","$latest_utm_term": "___utm_term___","$lib": "noti","_latest_utm_email": "___email___","_latest_utm_mobile": "___mobile___","action": 2,"sent_time": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(send_at))},"type": "track"}
     data_json['group_id'] = group_id
     if 'add_on_func' in temple_args and 'required' in temple_args['add_on_func'] and temple_args['add_on_func']['required'] is True:
-                py = importlib.import_module(temple_args['add_on_func']['dir'])
-                ff = getattr(py, temple_args['add_on_func']['name'])
-                func_result = ff(data_json)
+        py = importlib.import_module(temple_args['add_on_func']['dir'])
+        ff = getattr(py, temple_args['add_on_func']['name'])
+        func_result = ff(data_json)
     for l in temple_content:
         for t in read_tracker['properties']:
             temple_content[l] = temple_content[l].replace('___owner___',owner)
@@ -72,6 +72,3 @@ def insert_usergroup(project,group_id,data,list_desc,jobs_id,init_time=int(time.
             insert_usergroup_list(project=project,group_id=group_id,group_index=index_id+1,status=6,complete_at=int(time.time()),jobs_id=jobs_id)
             write_to_log(filename='etl_model',defname='insert_usergroup',result=error)
             return 6,0
-
-if __name__ == "__main__":
-    print(apply_temple(project='tvcbook',temple_args={"add_on_func": {"dir": "scheduler_jobs.tvcbook", "name": "last_1500_email", "required": False}, "args": {"content": "___content___", "email": "___email___", "nickname": "___nickname___", "subject": "___subject___", "utm_campaign": "system", "utm_content": "___group_id___", "utm_email": "___email___", "utm_medium": "noti_temple_1", "utm_source": "邮件", "utm_term": "___etl_date___"}, "ghost_sa": {"track_url": "https://t.tvcbook.com/sa.gif"}, "meta": {"medium": "email"}},temple_content={'content': '这是一个测试内容，用户昵称是___nickname___，跳转链接是http://www.tvcbook.com/?utm_source=___utm_source___&utm_campaign=___utm_campaign___&utm_term=___utm_term___&utm_content=___utm_content___&utm_medium=___utm_medium___,跟踪链接是___read_tracker___，', 'subject': '___subject___'},data_json={"email": "lixing523@hotmail.com", "last_active_time": "2020-09-23 23:39:36", "nickname": "李星","group_id":1299},data_key='8bd8ce59dbf486e0'))

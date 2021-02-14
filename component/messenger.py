@@ -7,7 +7,8 @@ sys.setrecursionlimit(10000000)
 import json
 from configs.export import write_to_log
 from component.e_mail import send_email
-from component.db_func import insert_event,update_noti,select_noti_auto,select_scheduler_enable_project,update_noti_group
+from component.we_chat import post_wechat_notification
+from component.db_func import insert_event,update_noti,select_noti_auto,select_scheduler_enable_project,update_noti_group,insert_noti_group,insert_noti,select_noti_temple,update_noti_temple
 import traceback
 import time
 
@@ -32,7 +33,8 @@ class send:
         pass
         return 2
     def wechat_official_account(self):
-        pass
+        result = post_wechat_notification(data=json.loads(self.noti_content))
+        return result
     def wechat_subscriptions(self):
         pass
     def wechat_miniprogram(self):
@@ -49,6 +51,8 @@ class send:
                 return self.via_email()
             elif self.noti_type == 24:
                 return self.sms()
+            elif self.noti_type == 29:
+                return self.wechat_official_account()
         except Exception:
             error = traceback.format_exc()
             write_to_log(filename='messenger',defname='play_all',result=error)
@@ -62,7 +66,7 @@ def send_manual(project,noti):
     send_result = v.play_all()
     timenow=int(time.time())
     if send_result :
-        if send_result == 'success':
+        if 'success' in send_result or 'ok' in send_result:
             update_noti(project=project,noti_id=noti[0],updated_at=timenow,status=26,recall_result=send_result)
             update_noti_group(project=project,noti_group_id=noti[1],sent=1)
         else:
@@ -105,6 +109,50 @@ def send_auto_noti():
             time.sleep(120)
         elif missTime < project_count:
             miss = 1
+
+def create_non_usergroup_noti(args):
+    #手动创建不在用户分群里的模板消息
+    start_time = int(time.time())
+    if 'data' in args and args['data'] and args['data'] !='' and 'project' in args and args['project'] !='':
+        owner = args['owner'] if 'owner' in args else 'undefined'
+        if 'temple_id' in args and args['temple_id'] != '':
+            result_temple = select_noti_temple(project=args['project'],temple_id=args['temple_id'])
+        if 'result_temple' in dir():
+            medium_id = json.loads(result_temple[0][0][2])['meta']['medium_id']
+        elif 'medium_id' in args:
+            medium_id = args['medium_id']
+        send_at = args['send_at'] if 'send_at' in args else int(time.time())
+        result_group = insert_noti_group(project=args['project'],plan_id=None,list_id=None,data_id=None,temple_id=args['temple_id'] if 'temple_id' in args else None,owner=owner,send_at=send_at,sent=0,total=len(args['data']),priority=13,status=8)
+        inserted = 0
+        for noti in args['data']:
+            if 'send_tracker' in noti and 'distinct_id' in noti['send_tracker'] and noti['send_tracker']['distinct_id'] != '':
+                insert_result = insert_noti(project=args['project'],type_1=medium_id,created_at=int(time.time()),updated_at=int(time.time()),distinct_id=noti['send_tracker']['distinct_id'],content=noti['content'],send_at=noti['send_at'] if 'send_at' in noti else send_at,plan_id=None,list_id=None,data_id=None,temple_id=result_temple[0][0][0],noti_group_id=result_group[2],priority=13,status=8,owner=owner,recall_result=None)
+                inserted = inserted+insert_result[1]
+        if 'temple_id' in args and args['temple_id'] != '':
+            update_noti_temple(project=args['project'],temple_id=args['temple_id'],apply_times=1,lastest_apply_time=int(time.time()),lastest_apply_list = 0)
+        update_noti_group(project=args['project'],noti_group_id=result_group[2])
+        return {'result':'success','inserted':inserted,'timecost':int(time.time())-start_time}
+    else:
+        return {'result':'failed','error':'no_distinct_id_or_miss_data'}
+
+def create_non_usergroup_non_temple_noti(args):
+    #手动创建不在用户分群的非模板消息，不适用模板的消息
+    start_time = int(time.time())
+    if 'data' in args and args['data'] and args['data'] !='' and 'project' in args and args['project'] !='' and 'medium_id' in args:
+        owner = args['owner'] if 'owner' in args else 'undefined'
+        send_at = args['send_at'] if 'send_at' in args else int(time.time())
+        result_group = insert_noti_group(project=args['project'],plan_id=None,list_id=None,data_id=None,temple_id=None,owner=owner,send_at=send_at,sent=0,total=len(args['data']),priority=13,status=8)
+        inserted = 0
+        for item in args['data']:
+            insert_result = insert_noti(project=args['project'],type_1=args['medium_id'],created_at=int(time.time()),updated_at=int(time.time()),distinct_id=item['distinct_id'],content=item['content'],send_at=item['send_at'] if 'send_at' in item else send_at,plan_id=None,list_id=None,data_id=None,temple_id=None,noti_group_id=result_group[2],priority=13,status=8,owner=owner,recall_result=None)
+            inserted = inserted+insert_result[1]
+        update_noti_group(project=args['project'],noti_group_id=result_group[2])
+        return {'result':'success','inserted':inserted,'timecost':int(time.time())-start_time}
+    else:
+        return {'result':'failed','error':'no_distinct_id_or_miss_data'}
+
+
+
 
 if __name__ == "__main__":
     send_auto_noti()
