@@ -6,6 +6,7 @@ sys.path.append("..")
 sys.setrecursionlimit(10000000)
 from component.api import get_datas, get_long, shortit, show_short_cut_list, ghost_check ,installation_track,show_project_list,show_mobile_ad_list,show_mobile_src_list,create_mobile_ad_link,check_exist_distinct_id,who_am_i,shortcut_read,show_qrcode,show_long_qrcode,show_all_logos,show_logo
 from component.api_noti import show_usergroup_plan,show_usergroup_list,duplicate_scheduler_jobs,show_usergroup_data,disable_usergroup_data,show_temples,apply_temples_list,show_noti_group,show_noti_detial,manual_send,disable_single,show_scheduler_jobs,create_scheduler_jobs_manual,create_manual_temple_noti,create_manual_non_temple_noti
+from configs import admin
 from flask_cors import CORS
 from flask import jsonify
 from flask import make_response
@@ -16,27 +17,31 @@ from flask import Flask
 app = Flask(__name__)
 CORS(app)
 
-ad_words = '你的请求不合法哟。有兴趣的话，访问 "https://github.com/white-shiro-bai/ghost_sa/" 看源码哟'
+def return_error(code=0):
+    pagename = str(code) + '  '+admin.bbhj_keyword
+    if admin.use_bbhj is False:
+        return  pagename
+    if admin.use_bbhj is True:
+        return f"""<html><script type="text/javascript" src="//qzonestyle.gtimg.cn/qzone/hybrid/app/404/search_children.js" charset="utf-8" homePageUrl="{admin.bbhj_url}" homePageName="{pagename}"></script></html>"""
+
 
 
 @app.errorhandler(404)
 def miss(e):
-    return '404.159265357 '+ad_words
-
+    return return_error(code=404)
 
 @app.errorhandler(500)
 def error(e):
-    return '500.159265357 '+ad_words
-
+    return return_error(code=500)
 
 @app.errorhandler(405)
 def error2(e):
-    return '405.159265357 '+ad_words
+    return return_error(code=405)
 
 
 @app.route('/')
 def index():
-    return ad_words
+    return return_error()
 
 #项目管理
 app.add_url_rule('/show_project_list', view_func=show_project_list, methods=['POST'])#查询已有项目信息
