@@ -33,7 +33,7 @@ class send:
         pass
         return 2
     def wechat_official_account(self):
-        result = post_wechat_notification(data=json.loads(self.noti_content))
+        result = post_wechat_notification(data=json.loads(self.noti_content['content']))
         return result
     def wechat_subscriptions(self):
         pass
@@ -126,7 +126,7 @@ def create_non_usergroup_noti(args):
         inserted = 0
         for noti in args['data']:
             if 'send_tracker' in noti and 'distinct_id' in noti['send_tracker'] and noti['send_tracker']['distinct_id'] != '':
-                insert_result = insert_noti(project=args['project'],type_1=medium_id,created_at=int(time.time()),updated_at=int(time.time()),distinct_id=noti['send_tracker']['distinct_id'],content=noti['content'],send_at=noti['send_at'] if 'send_at' in noti else send_at,plan_id=None,list_id=None,data_id=None,temple_id=result_temple[0][0][0],noti_group_id=result_group[2],priority=13,status=8,owner=owner,recall_result=None)
+                insert_result = insert_noti(project=args['project'],type_1=medium_id,created_at=int(time.time()),updated_at=int(time.time()),distinct_id=noti['send_tracker']['distinct_id'],content=noti,send_at=noti['send_at'] if 'send_at' in noti else send_at,plan_id=None,list_id=None,data_id=None,temple_id=result_temple[0][0][0],noti_group_id=result_group[2],priority=13,status=8,owner=owner,recall_result=None)
                 inserted = inserted+insert_result[1]
         if 'temple_id' in args and args['temple_id'] != '':
             update_noti_temple(project=args['project'],temple_id=args['temple_id'],apply_times=1,lastest_apply_time=int(time.time()),lastest_apply_list = 0)
@@ -144,7 +144,7 @@ def create_non_usergroup_non_temple_noti(args):
         result_group = insert_noti_group(project=args['project'],plan_id=None,list_id=None,data_id=None,temple_id=None,owner=owner,send_at=send_at,sent=0,total=len(args['data']),priority=13,status=8)
         inserted = 0
         for item in args['data']:
-            insert_result = insert_noti(project=args['project'],type_1=args['medium_id'],created_at=int(time.time()),updated_at=int(time.time()),distinct_id=item['distinct_id'],content=item['content'],send_at=item['send_at'] if 'send_at' in item else send_at,plan_id=None,list_id=None,data_id=None,temple_id=None,noti_group_id=result_group[2],priority=13,status=8,owner=owner,recall_result=None)
+            insert_result = insert_noti(project=args['project'],type_1=args['medium_id'],created_at=int(time.time()),updated_at=int(time.time()),distinct_id=item['distinct_id'],content=item,send_at=item['send_at'] if 'send_at' in item else send_at,plan_id=None,list_id=None,data_id=None,temple_id=None,noti_group_id=result_group[2],priority=13,status=8,owner=owner,recall_result=None)
             inserted = inserted+insert_result[1]
         update_noti_group(project=args['project'],noti_group_id=result_group[2])
         return {'result':'success','inserted':inserted,'timecost':int(time.time())-start_time}
