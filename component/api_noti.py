@@ -428,7 +428,7 @@ def create_manual_temple_noti():
                 print(item)
                 if 'distinct_id' in item and 'data_json' in item:
                     result_temple = select_noti_temple(project=project,temple_id=temple_id)
-                    result = apply_temple(project=project,temple_args=json.loads(result_temple[0][0][2]),temple_content=json.loads(result_temple[0][0][3]),data_json=item['data_json'],data_key=item['distinct_id'],send_at=send_at,group_id=None,owner='system')
+                    result = apply_temple(project=project,temple_args=json.loads(result_temple[0][0][2]),temple_content=json.loads(result_temple[0][0][3]),data_json=item['data_json'],data_key=item['distinct_id'],send_at=send_at,group_id=None,owner=owner)
                     data_list.append(result)
             result_insert = create_non_usergroup_noti(args={'owner':owner,'temple_id':temple_id,'project':project,'data':data_list})
             return jsonify(result_insert)
