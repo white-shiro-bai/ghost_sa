@@ -90,7 +90,7 @@ def create_noti_group(project,temple_id,user_group_id=None,data_id=None,owner='n
         for noti in result_data[0]:
             timenow = int(time.time())
             temple_content = apply_temple(project=project,temple_args=json.loads(result_temple[0][0][2]),temple_content=json.loads(result_temple[0][0][3]),data_json=json.loads(noti[5]),data_key=noti[4],group_id=user_group_id,owner=owner,send_at=send_at if send_at else timenow)
-            insert_result = insert_noti(project=project,type_1=json.loads(result_temple[0][0][2])['meta']['medium_id'],created_at=timenow,updated_at=timenow,distinct_id=noti[4],content=temple_content,send_at=send_at if send_at else timenow,plan_id=noti[0],list_id=noti[1],data_id=noti[2],temple_id=result_temple[0][0][0],noti_group_id=result_group[2],priority=13,status=noti[6],owner=owner,recall_result=None)
+            insert_result = insert_noti(project=project,type_1=json.loads(result_temple[0][0][2])['meta']['medium_id'],created_at=timenow,updated_at=timenow,distinct_id=noti[4],content=temple_content,send_at=send_at if send_at else timenow,plan_id=noti[0],list_id=noti[1],data_id=noti[2],temple_id=result_temple[0][0][0],noti_group_id=result_group[2],priority=13,status=noti[6],owner=owner,recall_result=None,key=temple_content['key'] if 'key' in temple_content else None)
         update_noti_temple(project=project,temple_id=temple_id,apply_times=1,lastest_apply_time=timenow,lastest_apply_list=user_group_id if user_group_id else 0)
         update_noti_group(project=project,noti_group_id=result_group[2])
         update_usergroup_list(project=project,list_id=result_data[0][0][1],apply_temple_times=1)

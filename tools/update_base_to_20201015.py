@@ -9,6 +9,8 @@ sys.setrecursionlimit(10000000)
 from component.db_func import select_all_project
 from component.db_op import do_tidb_exe
 
+#!用于最早期版本升级到200210226版本。
+
 def update():
     sql_alter_update = """ALTER TABLE `project_list` ADD COLUMN `enable_scheduler` int(4) NULL DEFAULT 1 COMMENT '是否启动定时器支持' AFTER `user_count`;"""
     do_tidb_exe(sql_alter_update)

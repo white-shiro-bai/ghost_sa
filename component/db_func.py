@@ -403,10 +403,10 @@ WHERE
     result = do_tidb_select(sql=sql)
     return result[0],result[1]
 
-def insert_noti(project,type_1,created_at,updated_at,distinct_id,content,send_at,plan_id=0,list_id=0,data_id=0,temple_id=0,noti_group_id=0,priority=13,status=9,owner='noti',recall_result=None):
+def insert_noti(project,type_1,created_at,updated_at,distinct_id,content,send_at,plan_id=0,list_id=0,data_id=0,temple_id=0,noti_group_id=0,priority=13,status=9,owner='noti',recall_result=None,key=None,level=None):
     import json
-    sql = """insert ignore {project}_noti (`distinct_id`,`plan_id`,`list_id`,`data_id`,`temple_id`,`noti_group_id`,`priority`,`status`,`owner`,`type`,`content`,`send_at`,`recall_result`,`created_at`,`updated_at`) values (%(distinct_id)s,%(plan_id)s,%(list_id)s,%(data_id)s,%(temple_id)s,%(noti_group_id)s,%(priority)s,%(status)s,%(owner)s,%(type)s,%(content)s,%(send_at)s,%(recall_result)s,%(created_at)s,%(updated_at)s)""".format(project=project)
-    key = {'distinct_id':distinct_id,'type':type_1,'plan_id':plan_id,'list_id':list_id,'data_id':data_id,'temple_id':temple_id,'noti_group_id':noti_group_id,'priority':priority,'status':status,'owner':owner,'content':json.dumps(content),'recall_result':recall_result,'send_at':send_at if send_at else int(time.time()),'created_at':created_at if created_at else int(time.time()),'updated_at':updated_at if updated_at else int(time.time())}
+    sql = """insert ignore {project}_noti (`distinct_id`,`plan_id`,`list_id`,`data_id`,`temple_id`,`noti_group_id`,`priority`,`status`,`owner`,`type`,`content`,`send_at`,`recall_result`,`created_at`,`updated_at`,`key`,`level`) values (%(distinct_id)s,%(plan_id)s,%(list_id)s,%(data_id)s,%(temple_id)s,%(noti_group_id)s,%(priority)s,%(status)s,%(owner)s,%(type)s,%(content)s,%(send_at)s,%(recall_result)s,%(created_at)s,%(updated_at)s,%(key)s,%(level)s)""".format(project=project)
+    key = {'key':key,'distinct_id':distinct_id,'type':type_1,'plan_id':plan_id,'list_id':list_id,'data_id':data_id,'temple_id':temple_id,'noti_group_id':noti_group_id,'priority':priority,'status':status,'owner':owner,'content':json.dumps(content),'recall_result':recall_result,'send_at':send_at if send_at else int(time.time()),'created_at':created_at if created_at else int(time.time()),'updated_at':updated_at if updated_at else int(time.time()),'level':level}
     result = do_tidb_exe(sql=sql, args=key)
     return result[0],result[1]
 
@@ -776,4 +776,133 @@ def show_scheduler_jobs_count_db():
     sql = f"""select count(*)
     from scheduler_jobs """
     result = do_tidb_select(sql=sql)
+    return result
+
+def insert_update_recall_blacklist(project,key,type_id,status,reason_id,latest_owner,distinct_id='',timenow=None):
+    sql="""INSERT INTO `recall_blacklist` ( `project`, `distinct_id`, `key`, `type_id`, `reason_id`, `owner`, `latest_owner`, `status`, `created_at` ,`updated_at`)
+VALUES
+	(%(project)s,%(distinct_id)s,%(key)s,%(type_id)s,%(reason_id)s,%(owner)s,%(latest_owner)s,%(status)s,%(created_at)s,%(updated_at)s) 
+	ON DUPLICATE KEY UPDATE `reason_id` =IF(%(reason_id)s != 0 ,%(reason_id)s, reason_id ),`status` =IF(%(status)s != 0,%(status)s, status ),`distinct_id` = IF(%(distinct_id)s != '',%(distinct_id)s, distinct_id ),latest_owner =%(latest_owner)s,updated_at =%(updated_at)s;"""
+    timenow = int(time.time()) if not timenow else timenow
+    key = {'project':project,'distinct_id':distinct_id,'key':key,'type_id':type_id,'reason_id':reason_id,'owner':latest_owner,'latest_owner':latest_owner,'status':status,'created_at':timenow,'updated_at':timenow}
+    result = do_tidb_exe(sql=sql, args=key)
+    return result
+
+def insert_recall_blacklist(project,key,type_id,status,reason_id,latest_owner,distinct_id='',timenow=None):
+    sql="""INSERT INTO `recall_blacklist` ( `project`, `distinct_id`, `key`, `type_id`, `reason_id`, `owner`, `latest_owner`, `status`, `created_at` ,`updated_at`)
+VALUES
+	(%(project)s,%(distinct_id)s,%(key)s,%(type_id)s,%(reason_id)s,%(owner)s,%(latest_owner)s,%(status)s,%(created_at)s,%(updated_at)s);"""
+    timenow = int(time.time()) if not timenow else timenow
+    key = {'project':project,'distinct_id':distinct_id,'key':key,'type_id':type_id,'reason_id':reason_id,'owner':latest_owner,'latest_owner':latest_owner,'status':status,'created_at':timenow,'updated_at':timenow}
+    result = do_tidb_exe(sql=sql, args=key)
+    return result
+
+def update_recall_blacklist(project,key,type_id,status,reason_id,latest_owner,distinct_id='',timenow=None):
+    sql="""UPDATE `recall_blacklist` set `reason_id` =IF(%(reason_id)s != 0 ,%(reason_id)s, reason_id ),`status` =IF(%(status)s != 0,%(status)s, status ),`distinct_id` = IF(%(distinct_id)s != '',%(distinct_id)s, distinct_id ),latest_owner =%(latest_owner)s,updated_at =%(updated_at)s;"""
+    timenow = int(time.time()) if not timenow else timenow
+    key = {'project':project,'distinct_id':distinct_id,'key':key,'type_id':type_id,'reason_id':reason_id,'owner':latest_owner,'latest_owner':latest_owner,'status':status,'created_at':timenow,'updated_at':timenow}
+    result = do_tidb_exe(sql=sql, args=key)
+    return result
+
+
+def insert_recall_blacklist_reason(rbid,reason_id,reason_owner,final_status_id,reason_comment='',timenow=None):
+    sql="""insert into `recall_blacklist_reason` (`rbid`,`reason_id`,`reason_owner`,`reason_comment`,`final_status_id`,`created_at`) VALUES (%(rbid)s,%(reason_id)s,%(reason_owner)s,%(reason_comment)s,%(final_status_id)s,%(created_at)s)"""
+    timenow = int(time.time()) if not timenow else timenow
+    key = {'rbid':rbid,'reason_id':reason_id,'reason_owner':reason_owner,'reason_comment':reason_comment,'final_status_id':final_status_id,'created_at':timenow}
+    result = do_tidb_exe(sql=sql, args=key)
+    return result
+
+def select_recall_blacklist_id(type_id,distinct_id=None,key=None,project=None,status=None,limit=None):
+    add_on_status =''
+    add_limit =''
+    add_fliter = ''
+    if limit :
+        add_limit = 'limit '+str(int(limit))
+    if distinct_id :
+        add_fliter = add_fliter + f' and recall_blacklist.`distinct_id` = "{distinct_id}"'
+    if key :
+        add_fliter = add_fliter + f' and recall_blacklist.`key` = "{key}"'
+    if project :
+        add_fliter = add_fliter + f' and recall_blacklist.`project` = "{project}"'
+    if status :
+        status_int = []
+        for s in status:
+            status_int.append(str(int(s)))
+        add_on_status = "and recall_blacklist.status in ("+",".join(status_int)+")"
+    
+    sql="""SELECT
+	recall_blacklist.id,
+	recall_blacklist.reason_id,
+	r_id.`desc`,
+	recall_blacklist.`owner`,
+	recall_blacklist.latest_owner,
+	recall_blacklist.`status`,
+	s_id.`desc`,
+	cast(FROM_UNIXTIME(recall_blacklist.created_at) as char),
+	cast(FROM_UNIXTIME(recall_blacklist.updated_at) as char),
+	recall_blacklist_reason.final_status_id,
+	s2_id.`desc`,
+	recall_blacklist_reason.reason_id,
+	r2_id.`desc`,
+	recall_blacklist_reason.reason_owner,
+	recall_blacklist_reason.reason_comment,
+	cast(FROM_UNIXTIME(recall_blacklist_reason.created_at) as char)
+FROM
+	recall_blacklist
+	JOIN recall_blacklist_reason ON recall_blacklist.id = recall_blacklist_reason.rbid 
+	join status_code as r_id on recall_blacklist.reason_id = r_id.id
+	join status_code as s_id on recall_blacklist.`status` = s_id.id
+	join status_code as r2_id on recall_blacklist_reason.`reason_id` = r2_id.id
+	join status_code as s2_id on recall_blacklist_reason.`final_status_id` = s2_id.id
+	where recall_blacklist.type_id = {type_id} {add_fliter} {add_on_status}
+ORDER BY
+	recall_blacklist_reason.created_at DESC {add_limit} ;""".format(type_id=type_id,add_fliter=add_fliter,add_on_status=add_on_status,add_limit=add_limit)
+    result = do_tidb_select(sql=sql)
+    return result
+
+def select_recall_blacklist_list(type_id,distinct_id=None,project=None,status=None,start=None,limit=None):
+    add_on_status =''
+    add_limit =''
+    add_fliter = ''
+    if not start:
+        start = 0
+    if limit :
+        add_limit = f'limit {start},{limit}'
+    if distinct_id :
+        add_fliter = add_fliter + f' and recall_blacklist.`distinct_id` = "{distinct_id}"'
+    if project :
+        add_fliter = add_fliter + f' and recall_blacklist.`project` = "{project}"'
+    if status :
+        status_int = []
+        for s in status:
+            status_int.append(str(int(s)))
+        add_on_status = "and recall_blacklist.status in ("+",".join(status_int)+")"
+    
+    sql="""SELECT
+	recall_blacklist.id,
+	recall_blacklist.reason_id,
+	r_id.`desc`,
+	recall_blacklist.`owner`,
+	recall_blacklist.latest_owner,
+	recall_blacklist.`status`,
+	s_id.`desc`,
+	cast(FROM_UNIXTIME(recall_blacklist.created_at) as char),
+	cast(FROM_UNIXTIME(recall_blacklist.updated_at) as char)
+FROM
+	recall_blacklist
+	join status_code as r_id on recall_blacklist.`reason_id` = r_id.id
+	join status_code as s_id on recall_blacklist.`status` = s_id.id
+	where recall_blacklist.type_id = {type_id} {add_fliter} {add_on_status} {add_limit} ;""".format(type_id=type_id,add_fliter=add_fliter,add_on_status=add_on_status,add_limit=add_limit)
+    result = do_tidb_select(sql=sql)
+    return result
+
+
+
+
+
+def insert_recall_blacklist_history(rbid,checker,result_status_id,result_reason_id,timenow=None):
+    sql="""insert into `recall_blacklist_history` (`rbid`,`checker`,`result_status_id`,`result_reason_id`,`created_at`) VALUES (%(rbid)s,%(checker)s,%(result_status_id)s,%(result_reason_id)s,%(created_at)s)"""
+    timenow = int(time.time()) if not timenow else timenow
+    key = {'rbid':rbid,'checker':checker,'result_status_id':result_status_id,'result_reason_id':result_reason_id,'created_at':timenow}
+    result = do_tidb_exe(sql=sql, args=key)
     return result

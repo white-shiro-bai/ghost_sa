@@ -39,3 +39,8 @@ use_bbhj = True #默认启用宝贝回家公益项目功能，启用后，程序
 
 bbhj_keyword = '你的请求不合法哟。有兴趣的话，点击查看源码哟'
 bbhj_url = 'https://github.com/white-shiro-bai/ghost_sa/'
+
+#黑名单
+
+recall_blacklist_commit = True #开启黑名单增删改查
+recall_blacklist_query= True #开启黑名单过滤

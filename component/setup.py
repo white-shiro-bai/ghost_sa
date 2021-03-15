@@ -124,12 +124,48 @@ def create_project(project_name,expired=None):
     `referrer` text DEFAULT NULL COMMENT '页面',
     KEY `short_url` (`short_url`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;"""
+    blacklist_sql_1="""CREATE TABLE `recall_blacklist` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `project` varchar(255) NOT NULL COMMENT '项目名',
+    `distinct_id` varchar(255) DEFAULT NULL,
+    `key` varchar(255) NOT NULL COMMENT '渠道key',
+    `type_id` int(11) NOT NULL COMMENT '渠道类型',
+    `reason_id` int(11) DEFAULT NULL COMMENT '原因id',
+    `owner` varchar(255) DEFAULT NULL COMMENT '第一次操作所属人',
+    `latest_owner` varchar(255) DEFAULT NULL COMMENT '最后一次操作所属人',
+    `status` int(11) DEFAULT NULL COMMENT '状态',
+    `created_at` int(11) DEFAULT NULL COMMENT '创建时间',
+    `updated_at` int(11) DEFAULT NULL COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `anti_copy` (`key`,`type_id`,`project`),
+    KEY `check_blacklist` (`status`,`key`,`type_id`,`project`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin AUTO_INCREMENT=1;"""
+    blacklist_sql_2="""CREATE TABLE `recall_blacklist_history` (
+    `rbid` int(11) NOT NULL COMMENT 'recall_blacklist的id',
+    `checker` varchar(255) DEFAULT NULL COMMENT '查询者的名字',
+    `result_status_id` int(11) DEFAULT NULL COMMENT '返回的status_code里pid是39的状态',
+    `result_reason_id` int(11) DEFAULT NULL COMMENT '返回的status_code里pid是30的理由',
+    `created_at` int(11) DEFAULT NULL COMMENT '创建时间',
+    KEY `rbid` (`rbid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;"""
+    blacklist_sql_3="""CREATE TABLE `recall_blacklist_reason` (
+    `rbid` int(11) NOT NULL COMMENT 'recall_blacklist的id',
+    `reason_id` int(11) DEFAULT NULL COMMENT 'status_code里pid是30的状态',
+    `reason_owner` varchar(255) DEFAULT NULL COMMENT '修改人',
+    `reason_comment` varchar(255) DEFAULT NULL COMMENT '修改的备注',
+    `final_status_id` int(11) DEFAULT NULL COMMENT '最后写入recall_blacklist的status_code里pid是39的状态',
+    `created_at` varchar(255) DEFAULT NULL COMMENT '创建的时间',
+    KEY `rbid` (`rbid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;"""
     do_tidb_exe(create_project_list)
     do_tidb_exe(create_shortcut)
     do_tidb_exe(create_shortcut_history)
     do_tidb_exe(create_mobile_ad_src)
     do_tidb_exe(create_mobile_ad_list)
     do_tidb_exe(created_shortcut_read)
+    do_tidb_exe(blacklist_sql_1)
+    do_tidb_exe(blacklist_sql_2)
+    do_tidb_exe(blacklist_sql_3)
     # print('project_list已生成')
     check_sql = "show tables"
     check_result,check_count = do_tidb_select(check_sql)
@@ -365,7 +401,9 @@ def create_project(project_name,expired=None):
     `priority` int(4) DEFAULT NULL COMMENT '优先级',
     `status` int(4) DEFAULT NULL COMMENT '状态',
     `owner` varchar(255) DEFAULT NULL COMMENT '添加人',
+    `level` int(4) DEFAULT NULL COMMENT '消息级别',
     `type` int(4) DEFAULT NULL COMMENT '消息类型',
+    `key` varchar(255) DEFAULT NULL COMMENT '消息接受方式key',
     `content` json DEFAULT NULL COMMENT '消息内容',
     `send_at` int(11) DEFAULT NULL COMMENT '计划发送时间',
     `recall_result` text DEFAULT NULL COMMENT '发送结果',
@@ -373,8 +411,9 @@ def create_project(project_name,expired=None):
     `updated_at` int(11) DEFAULT NULL COMMENT '更新时间',
     PRIMARY KEY (`id`),
     KEY `distinct_id` (`distinct_id`),
-    KEY `send_plan` (`status`,`priority`,`send_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin AUTO_INCREMENT=1001;""".format(project_name=project_name)
+    KEY `send_plan` (`status`,`priority`,`send_at`),
+    KEY `key` (`key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin AUTO_INCREMENT=1;""".format(project_name=project_name)
         do_tidb_exe(insert_noti)
         insert_noti_group = """CREATE TABLE IF NOT EXISTS `{project_name}_noti_group` (
     `id` int(11) NOT NULL AUTO_INCREMENT,

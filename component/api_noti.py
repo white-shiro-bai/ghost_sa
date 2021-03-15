@@ -18,7 +18,6 @@ from component.messenger import send_manual,create_non_usergroup_noti,create_non
 from scheduler_jobs.etl_model import apply_temple
 
 
-
 def show_usergroup_plan():
     #查询用户分群计划列表
     start_time = time.time()
@@ -410,7 +409,6 @@ def create_scheduler_jobs_manual():
             write_to_log(filename='api_noti',defname='create_scheduler_jobs_manual',result=error)
             returnjson = {'result':'fail','error':error}
             return jsonify(returnjson)
-
 
 def create_manual_temple_noti():
     #外部触发模板消息
