@@ -798,7 +798,7 @@ VALUES
     return result
 
 def update_recall_blacklist(project,key,type_id,status,reason_id,latest_owner,distinct_id='',timenow=None):
-    sql="""UPDATE `recall_blacklist` set `reason_id` =IF(%(reason_id)s != 0 ,%(reason_id)s, reason_id ),`status` =IF(%(status)s != 0,%(status)s, status ),`distinct_id` = IF(%(distinct_id)s != '',%(distinct_id)s, distinct_id ),latest_owner =%(latest_owner)s,updated_at =%(updated_at)s;"""
+    sql="""UPDATE `recall_blacklist` set `reason_id` =IF(%(reason_id)s != 0 ,%(reason_id)s, reason_id ),`status` =IF(%(status)s != 0,%(status)s, status ),`distinct_id` = IF(%(distinct_id)s != '',%(distinct_id)s, distinct_id ),latest_owner =%(latest_owner)s,updated_at =%(updated_at)s where `key`=%(key)s and `type_id` = %(type_id)s and `project` = %(project)s ;"""
     timenow = int(time.time()) if not timenow else timenow
     key = {'project':project,'distinct_id':distinct_id,'key':key,'type_id':type_id,'reason_id':reason_id,'owner':latest_owner,'latest_owner':latest_owner,'status':status,'created_at':timenow,'updated_at':timenow}
     result = do_tidb_exe(sql=sql, args=key)
