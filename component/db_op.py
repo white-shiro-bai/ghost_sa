@@ -40,21 +40,30 @@ def select_tidb(sql, args=None,presql=None):
 
 
 def do_tidb_exe(sql,presql=None, args=None, retrycount=5):
-    try:
-        results, result_count , lastest_id = exe_tidb(sql=sql, args=args,presql=presql)
-        return results, result_count , lastest_id
-    except Exception:
-        error = traceback.format_exc()
-        write_to_log(filename='db_op', defname='do_tidb_exe', result=sql+str(args)+error)
-        if retrycount > 0:
-            retrycount -= 1
-            time.sleep(1)
-            return do_tidb_exe(sql=sql, args=args, retrycount=retrycount)
-        else:
-            return 'sql_err', 0
+    # 执行库
+    if "update" in sql.lower() and "where" not in sql.lower():
+        write_to_log(filename='db_op', defname='do_tidb_exe', result=sql+str(args)+'update必须包含where条件才能执行')
+        return 'update必须包含where条件才能执行', 0 , 0
+    elif "delete" in sql.lower() and "where" not in sql.lower():
+        write_to_log(filename='db_op', defname='do_tidb_exe', result=sql+str(args)+'delete必须包含where条件才能执行')
+        return 'delete必须包含where条件才能执行', 0 , 0
+    else:
+        try:
+            results, result_count , lastest_id = exe_tidb(sql=sql, args=args,presql=presql)
+            return results, result_count , lastest_id
+        except Exception:
+            error = traceback.format_exc()
+            write_to_log(filename='db_op', defname='do_tidb_exe', result=sql+str(args)+error)
+            if retrycount > 0:
+                retrycount -= 1
+                time.sleep(1)
+                return do_tidb_exe(sql=sql, args=args, retrycount=retrycount)
+            else:
+                return 'sql_err', 0 , 0
 
 
 def do_tidb_select(sql,presql=None, args=None, retrycount=5):
+    # 查询库
     try:
         results, result_count = select_tidb(sql=sql, args=args,presql=presql)
         return results, result_count
