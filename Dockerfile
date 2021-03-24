@@ -12,4 +12,6 @@ ENV NGINX_WORKER_CONNECTIONS 2048
 
 COPY ./app /app
 
+RUN mkdir -p /app/logs/
+
 EXPOSE 8000
