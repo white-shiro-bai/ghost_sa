@@ -12,6 +12,9 @@ ENV NGINX_WORKER_CONNECTIONS 2048
 
 COPY ./app /app
 
-RUN mkdir -p /app/logs/
+RUN mkdir -p /app/logs/ && \
+    mkdir -p ~/.pip
+
+COPY ./pip.conf ~/.pip/
 
 EXPOSE 8000
