@@ -35,6 +35,12 @@ from app.component.qrcode import gen_qrcode
 from app.component.url_tools import get_url_params
 
 
+
+default_return_image = None
+bitimage1 = os.path.join('app', 'image','43byte.gif')
+with open(bitimage1, 'rb') as f:
+    default_return_image = f.read()
+
 def insert_data(project,data_decode,User_Agent,Host,Connection,Pragma,Cache_Control,Accept,Accept_Encoding,Accept_Language,ip,ip_city,ip_asn,url,referrer,remark,ua_platform,ua_browser,ua_version,ua_language,ip_is_good,ip_asn_is_good,created_at=None,updated_at=None,use_kafka=admin.use_kafka):
     start_time = time.time()
     jsondump = json.dumps(data_decode,ensure_ascii=False)
@@ -175,15 +181,8 @@ def get_data():
                 write_to_log(filename='api',defname='get_data',result=url)
         else:
             write_to_log(filename='api',defname='get_data',result=str(request.method)+url)
-        bitimage1 = os.path.join('image','43byte.gif')
-        with open(bitimage1, 'rb') as f:
-                    returnimage = f.read()
-        return Response(returnimage, mimetype="image/gif")
-    else:
-        bitimage1 = os.path.join('image','43byte.gif')
-        with open(bitimage1, 'rb') as f:
-                    returnimage = f.read()
-        return Response(returnimage, mimetype="image/gif")
+        return Response(default_return_image, mimetype="image/gif")
+    return Response(default_return_image, mimetype="image/gif")
 
 def get_datas():
     try:
@@ -413,18 +412,12 @@ def installation_track():
                 return jsonify(returnjson)
             else:
                 insert_installation_track(project=project,data_decode=data,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma, Cache_Control=Cache_Control, Accept=Accept, Accept_Encoding=Accept_Encoding, Accept_Language=Accept_Language, ip=ip, ip_city=ip_city,ip_asn=ip_asn, url=url, referrer=referrer, remark=remark, ua_platform=ua_platform, ua_browser=ua_browser, ua_version=ua_version, ua_language=ua_language, ip_is_good=ip_is_good, ip_asn_is_good=ip_asn_is_good)
-                bitimage1 = os.path.join('image','43byte.gif')
-                with open(bitimage1, 'rb') as f:
-                    returnimage = f.read()
-                return Response(returnimage, mimetype="image/gif")
+                return Response(default_return_image, mimetype="image/gif")
         except Exception:
             error = traceback.format_exc()
             write_to_log(filename='api',defname='installation_track',result=error)
-    else:
-        bitimage1 = os.path.join('image','43byte.gif')
-        with open(bitimage1, 'rb') as f:
-            returnimage = f.read()
-        return Response(returnimage, mimetype="image/gif")
+    
+    return Response(default_return_image, mimetype="image/gif")
 
 def insert_installation_track(project, data_decode, User_Agent, Host, Connection, Pragma, Cache_Control, Accept, Accept_Encoding, Accept_Language, ip, ip_city,
                                         ip_asn, url, referrer, remark, ua_platform, ua_browser, ua_version, ua_language, ip_is_good, ip_asn_is_good, created_at=None, updated_at=None,use_kafka=admin.use_kafka):
@@ -746,10 +739,7 @@ def shortcut_read(short_url):
     elif admin.use_kafka is True:
         msg = {"group":"shortcut_read","data":{"short_url":short_url,"ip":ip,"user_agent":User_Agent,"accept_language":Accept_Language,"ua_platform":ua_platform,"ua_browser":ua_browser,"ua_version":ua_version,"ua_language":ua_language,"referrer":referrer,"created_at":time1}}
         insert_message_to_kafka(key=ip, msg=msg)
-    bitimage1 = os.path.join('image','43byte.gif')
-    with open(bitimage1, 'rb') as f:
-        returnimage = f.read()
-    return Response(returnimage, mimetype="image/gif")
+    return Response(default_return_image, mimetype="image/gif")
 
 def show_qrcode(short_url):
     short = short_url.split("_____")[0]
