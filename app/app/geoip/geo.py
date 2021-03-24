@@ -13,7 +13,7 @@ import pprint
 def get_addr(ip='8.8.8.8'):
     #获取ip的位置信息
     #这个文件在去这里下载对应的mmdb文件 https://dev.maxmind.com/geoip/geoip2/geolite2/
-    reader = geoip2.database.Reader('./geoip/GeoLite2-City.mmdb')
+    reader = geoip2.database.Reader('app/geoip/GeoLite2-City.mmdb')
     try:
         response = reader.city(ip)
         reader.close()
@@ -30,7 +30,7 @@ def get_addr(ip='8.8.8.8'):
 def get_asn(ip='8.8.8.8'):
     #获取ip的自治系统号
     #这个文件在去这里下载对应的mmdb文件 https://dev.maxmind.com/geoip/geoip2/geolite2/
-    reader = geoip2.database.Reader('./geoip/GeoLite2-ASN.mmdb')
+    reader = geoip2.database.Reader('app/geoip/GeoLite2-ASN.mmdb')
     try:
         response = reader.asn(ip)
         reader.close()
