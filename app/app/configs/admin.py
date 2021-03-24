@@ -14,7 +14,7 @@ admin_password = 'admin'
 
 # 是否使用Kafka
 
-use_kafka = False #True时，数据写入kafka。False时，直接插入数据库
+use_kafka = True #True时，数据写入kafka。False时，直接插入数据库
 
 # 是否开启properties表
 
