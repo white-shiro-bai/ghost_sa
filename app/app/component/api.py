@@ -20,7 +20,7 @@ import pprint
 import os
 from app.component.db_func import insert_event,get_long_url_from_short,insert_shortcut_history,check_long_url,insert_shortcut,show_shortcut,count_shortcut,show_check,insert_properties,insert_user_db,show_project,read_mobile_ad_list,count_mobile_ad_list,read_mobile_ad_src_list,check_mobile_ad_url,insert_mobile_ad_list,distinct_id_query,insert_shortcut_read
 from app.component.db_op import *
-from geoip.geo import get_addr,get_asn
+from app.geoip.geo import get_addr,get_asn
 import gzip
 from app.component.api_tools import insert_device,encode_urlutm,insert_user,recall_dsp,return_dsp_utm
 from app.configs.export import write_to_log

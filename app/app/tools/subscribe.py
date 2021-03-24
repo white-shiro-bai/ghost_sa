@@ -4,7 +4,7 @@
 import sys
 sys.path.append("./")
 from kafka import KafkaConsumer
-from geoip.geo import get_asn,get_addr
+from app.geoip.geo import get_asn,get_addr
 from app.component.api import insert_data
 from app.configs import admin
 import json

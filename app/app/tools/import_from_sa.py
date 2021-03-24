@@ -9,7 +9,7 @@ import json
 from app.component.api import insert_data
 from app.component.api_tools import insert_user
 from app.component.db_func import insert_shortcut
-from geoip.geo import get_addr,get_asn
+from app.geoip.geo import get_addr,get_asn
 from app.configs.export import write_to_log
 import time
 import multiprocessing
