@@ -5,7 +5,7 @@ import sys
 sys.path.append("./")
 sys.setrecursionlimit(10000000)
 
-from app import geoip2
+import geoip2
 import traceback
 import json
 import pprint
