@@ -13,8 +13,8 @@ from configs import admin
 if admin.use_kafka is True:
     producer = KafkaProducer(bootstrap_servers=kafka.bootstrap_servers)
 
-def insert_message_to_kafka(msg):
-    producer.send(topic=kafka.kafka_topic,value=json.dumps(msg).encode())
+def insert_message_to_kafka(key, msg):
+    producer.send(topic=kafka.kafka_topic, key=key, value=json.dumps(msg).encode())
 
 
 kafka_offset_reset = 'earliest' #latest,earliest,none 首次拉取kafka订阅的模式
@@ -28,4 +28,4 @@ def get_message_from_kafka_independent_listener():
     return consumer
 
 if __name__ == "__main__":
-    insert_message_to_kafka(msg={'msg': 'test'})
+    insert_message_to_kafka(key='123231231', msg={'msg': 'test'})

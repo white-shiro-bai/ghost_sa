@@ -103,7 +103,7 @@ def insert_data(project,data_decode,User_Agent,Host,Connection,Pragma,Cache_Cont
         timenow = int(time.time())
         timenow13 = int(round(time.time() * 1000))
         msg = {"timestamp":timenow13,"data":{"project":project,"data_decode":data_decode,"User_Agent":User_Agent,"Host":Host,"Connection":Connection,"Pragma":Pragma,"Cache_Control":Cache_Control,"Accept":Accept,"Accept_Encoding":Accept_Encoding,"Accept_Language":Accept_Language,"ip":ip,"ip_city":ip_city,"ip_asn":ip_asn,"url":url,"referrer":referrer,"remark":remark,"ua_platform":ua_platform,"ua_browser":ua_browser,"ua_version":ua_version,"ua_language":ua_language,"ip_is_good":ip_is_good,"ip_asn_is_good":ip_asn_is_good,"created_at":timenow,"updated_at":timenow}}
-        insert_message_to_kafka(msg=msg)
+        insert_message_to_kafka(key=distinct_id, msg=msg)
     print(time.time()-start_time)
 
 def get_data():
@@ -203,16 +203,15 @@ def get_long(short_url):
     ua_version = request.user_agent.version #客户端浏览器的版本
     ua_language = request.user_agent.language #客户端浏览器的语言
     url = request.url
+    ip = request.headers.get('X-Forwarded-For') #获取SLB真实地址
     if request.headers.get('X-Forwarded-For') is None:
-        ip = request.remote_addr#服务器直接暴露
-    else:
-        ip = request.headers.get('X-Forwarded-For') #获取SLB真实地址
+        ip = request.remote_addr                            #服务器直接暴露
     time2 = int(time.time()*1000) - time1
     if admin.use_kafka is False:
         insert_shortcut_history(short_url=short_url,result=status,cost_time=time2,ip=ip,user_agent=User_Agent,accept_language=Accept_Language,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,created_at=time1/1000)
     elif admin.use_kafka is True:
         msg = {"group":"shortcut_history","data":{"short_url":short_url,"status":status,"time2":time2,"ip":ip,"user_agent":User_Agent,"accept_language":Accept_Language,"ua_platform":ua_platform,"ua_browser":ua_browser,"ua_version":ua_version,"ua_language":ua_language,"created_at":time1/1000}}
-        insert_message_to_kafka(msg=msg)
+        insert_message_to_kafka(key=ip, msg=msg)
     if status == 'success':
         return redirect(long_url)
     elif status == 'expired':
@@ -463,7 +462,7 @@ def insert_installation_track(project, data_decode, User_Agent, Host, Connection
         print(time.time()-start_time)
     elif use_kafka is True:
         msg = {"group":"installation_track","timestamp":timenow13,"data":{"project":project,"data_decode":data_decode,"User_Agent":User_Agent,"Host":Host,"Connection":Connection,"Pragma":Pragma,"Cache_Control":Cache_Control,"Accept":Accept,"Accept_Encoding":Accept_Encoding,"Accept_Language":Accept_Language,"ip":ip,"ip_city":ip_city,"ip_asn":ip_asn,"url":url,"referrer":referrer,"remark":remark,"ua_platform":ua_platform,"ua_browser":ua_browser,"ua_version":ua_version,"ua_language":ua_language,"ip_is_good":ip_is_good,"ip_asn_is_good":ip_asn_is_good,"created_at":created_at if created_at else start_time,"updated_at":created_at if created_at else start_time}}
-        insert_message_to_kafka(msg=msg)
+        insert_message_to_kafka(key=distinct_id, msg=msg)
         print(time.time()-start_time)
 
 
@@ -701,10 +700,10 @@ def create_mobile_ad_link():
         return jsonify(returnjson)
 
 def who_am_i():
+    ip = request.headers.get('X-Forwarded-For') #获取SLB真实地址
     if request.headers.get('X-Forwarded-For') is None:
-        ip = request.remote_addr#服务器直接暴露
-    else:
-        ip = request.headers.get('X-Forwarded-For') #获取SLB真实地址
+        ip = request.remote_addr                #服务器直接暴露
+
     ip_city,ip_is_good = get_addr(ip)
     ip_asn,ip_asn_is_good = get_asn(ip)
     if ip_is_good ==0:
@@ -739,15 +738,14 @@ def shortcut_read(short_url):
     ua_language = request.user_agent.language #客户端浏览器的语言
     url = request.url
     referrer = request.referrer
+    ip = request.headers.get('X-Forwarded-For') #获取SLB真实地址
     if request.headers.get('X-Forwarded-For') is None:
-        ip = request.remote_addr#服务器直接暴露
-    else:
-        ip = request.headers.get('X-Forwarded-For') #获取SLB真实地址
+        ip = request.remote_addr#服务器直接暴露        
     if admin.use_kafka is False:
         insert_shortcut_read(short_url=short_url,ip=ip,user_agent=User_Agent,accept_language=Accept_Language,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,referrer=referrer,created_at=time1)
     elif admin.use_kafka is True:
         msg = {"group":"shortcut_read","data":{"short_url":short_url,"ip":ip,"user_agent":User_Agent,"accept_language":Accept_Language,"ua_platform":ua_platform,"ua_browser":ua_browser,"ua_version":ua_version,"ua_language":ua_language,"referrer":referrer,"created_at":time1}}
-        insert_message_to_kafka(msg=msg)
+        insert_message_to_kafka(key=ip, msg=msg)
     bitimage1 = os.path.join('image','43byte.gif')
     with open(bitimage1, 'rb') as f:
         returnimage = f.read()
