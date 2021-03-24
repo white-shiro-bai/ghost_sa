@@ -7,7 +7,9 @@ sys.setrecursionlimit(10000000)
 from trigger_jobs.sample import *
 import traceback
 from configs.export import write_to_log
-from component.kafka_op import get_message_from_kafka_independent_listener
+from configs import admin
+if admin.use_kafka is True:
+    from component.kafka_op import get_message_from_kafka_independent_listener
 
 
 class trigger:

@@ -5,7 +5,7 @@ import sys
 sys.path.append("..")
 sys.setrecursionlimit(10000000)
 from component.api import get_datas, get_long, shortit, show_short_cut_list, ghost_check ,installation_track,show_project_list,show_mobile_ad_list,show_mobile_src_list,create_mobile_ad_link,check_exist_distinct_id,who_am_i,shortcut_read,show_qrcode,show_long_qrcode,show_all_logos,show_logo
-from component.api_noti import show_usergroup_plan,show_usergroup_list,duplicate_scheduler_jobs,show_usergroup_data,disable_usergroup_data,show_temples,apply_temples_list,show_noti_group,show_noti_detial,manual_send,disable_single,show_scheduler_jobs,create_scheduler_jobs_manual,create_manual_temple_noti,create_manual_non_temple_noti
+from component.api_noti import show_usergroup_plan,show_usergroup_list,duplicate_scheduler_jobs,show_usergroup_data,disable_usergroup_data,show_temples,apply_temples_list,show_noti_group,show_noti_detial,manual_send,disable_single,show_scheduler_jobs,create_scheduler_jobs_manual,create_manual_temple_noti,create_manual_non_temple_noti,show_temple_args,recall_blacklist_commit,query_msg_type,query_blacklist_single
 from configs import admin
 from flask_cors import CORS
 from flask import jsonify
@@ -86,6 +86,10 @@ app.add_url_rule('/usergroups/show_scheduler_jobs', view_func=show_scheduler_job
 app.add_url_rule('/usergroups/create_scheduler_jobs_manual',view_func=create_scheduler_jobs_manual, methods=['POST'])#手动开始执行分群
 app.add_url_rule('/usergroups/create_manual_temple_noti',view_func=create_manual_temple_noti, methods=['POST'])#手动创建模板消息
 app.add_url_rule('/usergroups/create_manual_non_temple_noti',view_func=create_manual_non_temple_noti, methods=['POST'])#手动创建非模板消息
+app.add_url_rule('/usergroups/show_temple_args',view_func=show_temple_args, methods=['POST'])#查询模板需要的参数
+app.add_url_rule('/usergroups/recall_blacklist_commit',view_func=recall_blacklist_commit, methods=['POST'])#手工添加和修改黑名单
+app.add_url_rule('/usergroups/noti_type',view_func=query_msg_type, methods=['POST'])#查询开启的消息类型
+app.add_url_rule('/usergroups/blacklist_single',view_func=query_blacklist_single, methods=['POST'])#查询开启的消息类型
 
 if __name__ == '__main__':
     app.run(threaded=True, host='0.0.0.0', port=8000)  # 默认不填写的话，是5000端口；

@@ -11,11 +11,12 @@ from component.public_value import get_next_time
 import time
 from flask import request,jsonify,Response,redirect
 import traceback
-from component.db_func import show_project_usergroup_plan,show_project_usergroup_list,duplicate_scheduler_jobs_sql,select_usergroup_data_for_api,select_usergroup_datacount_for_api,disable_usergroup_data_db,show_temples_db,show_noti_group_db,show_noti_group_count_db,show_noti_db,show_noti_count_db,select_noti_group,select_noti_single,disable_noti_db,show_scheduler_jobs_db,show_scheduler_jobs_count_db,select_usergroup_jobs_plan_manual,insert_scheduler_job,select_noti_temple
+from component.db_func import show_project_usergroup_plan,show_project_usergroup_list,duplicate_scheduler_jobs_sql,select_usergroup_data_for_api,select_usergroup_datacount_for_api,disable_usergroup_data_db,show_temples_db,show_noti_group_db,show_noti_group_count_db,show_noti_db,show_noti_count_db,select_noti_group,select_noti_single,disable_noti_db,show_scheduler_jobs_db,show_scheduler_jobs_count_db,select_usergroup_jobs_plan_manual,insert_scheduler_job,select_noti_temple,select_msg_type
 import json
 from scheduler import create_noti_group
 from component.messenger import send_manual,create_non_usergroup_noti,create_non_usergroup_non_temple_noti
 from scheduler_jobs.etl_model import apply_temple
+from component.recall_blacklist import blacklist_commit, blacklist_query
 
 
 def show_usergroup_plan():
@@ -409,7 +410,6 @@ def create_scheduler_jobs_manual():
             write_to_log(filename='api_noti',defname='create_scheduler_jobs_manual',result=error)
             returnjson = {'result':'fail','error':error}
             return jsonify(returnjson)
-
 def create_manual_temple_noti():
     #外部触发模板消息
     project = get_url_params('project')
@@ -466,16 +466,82 @@ def create_manual_non_temple_noti():
 
 def show_temple_args():
     #查询模板需要的参数
-    # project = get_url_params('project')
-    # password = get_url_params('password')
-    # data = get_url_params('data')
-    # if password == admin.admin_password and request.method == 'POST' and owner and owner !='' and project:
-    result_temple = select_noti_temple(project='tvcbook',temple_id=1011)
-    args = json.loads(result_temple[0][0][2])
-    print(args)
-    for arg in args:
-        for key in args[arg]:
-            print(arg,key,args[arg][key])
-    
+    project = get_url_params('project')
+    password = get_url_params('password')
+    owner = get_url_params('owner')
+    temple_id = get_url_params('temple_id')
+    if password == admin.admin_password and request.method == 'POST' and owner and owner !='' and project:
+        result_temple = select_noti_temple(project=project,temple_id=temple_id)
+        args = json.loads(result_temple[0][0][2])
+        contents = json.loads(result_temple[0][0][3])
+        if result_temple[1]>0:
+            args_pending =['distinct_id']
+            import re
+            args_content = re.findall(r'___(\w+)___', result_temple[0][0][2])
+            for item in args_content:
+                if item not in args_pending:
+                    args_pending.append(item)
+            returnjson = {'result':'success','args':args,'content':contents,'need':args_pending}
+            return jsonify(returnjson)
+        else:
+            returnjson = {'result':'fail','error':'该模板不存在'}
+            return jsonify(returnjson)
+    else:
+        returnjson = {'result':'fail','error':'参数错误'}
+        return jsonify(returnjson)
+
+def recall_blacklist_commit():
+    #手动添加黑名单
+    start_time = time.time()
+    password = get_url_params('password')
+    project = get_url_params('project')
+    owner = get_url_params('owner')
+    key = get_url_params('key')
+    distinct_id = get_url_params('distinct_id')
+    type_id = get_url_params('type_id')
+    reason_id = get_url_params('reason_id')
+    status = get_url_params('status')
+    comment = get_url_params('comment')
+    if password == admin.admin_password and request.method == 'POST' and owner and owner !='' and project and key:
+        commit = blacklist_commit(data={'project':project,'distinct_id':distinct_id,'key':key,'type':type_id,'status':status,'reason_id':reason_id,'owner':owner,'comment':comment})
+        data = commit.universal()
+        returnjson = {'result':'success','timecost':time.time()-start_time,'data':data}
+        return jsonify(returnjson)
+    else:
+        returnjson = {'result':'fail','error':'参数错误'}
+        return jsonify(returnjson)
+
+def query_msg_type():
+    #查询支持的消息类型
+    start_time = time.time()
+    password = get_url_params('password')
+    if password == admin.admin_password and request.method == 'POST':
+        result = select_msg_type()
+        data = []
+        for i in result[0]:
+            data.append({"id":i[0],"desc":i[1]})
+        returnjson = {'result':'success','results_count':result[1],'timecost':time.time()-start_time,'data':data,'total_count':result[1],'page':1,'length':result[1]}
+        return jsonify(returnjson)
+
+
+def query_blacklist_single():
+    #查询黑名单记录
+    start_time = time.time()
+    password = get_url_params('password')
+    project = get_url_params('project')
+    owner = get_url_params('owner')
+    key = get_url_params('key')
+    distinct_id = get_url_params('distinct_id')
+    type_id = get_url_params('type')
+    level = get_url_params('level')
+    if password == admin.admin_password and request.method == 'POST' and owner and owner !='' and (distinct_id or key):
+        query = blacklist_query(data={'project':project,'distinct_id':distinct_id,'key':key,'type':type_id,'level':level})
+        data = query.check_messenger()
+        returnjson = {'result':'success','timecost':time.time()-start_time,'data':data}
+        return jsonify(returnjson)
+    else:
+        returnjson = {'result':'fail','error':'参数错误'}
+        return jsonify(returnjson)
+
 if __name__ == "__main__":
     show_temple_args()

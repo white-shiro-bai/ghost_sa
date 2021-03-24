@@ -193,10 +193,11 @@ def create_noti_temple():
     subject = "___subject___" #推送的标题内容，需要替换的部分前后加上___，应用模板的时候，会被temple_args,data_args和func里返回的内容替换.
     mail_to = "___email___" #推送的目标地址，不一定是email地址，也可以是手机号，看自定义变量定义的是什么
     mail_from = "" #推送的发件人地址，不一定是email，看自定义变量定义的是什么
-
+    key = mail_to #指定key，用于黑名单过滤
+    level = 52
     #入库
     pending_args = {"add_on_func": {"dir": func_dir, "name": func_name , "required": required}, "args": args, "ghost_sa": {"remark": remark, "track_url": track_url}, "meta": {"medium": medium, "medium_id": medium_id, "default_send_time":default_send_time}}
-    pending_content = {"content": content, "mail_from": mail_from, "mail_to": mail_to, "subject": subject}
+    pending_content = {"content": content, "mail_from": mail_from, "mail_to": mail_to, "subject": subject,"key":key,"level":level}
     result = insert_noti_temple(project=project,name=name,args=json.dumps(pending_args,ensure_ascii=False),content=json.dumps(pending_content,ensure_ascii=False),temple_desc=temple_desc)
     
 def create_noti_temple_wechat():
@@ -228,15 +229,16 @@ def create_noti_temple_wechat():
     wechat_openid = "___wechat_openid___" #openid
     wechat_template_id = "wyCHxVmQ4AbtDjE5pVXyDCSm0jsLE3irOv4BfEwDT3k"#模板id
     target_url = "http://www.qq.com/" #目标的url
+    key = wechat_openid #指定key，用于黑名单过滤
 
 
     #入库
     pending_args = {"add_on_func": {"dir": func_dir, "name": func_name , "required": required}, "args": args, "ghost_sa": {"remark": remark, "track_url": track_url}, "meta": {"medium": medium, "medium_id": medium_id, "default_send_time":default_send_time}}
-    pending_content = {'content':json.dumps({'wechat_openid':wechat_openid,'wechat_template_id':wechat_template_id,'target_url':target_url,'data':content})}
+    pending_content = {'content':json.dumps({'wechat_openid':wechat_openid,'wechat_template_id':wechat_template_id,'target_url':target_url,'data':content}),'key':key,'level':"51"}
     result = insert_noti_temple(project=project,name=name,args=json.dumps(pending_args,ensure_ascii=False),content=json.dumps(pending_content,ensure_ascii=False),temple_desc=temple_desc)
 
 
 if __name__ == "__main__":
     # create_usergroup_plan()
-	# create_noti_temple_wechat()
+    # create_noti_temple_wechat()
     create_noti_temple()
