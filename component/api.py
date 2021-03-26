@@ -111,7 +111,7 @@ def get_data():
     project = request.args.get('project')
     if project:
         User_Agent = request.headers.get('User-Agent')[0:2047] if request.headers.get('User-Agent') else None#Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36
-        if 'spider' in User_Agent.lower() :
+        if User_Agent and User_Agent !='' and 'spider' in User_Agent.lower() :
             remark = 'spider'
         Host = request.headers.get('Host') #: 10.16.5.241:5000
         Connection = request.headers.get('Connection')#: keep-alive
