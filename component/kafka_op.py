@@ -16,6 +16,8 @@ if admin.use_kafka is True:
 def insert_message_to_kafka(key, msg):
     if isinstance(key, str):
         key = key.encode()
+    else:
+        key = None
     producer.send(topic=kafka.kafka_topic, key=key, value=json.dumps(msg).encode())
 
 
