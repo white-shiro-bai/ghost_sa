@@ -14,6 +14,8 @@ if admin.use_kafka is True:
     producer = KafkaProducer(bootstrap_servers=kafka.bootstrap_servers)
 
 def insert_message_to_kafka(key, msg):
+    if isinstance(key, str):
+        key = key.encode()
     producer.send(topic=kafka.kafka_topic, key=key, value=json.dumps(msg).encode())
 
 
