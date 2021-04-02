@@ -824,6 +824,8 @@ def select_recall_blacklist_id(type_id,distinct_id=None,key=None,project=None,st
         add_fliter = add_fliter + f' and recall_blacklist.`key` = "{key}"'
     if project :
         add_fliter = add_fliter + f' and recall_blacklist.`project` = "{project}"'
+    if type_id :
+        add_fliter = add_fliter + f' and recall_blacklist.`type_id` = {type_id}'
     if status :
         status_int = []
         for s in status:
@@ -854,9 +856,9 @@ FROM
 	join status_code as s_id on recall_blacklist.`status` = s_id.id
 	join status_code as r2_id on recall_blacklist_reason.`reason_id` = r2_id.id
 	join status_code as s2_id on recall_blacklist_reason.`final_status_id` = s2_id.id
-	where recall_blacklist.type_id = {type_id} {add_fliter} {add_on_status}
+	where 1=1 {add_fliter} {add_on_status}
 ORDER BY
-	recall_blacklist_reason.created_at DESC {add_limit} ;""".format(type_id=type_id,add_fliter=add_fliter,add_on_status=add_on_status,add_limit=add_limit)
+	recall_blacklist_reason.created_at DESC {add_limit} ;""".format(add_fliter=add_fliter,add_on_status=add_on_status,add_limit=add_limit)
     result = do_tidb_select(sql=sql)
     return result
 
@@ -905,4 +907,9 @@ def insert_recall_blacklist_history(rbid,checker,result_status_id,result_reason_
     timenow = int(time.time()) if not timenow else timenow
     key = {'rbid':rbid,'checker':checker,'result_status_id':result_status_id,'result_reason_id':result_reason_id,'created_at':timenow}
     result = do_tidb_exe(sql=sql, args=key)
+    return result
+
+def select_msg_type():
+    sql='select `id`,`desc` from status_code where p_id = 22'
+    result = do_tidb_select(sql=sql)
     return result

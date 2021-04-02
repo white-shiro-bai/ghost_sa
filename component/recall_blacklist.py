@@ -19,21 +19,21 @@ class blacklist_commit:
         self.reason_id = data['reason_id'] if 'reason_id' in data and data['reason_id'] else 0
         self.owner = data['owner'] if 'owner' in data and data['owner'] else None
         self.comment = data['comment'] if 'comment' in data and data['comment'] else None
+        self.timenow = data['timenow'] if 'timenow' in data and data['timenow'] else int(time.time())
 
     def universal(self):
-        timenow = int(time.time())
         select_result = select_recall_blacklist_id(key=self.key,type_id=self.type,project=self.project,limit=1)
         if select_result[0] and select_result[0][0][5] != 45:
             rbid = select_result[0][0][0]
-            result = update_recall_blacklist(project=self.project,key=self.key,type_id=self.type,status=self.status,reason_id=self.reason_id,latest_owner=self.owner,distinct_id=self.distinct_id,timenow=timenow)
-            result_reason = insert_recall_blacklist_reason(rbid=rbid,reason_id=self.reason_id,reason_owner=self.owner,final_status_id=self.status,reason_comment=self.comment,timenow=timenow)
+            result = update_recall_blacklist(project=self.project,key=self.key,type_id=self.type,status=self.status,reason_id=self.reason_id,latest_owner=self.owner,distinct_id=self.distinct_id,timenow=self.timenow)
+            result_reason = insert_recall_blacklist_reason(rbid=rbid,reason_id=self.reason_id,reason_owner=self.owner,final_status_id=self.status,reason_comment=self.comment,timenow=self.timenow)
             desc,status = '更新条目',1
         elif select_result[0] and select_result[0][0][5] == 45:
             desc,status = '禁止解禁状态',0
         else:
-            result = insert_recall_blacklist(project=self.project,key=self.key,type_id=self.type,status=self.status,reason_id=self.reason_id,latest_owner=self.owner,distinct_id=self.distinct_id,timenow=timenow)
+            result = insert_recall_blacklist(project=self.project,key=self.key,type_id=self.type,status=self.status,reason_id=self.reason_id,latest_owner=self.owner,distinct_id=self.distinct_id,timenow=self.timenow)
             rbid=result[2]
-            result_reason = insert_recall_blacklist_reason(rbid=rbid,reason_id=self.reason_id,reason_owner=self.owner,final_status_id=self.status,reason_comment=self.comment,timenow=timenow)
+            result_reason = insert_recall_blacklist_reason(rbid=rbid,reason_id=self.reason_id,reason_owner=self.owner,final_status_id=self.status,reason_comment=self.comment,timenow=self.timenow)
             desc,status = '新增条目',1
         return_pending = {'result_desc':desc,'result_code':status,'input':{'key':self.key,'type':self.type,'project':self.project,'reason_id':self.reason_id,'owner':self.owner,'comment':self.comment,'distinct_id':self.distinct_id,'status':self.status}}
         return return_pending
@@ -99,9 +99,10 @@ class blacklist_query:
 
     def universal_status(self):
         return_pending = {'result_desc':'未找到黑名单信息','result_code':44,'input':{'key':self.key,'type':self.type,'project':self.project,'owner':self.owner,'distinct_id':self.distinct_id,'status':self.status}}
-        select_result = select_recall_blacklist_id(key=self.key,type_id=self.type,project=self.project,status=self.status,limit=self.limit)
+        select_result = select_recall_blacklist_id(key=self.key,distinct_id=self.distinct_id,type_id=self.type,project=self.project,status=self.status,limit=self.limit)
         if select_result[0]:
             reason_history = []
+            # print(select_result[0])
             for item in select_result[0]:
                 reason_history.append({"reason_id":item[11],"reason_name":item[12],"owner":item[13],"reason_comment":item[14],'reason_time':item[15],'status_id':item[9],'status_name':item[10]})
             return_pending = {'result_desc':select_result[0][0][6],'result_code':select_result[0][0][5],'final_reason_id':select_result[0][0][1],'final_reason_name':select_result[0][0][2],'init_owner':select_result[0][0][3],'final_owner':select_result[0][0][4],'init_time':select_result[0][0][7],'update_time':select_result[0][0][8],'input':{'key':self.key,'type':self.type,'project':self.project,'owner':self.owner,'distinct_id':self.distinct_id,'status':self.status},"reason_history":reason_history,"reason_count":select_result[1]}
@@ -144,9 +145,3 @@ class blacklist_query:
             return self.check_ad()
         else:
             return self.check_ad()
-
-if __name__ == "__main__":
-    a = blacklist_commit(data={"project":"tvcbook","distinct_id":"123456","key":"ben@tvcbook.com","type":"23","status":"40","reason_id":"32","owner":"ben","comment":"测试取消"})
-    print(a.add_by_user())
-    # b = blacklist_query(data={"type":23,"project":"tvcbook","key":"ben2@unknowwhite@outlook.com.com","owner":"cc12","level":50})
-    # print(b.check_messenger())
