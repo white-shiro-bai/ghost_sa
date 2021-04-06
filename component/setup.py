@@ -124,7 +124,7 @@ def create_project(project_name,expired=None):
     `referrer` text DEFAULT NULL COMMENT '页面',
     KEY `short_url` (`short_url`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;"""
-    blacklist_sql_1="""CREATE TABLE `recall_blacklist` (
+    blacklist_sql_1="""CREATE TABLE IF NOT EXISTS `recall_blacklist` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
     `project` varchar(255) NOT NULL COMMENT '项目名',
     `distinct_id` varchar(255) DEFAULT NULL,
@@ -140,7 +140,7 @@ def create_project(project_name,expired=None):
     UNIQUE KEY `anti_copy` (`key`,`type_id`,`project`),
     KEY `check_blacklist` (`status`,`key`,`type_id`,`project`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin AUTO_INCREMENT=1;"""
-    blacklist_sql_2="""CREATE TABLE `recall_blacklist_history` (
+    blacklist_sql_2="""CREATE TABLE IF NOT EXISTS `recall_blacklist_history` (
     `rbid` int(11) NOT NULL COMMENT 'recall_blacklist的id',
     `checker` varchar(255) DEFAULT NULL COMMENT '查询者的名字',
     `result_status_id` int(11) DEFAULT NULL COMMENT '返回的status_code里pid是39的状态',
@@ -148,7 +148,7 @@ def create_project(project_name,expired=None):
     `created_at` int(11) DEFAULT NULL COMMENT '创建时间',
     KEY `rbid` (`rbid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;"""
-    blacklist_sql_3="""CREATE TABLE `recall_blacklist_reason` (
+    blacklist_sql_3="""CREATE TABLE IF NOT EXISTS `recall_blacklist_reason` (
     `rbid` int(11) NOT NULL COMMENT 'recall_blacklist的id',
     `reason_id` int(11) DEFAULT NULL COMMENT 'status_code里pid是30的状态',
     `reason_owner` varchar(255) DEFAULT NULL COMMENT '修改人',
