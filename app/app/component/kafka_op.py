@@ -9,7 +9,6 @@ import json
 from app.configs import kafka
 from app.configs import admin
 
-producer = None
 if admin.use_kafka is True:
     producer = KafkaProducer(bootstrap_servers=kafka.bootstrap_servers, compression_type='gzip')
 
@@ -22,7 +21,7 @@ def insert_message_to_kafka(key, msg):
         key = key.encode()
     try:
         future = producer.send(topic=kafka.kafka_topic, key=key, value=json.dumps(msg).encode())
-        result = future.get(timeout= 10)
+        result = future.get(timeout=10)
     except Exception as e:
         print('发送失败: {}'.format(e))
 

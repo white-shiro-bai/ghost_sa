@@ -13,6 +13,7 @@ ENV NGINX_WORKER_CONNECTIONS 20480
 
 COPY ./app /app
 
+
 RUN mkdir -p /app/logs/ && \
     mkdir -p ~/.pip
 
