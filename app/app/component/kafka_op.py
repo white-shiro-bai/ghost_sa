@@ -41,7 +41,7 @@ class MsgQueue(Single):
         if isinstance(key, str):
             key = key.encode()
         try:
-            future = self.producer.send(topic=kafka.topic, key=key, value=json.dumps(msg).encode())
+            future = self.producer.send(topic=kafka.kafka_topic, key=key, value=json.dumps(msg).encode())
             result = future.get(timeout=10)
         except Exception as e:
             print('发送失败: {}'.format(e))
