@@ -11,13 +11,16 @@ from app.configs import admin
 
 
 if admin.use_kafka is True:
-    producer = KafkaProducer(bootstrap_servers=kafka.bootstrap_servers)
+    producer = KafkaProducer(bootstrap_servers=kafka.bootstrap_servers, compression_type='gzip')
 
 def insert_message_to_kafka(key, msg):
     if isinstance(key, str):
         key = key.encode()
-    producer.send(topic=kafka.kafka_topic, key=key, value=json.dumps(msg).encode())
-
+    try:
+        future = producer.send(topic=kafka.kafka_topic, key=key, value=json.dumps(msg).encode())
+        result = future.get(timeout= 10)
+    except Exception as e:
+        print('发送失败: {}'.format(e))
 
 kafka_offset_reset = 'earliest' #latest,earliest,none 首次拉取kafka订阅的模式
 
