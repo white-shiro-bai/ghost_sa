@@ -60,7 +60,7 @@ kafka_offset_reset = 'earliest' #latest,earliest,none 首次拉取kafka订阅的
 
 
 def get_message_from_kafka():
-    consumer=KafkaConsumer(kafka.kafka_topic, bootstrap_servers=kafka.bootstrap_servers, group_id=kafka.client_group_id,auto_offset_reset=kafka_offset_reset,client_id='get_message_from_kafka')
+    consumer = KafkaConsumer(kafka.kafka_topic, bootstrap_servers=kafka.bootstrap_servers, group_id=kafka.client_group_id,auto_offset_reset=kafka_offset_reset,client_id='get_message_from_kafka')
     return consumer
 
 def get_message_from_kafka_independent_listener():
