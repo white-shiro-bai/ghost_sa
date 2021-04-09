@@ -11,6 +11,6 @@ def get_conn_sqldb():
     port = 3306 # 端口号
     user = 'analyze'  # 用户名
     passwd = '&jZt48Qa3aNDKQ3s'
-    db = 'events'  # 库名
+    db = 'analyze'  # 库名
     conn = pymysql.connect(host=host, port=port, user=user,passwd=passwd, db=db, charset='utf8mb4', client_flag=pymysql.constants.CLIENT.MULTI_STATEMENTS)
     return conn
