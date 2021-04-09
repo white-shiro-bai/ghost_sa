@@ -18,9 +18,6 @@ def insert_message_to_kafka(key, msg):
     if not admin.use_kafka:
         return False
 
-    if not producer.bootstrap_connected():
-        producer = KafkaProducer(bootstrap_servers=kafka.bootstrap_servers, compression_type='gzip')
-
     if isinstance(key, str):
         key = key.encode()
     try:
