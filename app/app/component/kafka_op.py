@@ -21,7 +21,8 @@ def insert_message_to_kafka(key, msg):
         key = key.encode()
     try:
         future = producer.send(topic=kafka.kafka_topic, key=key, value=json.dumps(msg).encode())
-        result = future.get(timeout=10)
+        # result = future.get(timeout=10)
+        return future
     except Exception as e:
         print('发送失败: {}'.format(e))
 
@@ -37,4 +38,7 @@ def get_message_from_kafka_independent_listener():
     return consumer
 
 if __name__ == "__main__":
-    insert_message_to_kafka(key='123231231', msg={'msg': 'test'})
+    future = insert_message_to_kafka(key='123231231', msg={'msg': 'test'})
+    if future:
+        result = future.get(timeout=10)
+        print(result)
