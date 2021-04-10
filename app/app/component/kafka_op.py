@@ -24,6 +24,7 @@ def insert_message_to_kafka(key, msg):
         # result = future.get(timeout=10)
         return future
     except Exception as e:
+        print('topic: {}'.format(kafka.kafka_topic))
         print('发送失败: {}'.format(e))
 
 
