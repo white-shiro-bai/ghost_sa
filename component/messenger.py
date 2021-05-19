@@ -32,7 +32,7 @@ class send:
             pass
 
     def via_email(self):
-        default_mail_from = self.noti_content['mail_from'] if 'mail_from' in self.noti_content and self.noti_content['mail_from'] and self.noti_content['mail_from'] != '' else 'accounts-noreply@notify.tvcbook.com'#默认发送邮箱
+        default_mail_from = self.noti_content['mail_from'] if 'mail_from' in self.noti_content and self.noti_content['mail_from'] and self.noti_content['mail_from'] != '' else 'test@youremail.com'#默认发送邮箱
         result = send_email(to_addr=self.noti_content['mail_to'],from_addr=default_mail_from,subject=self.noti_content['subject'],html=self.noti_content['content'])
         return result
     def sms(self):

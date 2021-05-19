@@ -7,10 +7,9 @@ sys.setrecursionlimit(10000000)
 from trigger_jobs.sample import *
 import traceback
 from configs.export import write_to_log
-from configs import admin
+from configs import admin,kafka
 if admin.use_kafka is True:
-    from component.kafka_op import get_message_from_kafka_independent_listener
-
+    from component.kafka_op import get_message_from_kafka
 
 class trigger:
     def __init__(self, project, data_decode):
@@ -35,11 +34,16 @@ class trigger:
 
 
 if __name__ == "__main__":
-    results = get_message_from_kafka_independent_listener()
+    if admin.access_control_commit_mode =='trigger':
+        from component.access_control import access_control
+        ac_trigger = access_control()
+    results = get_message_from_kafka(group_id=kafka.client_group_id+'_'+admin.independent_listener_kafka_client_group_id,client_id=kafka.client_id+'_'+admin.independent_listener_kafka_client_client_id)
     for item in results :
         group = json.loads(item.value.decode('utf-8'))['group'] if "group" in json.loads(item.value.decode('utf-8')) else None
         data = json.loads(item.value.decode('utf-8'))['data']
         offset = item.offset
         if group == 'event_track':
-            a = trigger(project=data['project'], data_decode=data['data_decode'])
+            a = trigger(project=data['project'],data_decode=data['data_decode'])
             a.play_all()
+            if admin.access_control_commit_mode =='trigger':
+                ac_trigger.traffic(project=data['project'],event=data['data_decode']['event'] if 'event' in data['data_decode'] else None,ip_commit=data['ip'],distinct_id_commit=data['data_decode']['distinct_id'],add_on_key_commit=data['data_decode']['properties'][admin.access_control_add_on_key] if admin.access_control_add_on_key in data['data_decode']['properties'] else None)

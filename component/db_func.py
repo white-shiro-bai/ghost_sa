@@ -9,7 +9,7 @@ import time
 from component.db_op import do_tidb_exe,do_tidb_select
 from configs.export import write_to_log
 from configs import admin
-import traceback
+from component.public_value import get_display_day
 
 def insert_event(table,alljson,track_id,distinct_id,lib,event,type_1,User_Agent,Host,Connection,Pragma,Cache_Control,Accept,Accept_Encoding,Accept_Language,ip,ip_city,ip_asn,url,referrer,ua_platform,ua_browser,ua_version,ua_language,remark='normal',created_at=None):
     if created_at is None:
@@ -24,7 +24,7 @@ def insert_event(table,alljson,track_id,distinct_id,lib,event,type_1,User_Agent,
     key = {'alljson':alljson,'track_id':track_id,'distinct_id':distinct_id,'lib':lib,'event':event,'type':type_1,'created_at':timenow,'date':date,'hour':hour,'User_Agent':User_Agent,'Host':Host,'Connection':Connection,'Pragma':Pragma,'Cache_Control':Cache_Control,'Accept':Accept,'Accept_Encoding':Accept_Encoding,'Accept_Language':Accept_Language,'ip':ip,'ip_city':ip_city,'ip_asn':ip_asn,'url':url,'referrer':referrer,'remark':remark,'ua_platform':ua_platform,'ua_browser':ua_browser,'ua_version':ua_version,'ua_language':ua_language}
     result = do_tidb_exe(sql=sql, args=key)
     if result[1] == 0:
-        write_to_log(filename='db_func',defname='insert_event',result=result+sql+str(key))
+        write_to_log(filename='db_func',defname='insert_event',result=result[0]+sql+str(key))
     return result[1]
 
 
@@ -37,9 +37,7 @@ def insert_devicedb(table,distinct_id,device_id,manufacturer,model,os,os_version
         timenow = created_at
         date = time.strftime("%Y-%m-%d", time.localtime(created_at))
         hour = int(time.strftime("%H", time.localtime(created_at)))
-    sql = """set @@tidb_disable_txn_auto_retry = 0;
-set @@tidb_retry_limit = 10;
-    insert HIGH_PRIORITY into `{table}_device` (`distinct_id`,`device_id`,`manufacturer`,`model`,`os`,`os_version`,`screen_width`,`screen_height`,`network_type`,`user_agent`,`accept_language`,`ip`,`ip_city`,`ip_asn`,`wifi`,`app_version`,`carrier`,`referrer`,`referrer_host`,`bot_name`,`browser`,`browser_version`,`is_login_id`,`screen_orientation`,`gps_latitude`,`gps_longitude`,`first_visit_time`,`first_referrer`,`first_referrer_host`,`first_browser_language`,`first_browser_charset`,`first_search_keyword`,`first_traffic_source_type`,`utm_content`,`utm_campaign`,`utm_medium`,`utm_term`,`utm_source`,`latest_utm_content`,`latest_utm_campaign`,`latest_utm_medium`,`latest_utm_term`,`latest_utm_source`,`latest_referrer`,`latest_referrer_host`,`latest_search_keyword`,`latest_traffic_source_type`,`created_at`,`updated_at`,`ua_platform`,`ua_browser`,`ua_version`,`ua_language`,`lib`) values ( %(distinct_id)s,%(device_id)s,%(manufacturer)s,%(model)s,%(os)s,%(os_version)s,%(screen_width)s,%(screen_height)s,%(network_type)s,%(user_agent)s,%(accept_language)s,%(ip)s,%(ip_city)s,%(ip_asn)s,%(wifi)s,%(app_version)s,%(carrier)s,%(referrer)s,%(referrer_host)s,%(bot_name)s,%(browser)s,%(browser_version)s,%(is_login_id)s,%(screen_orientation)s,%(gps_latitude)s,%(gps_longitude)s,%(first_visit_time)s,%(first_referrer)s,%(first_referrer_host)s,%(first_browser_language)s,%(first_browser_charset)s,%(first_search_keyword)s,%(first_traffic_source_type)s,%(utm_content)s,%(utm_campaign)s,%(utm_medium)s,%(utm_term)s,%(utm_source)s,%(latest_utm_content)s,%(latest_utm_campaign)s,%(latest_utm_medium)s,%(latest_utm_term)s,%(latest_utm_source)s,%(latest_referrer)s,%(latest_referrer_host)s,%(latest_search_keyword)s,%(latest_traffic_source_type)s,%(created_at)s,%(updated_at)s,%(ua_platform)s,%(ua_browser)s,%(ua_version)s,%(ua_language)s,%(lib)s) ON DUPLICATE KEY UPDATE `updated_at`={updated_at}{update_content};""".format(table=table,updated_at=timenow,update_content=update_content)
+    sql = """set @@tidb_disable_txn_auto_retry = 0;set @@tidb_retry_limit = 10;insert HIGH_PRIORITY into `{table}_device` (`distinct_id`,`device_id`,`manufacturer`,`model`,`os`,`os_version`,`screen_width`,`screen_height`,`network_type`,`user_agent`,`accept_language`,`ip`,`ip_city`,`ip_asn`,`wifi`,`app_version`,`carrier`,`referrer`,`referrer_host`,`bot_name`,`browser`,`browser_version`,`is_login_id`,`screen_orientation`,`gps_latitude`,`gps_longitude`,`first_visit_time`,`first_referrer`,`first_referrer_host`,`first_browser_language`,`first_browser_charset`,`first_search_keyword`,`first_traffic_source_type`,`utm_content`,`utm_campaign`,`utm_medium`,`utm_term`,`utm_source`,`latest_utm_content`,`latest_utm_campaign`,`latest_utm_medium`,`latest_utm_term`,`latest_utm_source`,`latest_referrer`,`latest_referrer_host`,`latest_search_keyword`,`latest_traffic_source_type`,`created_at`,`updated_at`,`ua_platform`,`ua_browser`,`ua_version`,`ua_language`,`lib`) values ( %(distinct_id)s,%(device_id)s,%(manufacturer)s,%(model)s,%(os)s,%(os_version)s,%(screen_width)s,%(screen_height)s,%(network_type)s,%(user_agent)s,%(accept_language)s,%(ip)s,%(ip_city)s,%(ip_asn)s,%(wifi)s,%(app_version)s,%(carrier)s,%(referrer)s,%(referrer_host)s,%(bot_name)s,%(browser)s,%(browser_version)s,%(is_login_id)s,%(screen_orientation)s,%(gps_latitude)s,%(gps_longitude)s,%(first_visit_time)s,%(first_referrer)s,%(first_referrer_host)s,%(first_browser_language)s,%(first_browser_charset)s,%(first_search_keyword)s,%(first_traffic_source_type)s,%(utm_content)s,%(utm_campaign)s,%(utm_medium)s,%(utm_term)s,%(utm_source)s,%(latest_utm_content)s,%(latest_utm_campaign)s,%(latest_utm_medium)s,%(latest_utm_term)s,%(latest_utm_source)s,%(latest_referrer)s,%(latest_referrer_host)s,%(latest_search_keyword)s,%(latest_traffic_source_type)s,%(created_at)s,%(updated_at)s,%(ua_platform)s,%(ua_browser)s,%(ua_version)s,%(ua_language)s,%(lib)s) ON DUPLICATE KEY UPDATE `updated_at`={updated_at}{update_content};""".format(table=table,updated_at=timenow,update_content=update_content)
     key = {'distinct_id':distinct_id,'device_id':device_id,'manufacturer':manufacturer,'model':model,'os':os,'os_version':os_version,'screen_width':screen_width,'screen_height':screen_height,'network_type':network_type,'user_agent':user_agent,'accept_language':accept_language,'ip':ip,'ip_city':ip_city,'ip_asn':ip_asn,'wifi':wifi,'app_version':app_version,'carrier':carrier,'referrer':referrer,'referrer_host':referrer_host,'bot_name':bot_name,'browser':browser,'browser_version':browser_version,'is_login_id':is_login_id,'screen_orientation':screen_orientation,'gps_latitude':gps_latitude,'gps_longitude':gps_longitude,'first_visit_time':first_visit_time,'first_referrer':first_referrer,'first_referrer_host':first_referrer_host,'first_browser_language':first_browser_language,'first_browser_charset':first_browser_charset,'first_search_keyword':first_search_keyword,'first_traffic_source_type':first_traffic_source_type,'utm_content':utm_content,'utm_campaign':utm_campaign,'utm_medium':utm_medium,'utm_term':utm_term,'utm_source':utm_source,'latest_utm_content':latest_utm_content,'latest_utm_campaign':latest_utm_campaign,'latest_utm_medium':latest_utm_medium,'latest_utm_term':latest_utm_term,'latest_utm_source':latest_utm_source,'latest_referrer':latest_referrer,'latest_referrer_host':latest_referrer_host,'latest_search_keyword':latest_search_keyword,'latest_traffic_source_type':latest_traffic_source_type,'created_at':timenow,'updated_at':timenow,'ua_platform':ua_platform,'ua_browser':ua_browser,'ua_version':ua_version,'ua_language':ua_language,'lib':lib}
     result = do_tidb_exe(sql=sql, args=key)
     return result[1]
@@ -53,9 +51,7 @@ def insert_user_db(project,distinct_id,lib,map_id,original_id,user_id,all_user_p
         timenow = created_at
         date = time.strftime("%Y-%m-%d", time.localtime(created_at))
         hour = int(time.strftime("%H", time.localtime(created_at)))
-    sql = """set @@tidb_disable_txn_auto_retry = 0;
-set @@tidb_retry_limit = 10;
-    insert HIGH_PRIORITY into `{table}_user` (`distinct_id`,`lib`,`map_id`,`original_id`,`user_id`,`all_user_profile`,`created_at`,`updated_at`) values (%(distinct_id)s,%(lib)s,%(map_id)s,%(original_id)s,%(user_id)s,%(all_user_profile)s,%(created_at)s,%(updated_at)s) ON DUPLICATE KEY UPDATE `updated_at`={updated_at}{update_params}""".format(table=project,update_params=update_params,updated_at=timenow)
+    sql = """set @@tidb_disable_txn_auto_retry = 0;set @@tidb_retry_limit = 10;insert HIGH_PRIORITY into `{table}_user` (`distinct_id`,`lib`,`map_id`,`original_id`,`user_id`,`all_user_profile`,`created_at`,`updated_at`) values (%(distinct_id)s,%(lib)s,%(map_id)s,%(original_id)s,%(user_id)s,%(all_user_profile)s,%(created_at)s,%(updated_at)s) ON DUPLICATE KEY UPDATE `updated_at`={updated_at}{update_params}""".format(table=project,update_params=update_params,updated_at=timenow)#.replace("'None'","Null").replace("None","Null")
     key={'distinct_id':distinct_id,'lib':lib,'map_id':map_id,'original_id':original_id,'user_id':user_id,'all_user_profile':all_user_profile,'created_at':timenow,'updated_at':timenow}
     result = do_tidb_exe(sql=sql, args=key)
     return result[1]
@@ -66,16 +62,9 @@ def insert_properties(project,lib,remark,event,properties,properties_len,created
         created_at = int(time.time())
     if updated_at is None:
         updated_at = int(time.time())
-    sql = """set @@tidb_disable_txn_auto_retry = 0;
-set @@tidb_retry_limit = 10;
-    insert HIGH_PRIORITY into `{table}_properties` (`lib`,`remark`,`event`,`properties`,`properties_len`,`created_at`,`updated_at`,`total_count`,`lastinsert_at`) values ( %(lib)s,%(remark)s,%(event)s,%(properties)s,%(properties_len)s,%(created_at)s,%(updated_at)s,1,%(updated_at)s) ON DUPLICATE KEY UPDATE `properties`=if(properties_len<%(properties_len)s,%(properties)s,properties),`properties_len`=if(properties_len<%(properties_len)s,%(properties_len)s,properties_len),updated_at=if(properties_len<%(properties_len)s,%(updated_at)s,updated_at),total_count=total_count+1,lastinsert_at=%(updated_at)s;""".format(table=project)
+    sql = """set @@tidb_disable_txn_auto_retry = 0;set @@tidb_retry_limit = 10;insert HIGH_PRIORITY into `{table}_properties` (`lib`,`remark`,`event`,`properties`,`properties_len`,`created_at`,`updated_at`,`total_count`,`lastinsert_at`) values ( %(lib)s,%(remark)s,%(event)s,%(properties)s,%(properties_len)s,%(created_at)s,%(updated_at)s,1,%(updated_at)s) ON DUPLICATE KEY UPDATE `properties`=if(properties_len<%(properties_len)s,%(properties)s,properties),`properties_len`=if(properties_len<%(properties_len)s,%(properties_len)s,properties_len),updated_at=if(properties_len<%(properties_len)s,%(updated_at)s,updated_at),total_count=total_count+1,lastinsert_at=%(updated_at)s;""".format(table=project)
     key = {'lib':lib,'remark':remark,'event':event,'properties':properties,'properties_len':properties_len,'created_at':created_at,'updated_at':updated_at}
     result = do_tidb_exe(sql=sql, args=key)
-
-def check_user_device(project,distinct_id,first_id):
-    #仅用于导入神策旧数据
-    sql = """select first_id,second_id from users where first_id = '{first_id}'""".format(first_id=first_id)
-
 
 
 def get_long_url_from_short(short_url):
@@ -159,7 +148,7 @@ def show_check(project,date,hour,order,start,limit,add_on_where):
     return result[0],result[1]
 
 def show_project():
-    sql = """select project_name,FROM_UNIXTIME(created_at),FROM_UNIXTIME(expired_at),enable_scheduler from project_list order by project_name"""
+    sql = """select project_name,FROM_UNIXTIME(created_at),FROM_UNIXTIME(expired_at),enable_scheduler,access_control_threshold_sum,access_control_threshold_event from project_list order by project_name"""
     result = do_tidb_select(sql)
     if result[1] == 0:
         write_to_log(filename='db_func',defname='show_project',result=str(result)+sql)
@@ -899,9 +888,6 @@ FROM
     return result
 
 
-
-
-
 def insert_recall_blacklist_history(rbid,checker,result_status_id,result_reason_id,timenow=None):
     sql="""insert into `recall_blacklist_history` (`rbid`,`checker`,`result_status_id`,`result_reason_id`,`created_at`) VALUES (%(rbid)s,%(checker)s,%(result_status_id)s,%(result_reason_id)s,%(created_at)s)"""
     timenow = int(time.time()) if not timenow else timenow
@@ -912,4 +898,52 @@ def insert_recall_blacklist_history(rbid,checker,result_status_id,result_reason_
 def select_msg_type():
     sql='select `id`,`desc` from status_code where p_id = 22'
     result = do_tidb_select(sql=sql)
+    return result
+
+def select_properties(project):
+    sql="""select `event`,min(access_control_threshold) from {project}_properties where access_control_threshold is not null and access_control_threshold>0 GROUP BY `event`""".format(project=project)
+    result = do_tidb_select(sql=sql)
+    return result
+
+def insert_update_access_control_list(project,key,type_int,event,pv,date,hour):
+    sql="""insert into `access_control` (`project`,`key`,`type`,`event`,`status`,`date`,`hour`,`pv`,`updated_at`) VALUES  (%(project)s,%(key)s,%(type)s,%(event)s,%(status)s,%(date)s,%(hour)s,%(pv)s,%(updated_at)s) ON DUPLICATE KEY UPDATE `updated_at`=%(updated_at)s,`pv` = `pv`+ %(pv)s;"""
+    key = {'project':project,'key':key,'type':type_int,'event':event,'status':57,'date':date,'hour':hour,'pv':pv,'updated_at':int(time.time())}
+    result = do_tidb_exe(sql=sql,args=key,retrycount=0)
+    return result
+
+def query_access_control(key,project=None,type_id=None,event=None,date=None,hour=None,pv=None,query_hour=None,arr_mode=None):
+    arr_mode = arr_mode if arr_mode else 'each'
+    date = date if date else time.strftime("%Y-%m-%d", time.localtime())
+    hour = int(hour) if hour else int(time.strftime("%H", time.localtime()))
+    pv = pv if pv else 0
+    query_hour = int(query_hour) if query_hour else admin.access_control_query_hour
+    add_on_where = ""
+    if query_hour>=0:
+        hour_list_day=[]
+        hour_list_yesterday=[]
+        if hour-query_hour>=0:
+            for h in range(hour-query_hour,hour+1):
+                hour_list_day.append(str(h))
+            hour_str_day = ",".join(hour_list_day)
+            time_str = f'(date="{date}" and hour in ({hour_str_day}) and status =57 )'
+        elif hour-query_hour <0:
+            for h in range(0,hour+1):
+                hour_list_day.append(str(h))
+            hour_str_day = ",".join(hour_list_day)
+            for h in range(24+hour-query_hour,24):
+                hour_list_yesterday.append(str(h))
+            yesterday_hour_str_day = ",".join(hour_list_yesterday)
+            yesterday = get_display_day(date,-1)
+
+            time_str =  f' (((date="{date}" and hour in ({hour_str_day})) or (date="{yesterday}" and hour in ({yesterday_hour_str_day}))) and status =57 )'
+    add_on_where = add_on_where + (f' and project="{project}"' if project else '')
+    add_on_where = add_on_where + (f' and type={type_id}' if type_id else '')
+    add_on_where = add_on_where + (f' and event="{event}"' if event else '')
+    if arr_mode == 'sum':
+        having =  f' having spv>={pv}' if pv and pv!=0 else ''
+        sql="""select `event`,cast(sum(pv) as signed) as spv from access_control where `key`="{key}" and (status =58 or {time_str}) {add_on_where} group by `event` {having}""".format(type_id=type_id,key=key,time_str=time_str,add_on_where=add_on_where,having=having)
+    elif arr_mode == 'each':
+        add_on_where = add_on_where + (f' and pv>={pv}' if pv and pv!=0 else '')
+        sql="""select `event`,cast(date as char),hour,pv from access_control where `key`="{key}" and (status =58 or {time_str}) {add_on_where}""".format(type_id=type_id,key=key,time_str=time_str,add_on_where=add_on_where)
+    result = do_tidb_select(sql=sql,retrycount=0)
     return result

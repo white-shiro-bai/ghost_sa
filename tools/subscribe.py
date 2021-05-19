@@ -34,11 +34,5 @@ def realtime_subscribe(broker):
         referrer = data['properties']['$latest_referrer'] if '$latest_referrer' in data['properties'] else ''
         insert_data(project=project,data_decode=data,User_Agent='',Host='',Connection='',Pragma='',Cache_Control='',Accept='',Accept_Encoding='',Accept_Language='',ip=ip,ip_city=ip_city,ip_asn=ip_asn,url='',referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language='',ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good,use_kafka=admin.use_kafka)
 
-
-# consumer = KafkaConsumer('event_topic',bootstrap_servers=['data.tvcbook.sa:9092'])
-# for message in consumer:
-#         # print ("%s:%d:%d: key=%s value=%s" % (message.topic, message.partition,message.offset, message.key,message.value))
-#         print(message.value.decode('utf-8'))
-
 if __name__ == "__main__":
     realtime_subscribe(broker='your_sa_kafka:9092')#从神策kafka上订阅数据到鬼策。二者同时进数据，都是完整的。

@@ -17,15 +17,11 @@ def get_addr(ip='8.8.8.8'):
     try:
         response = reader.city(ip)
         reader.close()
-        is_good = 1
         raw_json = json.dumps(response.raw,ensure_ascii=False)#.replace("'","\\'")
-        return raw_json,is_good
+        return raw_json,1
     except Exception:
         error = traceback.format_exc()
-        is_good = 0
-        # print(error)
-        return error,is_good
-    # print(iso_code)
+        return '{}',0
 
 def get_asn(ip='8.8.8.8'):
     #获取ip的自治系统号
@@ -34,13 +30,11 @@ def get_asn(ip='8.8.8.8'):
     try:
         response = reader.asn(ip)
         reader.close()
-        is_good = 1
         raw_json = json.dumps(response.raw,ensure_ascii=False)#.replace("'","\\'")
-        return raw_json,is_good
+        return raw_json,1
     except Exception:
         error = traceback.format_exc()
-        is_good = 0
-        return error,is_good
+        return '{}',0
 if __name__ == "__main__":
     print(get_addr())
     print(get_asn())

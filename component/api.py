@@ -7,19 +7,13 @@ sys.setrecursionlimit(10000000)
 
 from flask import request,jsonify,Response,redirect
 import traceback
-# from sa_report import sa_report
 import time
-# from public_value import get_start_end_days,date_diff,get_display_day
-# from db_op import select_online
-# from flask_api_error import api_error,api_response
-# import jmespath
 import urllib.parse
 import base64
 import json
 import pprint
 import os
-from component.db_func import insert_event,get_long_url_from_short,insert_shortcut_history,check_long_url,insert_shortcut,show_shortcut,count_shortcut,show_check,insert_properties,insert_user_db,show_project,read_mobile_ad_list,count_mobile_ad_list,read_mobile_ad_src_list,check_mobile_ad_url,insert_mobile_ad_list,distinct_id_query,insert_shortcut_read
-from component.db_op import *
+from component.db_func import insert_event,get_long_url_from_short, insert_noti_temple,insert_shortcut_history,check_long_url,insert_shortcut,show_shortcut,count_shortcut,show_check,insert_properties,insert_user_db,show_project,read_mobile_ad_list,count_mobile_ad_list,read_mobile_ad_src_list,check_mobile_ad_url,insert_mobile_ad_list,distinct_id_query,insert_shortcut_read,query_access_control
 from geoip.geo import get_addr,get_asn
 import gzip
 from component.api_tools import insert_device,encode_urlutm,insert_user,recall_dsp,return_dsp_utm
@@ -33,6 +27,9 @@ import re
 from trigger import trigger
 from component.qrcode import gen_qrcode
 from component.url_tools import get_url_params
+if admin.access_control_commit_mode =='none_kafka':
+    from component.access_control import access_control
+    ac_none_kafka = access_control()
 
 
 def insert_data(project,data_decode,User_Agent,Host,Connection,Pragma,Cache_Control,Accept,Accept_Encoding,Accept_Language,ip,ip_city,ip_asn,url,referrer,remark,ua_platform,ua_browser,ua_version,ua_language,ip_is_good,ip_asn_is_good,created_at=None,updated_at=None,use_kafka=admin.use_kafka):
@@ -64,15 +61,15 @@ def insert_data(project,data_decode,User_Agent,Host,Connection,Pragma,Cache_Cont
     #     lib = None
     if use_kafka is False:
         try:
-            count = insert_event(table=project,alljson=jsondump,track_id=track_id,distinct_id=distinct_id,lib=lib,event=event,type_1=type_1,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,created_at=created_at)
-            # print('插入行数：'+str(count))
-            insert_device(project=project,data_decode=data_decode,user_agent=User_Agent,accept_language=Accept_Language,ip=ip,ip_city=ip_city,ip_is_good=ip_is_good,ip_asn=ip_asn,ip_asn_is_good=ip_asn_is_good,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,created_at=created_at)
+            if event != 'cdn_mode' or event != 'cdn_mode2' or admin.access_control_cdn_mode_write == 'event' or admin.access_control_cdn_mode_write == 'device' :
+                count = insert_event(table=project,alljson=jsondump,track_id=track_id,distinct_id=distinct_id,lib=lib,event=event,type_1=type_1,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,created_at=created_at)
+            if event != 'cdn_mode' or event != 'cdn_mode2' or admin.access_control_cdn_mode_write == 'device':
+                insert_device(project=project,data_decode=data_decode,user_agent=User_Agent,accept_language=Accept_Language,ip=ip,ip_city=ip_city,ip_is_good=ip_is_good,ip_asn=ip_asn,ip_asn_is_good=ip_asn_is_good,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,created_at=created_at)
             properties_key = []
             for keys in data_decode['properties'].keys():
                 properties_key.append(keys)
-            if event and admin.use_properties is True:
+            if event and admin.use_properties is True and event != 'cdn_mode' and event != 'cdn_mode2':
                 insert_properties(project=project,lib=lib,remark=remark,event=event,properties=json.dumps(properties_key),properties_len=len(data_decode['properties'].keys()),created_at=created_at,updated_at=updated_at)
-            # if type_1 == 'profile_set' or type_1 == 'track_signup' or type_1 =='profile_set_once' or event == '$SignUp':
             if type_1 == 'profile_set' or type_1 == 'track_signup' or type_1 =='profile_set_once':
                 insert_user(project=project,data_decode=data_decode,created_at=created_at)
             if event == admin.aso_dsp_callback_event:
@@ -96,17 +93,22 @@ def insert_data(project,data_decode,User_Agent,Host,Connection,Pragma,Cache_Cont
             if admin.independent_listener == False:
                 tr = trigger(project=project,data_decode=data_decode)
                 tr.play_all()
+            if admin.access_control_commit_mode =='none_kafka':
+                ac_none_kafka.traffic(project=project,event=event,ip_commit=ip,distinct_id_commit=distinct_id,add_on_key_commit=data_decode['properties'][admin.access_control_add_on_key] if admin.access_control_add_on_key in data_decode['properties'] else None)
         except Exception:
             error = traceback.format_exc()
             write_to_log(filename='api',defname='insert_data',result=error)
     elif use_kafka is True:
         timenow = int(time.time())
         timenow13 = int(round(time.time() * 1000))
-        msg = {"timestamp":timenow13,"data":{"project":project,"data_decode":data_decode,"User_Agent":User_Agent,"Host":Host,"Connection":Connection,"Pragma":Pragma,"Cache_Control":Cache_Control,"Accept":Accept,"Accept_Encoding":Accept_Encoding,"Accept_Language":Accept_Language,"ip":ip,"ip_city":ip_city,"ip_asn":ip_asn,"url":url,"referrer":referrer,"remark":remark,"ua_platform":ua_platform,"ua_browser":ua_browser,"ua_version":ua_version,"ua_language":ua_language,"ip_is_good":ip_is_good,"ip_asn_is_good":ip_asn_is_good,"created_at":timenow,"updated_at":timenow}}
-        insert_message_to_kafka(key=distinct_id, msg=msg)
+        msg = {"group":"event_track","timestamp":timenow13,"data":{"project":project,"data_decode":data_decode,"User_Agent":User_Agent,"Host":Host,"Connection":Connection,"Pragma":Pragma,"Cache_Control":Cache_Control,"Accept":Accept,"Accept_Encoding":Accept_Encoding,"Accept_Language":Accept_Language,"ip":ip,"ip_city":ip_city,"ip_asn":ip_asn,"url":url,"referrer":referrer,"remark":remark,"ua_platform":ua_platform,"ua_browser":ua_browser,"ua_version":ua_version,"ua_language":ua_language,"ip_is_good":ip_is_good,"ip_asn_is_good":ip_asn_is_good,"created_at":timenow,"updated_at":timenow}}
+        insert_message_to_kafka(key=distinct_id ,msg=msg)
     print(time.time()-start_time)
 
 def get_data():
+    bitimage1 = os.path.join('image','43byte.gif')
+    with open(bitimage1, 'rb') as f:
+        returnimage = f.read()
     remark = request.args.get('remark') if 'remark' in request.args else 'normal'
     project = request.args.get('project')
     if project:
@@ -134,56 +136,33 @@ def get_data():
             ip = request.headers.get('X-Forwarded-For') #获取SLB真实地址
         ip_city,ip_is_good = get_addr(ip)
         ip_asn,ip_asn_is_good = get_asn(ip)
-        if ip_is_good ==0:
-            ip_city = '{}'
-        if ip_asn_is_good ==0:
-            ip_asn = '{}'
-        referrer = request.referrer
-        if request.method == 'POST':
-            # print(request.form.get())
-            if 'data_list' in request.form:
-                data_list = request.form.get('data_list')
-                de64 = base64.b64decode(urllib.parse.unquote(data_list).encode('utf-8'))
-                try:
-                    data_decodes = json.loads(gzip.decompress(de64))
-                except:
-                    data_decodes = json.loads(de64)
-                for data_decode in data_decodes:
-                    insert_data(project=project,data_decode=data_decode,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good)
-            elif 'data' in request.form:
-                data = request.form.get('data')
-                de64 = base64.b64decode(urllib.parse.unquote(data).encode('utf-8'))
-                try:
-                    data_decode = json.loads(gzip.decompress(de64))
-                except:
-                    data_decode = json.loads(de64)
-                insert_data(project=project,data_decode=data_decode,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good)
-            else:
-                write_to_log(filename='api',defname='get_data',result=str(request.form))
-                # print(request.form)
-        elif request.method == 'GET':
-            # try:
-            if 'data' in request.args:
-                data = request.args.get('data')
-                de64 = base64.b64decode(urllib.parse.unquote(data).encode('utf-8'))
-                try:
-                    data_decode = json.loads(gzip.decompress(de64))
-                except:
-                    data_decode = json.loads(de64)
-                insert_data(project=project,data_decode=data_decode,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good)
-            else:
-                write_to_log(filename='api',defname='get_data',result=url)
-        else:
-            write_to_log(filename='api',defname='get_data',result=str(request.method)+url)
-        bitimage1 = os.path.join('image','43byte.gif')
-        with open(bitimage1, 'rb') as f:
-                    returnimage = f.read()
-        return Response(returnimage, mimetype="image/gif")
-    else:
-        bitimage1 = os.path.join('image','43byte.gif')
-        with open(bitimage1, 'rb') as f:
-                    returnimage = f.read()
-        return Response(returnimage, mimetype="image/gif")
+        referrer = request.referrer[0:2047] if request.referrer else None
+        pending_data_list_all = []
+        # data_list_all.append( get_url_params('data') )
+        if get_url_params('data'):
+            de64 = base64.b64decode(urllib.parse.unquote(get_url_params('data')).encode('utf-8'))
+            try:
+                pending_data_list_all.append(json.loads(gzip.decompress(de64)))
+            except:
+                pending_data_list_all.append(json.loads(de64))
+        if get_url_params('data_list'):
+            de64_list = base64.b64decode(urllib.parse.unquote(get_url_params('data_list')).encode('utf-8'))
+            try:
+                data_decodes = json.loads(gzip.decompress(de64_list))
+            except:
+                data_decodes = json.loads(de64_list)
+            for data_decode in data_decodes:
+                pending_data_list_all.append(data_decode)
+        for pending_data in pending_data_list_all:
+            if admin.user_ip_first is True:
+                if 'properties' in pending_data and admin.user_ip_key in pending_data['properties'] and pending_data['properties'][admin.user_ip_key]:
+                    user_ip = pending_data['properties'][admin.user_ip_key]
+                    if len(user_ip) - len(user_ip.replace('.','')) == 3:
+                        ip = user_ip
+                        ip_city,ip_is_good = get_addr(user_ip)
+                        ip_asn,ip_asn_is_good = get_asn(user_ip)
+            insert_data(project=project,data_decode=pending_data,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good)
+    return Response(returnimage, mimetype="image/gif")
 
 def get_datas():
     try:
@@ -395,7 +374,7 @@ def installation_track():
             ip_city = '{}'
         if ip_asn_is_good ==0:
             ip_asn = '{}'
-        referrer = request.referrer
+        referrer = request.referrer[0:2047] if request.referrer else None
         try:
             if 'properties' in data and 'is_offerwall' in    data['properties'] and data['properties']['is_offerwall']=='1':
                 count_event,count_user,time_cost = insert_installation_track(project=project,data_decode=data,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma, Cache_Control=Cache_Control, Accept=Accept, Accept_Encoding=Accept_Encoding, Accept_Language=Accept_Language, ip=ip, ip_city=ip_city,ip_asn=ip_asn, url=url, referrer=referrer, remark=remark, ua_platform=ua_platform, ua_browser=ua_browser, ua_version=ua_version, ua_language=ua_language, ip_is_good=ip_is_good, ip_asn_is_good=ip_asn_is_good)
@@ -504,7 +483,7 @@ def check_exist_distinct_id():
         ip_city = '{}'
     if ip_asn_is_good ==0:
         ip_asn = '{}'
-    referrer = request.referrer
+    referrer = request.referrer[0:2047] if request.referrer else None
 
     if password == admin.admin_password and project and distinct_id and query_from:#只有正确的密码才能触发动作
         try:
@@ -781,3 +760,127 @@ def show_logo(filename):
     with open(os.path.join('image',filename), 'rb') as f:
         returnimage = f.read()
     return Response(returnimage, mimetype="image")
+
+
+def access_permit():
+    time1 = int(time.time()*1000)
+    password = get_url_params('password')
+    mode = get_url_params('mode')
+    arr_mode = get_url_params('arr_mode')
+    distinct_id = get_url_params('distinct_id')
+    project = get_url_params('project')
+    remark = request.args.get('remark') if 'remark' in request.args else 'normal'
+    User_Agent = request.headers.get('User-Agent')[0:2047] if request.headers.get('User-Agent') else None#Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36
+    if get_url_params('user_agent'):
+        User_Agent = get_url_params('user_agent')
+    if User_Agent and User_Agent !='' and 'spider' in User_Agent.lower() :
+        remark = 'spider'
+    Host = request.headers.get('Host') #: 10.16.5.241:5000
+    if get_url_params('host'):
+        Host = get_url_params('host')
+    Connection = request.headers.get('Connection')#: keep-alive
+    Pragma = request.headers.get('Pragma')#: no-cache
+    Cache_Control = request.headers.get('Cache-Control')#: no-cache
+    Accept = request.headers.get('Accept')[0:254] if request.headers.get('Accept') else None#: image/webp,image/apng,image/*,*/*;q=0.8
+    Accept_Encoding = request.headers.get('Accept-Encoding')[0:254] if request.headers.get('Accept-Encoding') else None#: gzip, deflate
+    Accept_Language = request.headers.get('Accept-Language')[0:254] if request.headers.get('Accept-Language') else None#: zh-CN,zh;q=0.9
+    ua_platform = request.user_agent.platform #客户端操作系统
+    ua_browser = request.user_agent.browser #客户端的浏览器
+    ua_version = request.user_agent.version #客户端浏览器的版本
+    ua_language = request.user_agent.language #客户端浏览器的语言
+    ext = request.args.get('ext')
+    url = request.url
+    if get_url_params('request_uri'):
+        url = get_url_params('request_uri')
+    referrer = request.referrer[0:2047] if request.referrer else None
+    if get_url_params('http_referrer') and get_url_params('http_referrer')!= '$http_referrer' :
+        referrer = get_url_params('http_referrer')[0:2047]
+    elif get_url_params('http_referer') and get_url_params('http_referer')!= '$http_referer' :
+        referrer = get_url_params('http_referer')[0:2047]
+    if get_url_params('http_x_forward_for') and get_url_params('http_x_forward_for') != '' and get_url_params('http_x_forward_for').count('.')==3:
+        ip = get_url_params('http_x_forward_for')
+    elif get_url_params('remote_addr') and get_url_params('remote_addr') != '' and get_url_params('remote_addr').count('.')==3:
+        ip = get_url_params('remote_addr')
+    elif get_url_params('ip') and get_url_params('ip') != '' and get_url_params('ip').count('.')==3:
+        ip = get_url_params('ip')
+    elif request.headers.get('X-Forwarded-For'):
+        ip = request.headers.get('X-Forwarded-For') #获取SLB真实地址
+    else:
+        ip = request.remote_addr#服务器直接暴露
+    ip_city,ip_is_good = get_addr(ip)
+    ip_asn,ip_asn_is_good = get_asn(ip)
+    add_on_key = get_url_params('add_on_key')
+    event = get_url_params('event')
+    date = get_url_params('date')
+    hour = get_url_params('hour')
+    override = get_url_params('override')
+    limit = get_url_params('limit')
+    query_hour = get_url_params('query_hour')
+    owner = get_url_params('owner')
+    dnt = get_url_params('dnt')
+    args = request.args
+    forms = request.form
+    req_jsons = request.json
+    result_combine = []
+    args_http_x_forward_for = get_url_params('http_x_forward_for')
+    args_remote_addr = get_url_params('remote_addr')
+    args_ip = get_url_params('ip')
+    headers_x_forward_for = request.headers.get('X-Forwarded-For')
+    remote_addr = request.remote_addr
+    cookie_peoperties = request.cookies.get("sensorsdata2015jssdkcross")
+    properties = {}
+    if cookie_peoperties:
+        properties = json.loads(urllib.parse.unquote(cookie_peoperties))
+    device_id = properties['$device_id'] if '$device_id' in properties else None
+    distinct_event = distinct_id
+    if not distinct_event and 'distinct_id' in properties:
+        distinct_event = properties['distinct_id']
+    if project and (mode == 'cdn' or mode == 'cdn2' or admin.access_control_force_cdn_record is True) :
+        distinct_cdn = distinct_event
+        if not distinct_cdn and 'uri' in args and args['uri'] == "/favicon.ico":
+            distinct_cdn = "favicon.ico"
+        if not distinct_cdn:
+            distinct_cdn = 'cdn_mode_without_distinct_id'
+        if dnt != admin.admin_do_not_track_code:
+            insert_data(project=project,data_decode={'ip_data':{'args_http_x_forward_for':args_http_x_forward_for,'args_remote_addr':args_remote_addr,'args_ip':args_ip,'headers_x_forward_for':headers_x_forward_for,'remote_addr':remote_addr},'type':'track','distinct_id':distinct_cdn,'event':'cdn_mode' if mode == 'cdn' or admin.access_control_force_cdn_record is True else 'cdn_mode2','lib':{'$lib':'ghost_sa'},'_track_id':0,'properties':{'owner':owner,'args':args,'forms':forms,'jsons':req_jsons,'$device_id':device_id}},User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good,created_at=None,updated_at=None,use_kafka=admin.use_kafka)#这里event强制指定为cdn_mode，哪怕是强制写入其他事件也是以cdnmode为准。保证其他查询正常，也保证cdn模式查询正常。
+    if admin.access_control_query is True :
+        if project:
+            if not distinct_event:
+                distinct_event = 'access_control_without_distinct_id'
+            if password == admin.admin_password:#只有正确的密码才能触发动作
+                if override != admin.admin_override_code:
+                    if admin.access_control_cdn_mode_mega_match is False and mode == 'cdn': #不启动匹配其他参数功能时，cdn模式只匹配cdnmode的数据，其他模式则匹配实际的event或所有event。
+                        event = 'cdn_mode'
+                    elif admin.access_control_cdn_mode_mega_match is False and mode == 'cdn2': #不启动匹配其他参数功能时，cdn模式只匹配cdnmode的数据，其他模式则匹配实际的event或所有event。
+                        event = 'cdn_mode2'
+                    if ip:
+                        ip_group = '.'.join(ip.split('.')[0:3])
+                        result_ip = query_access_control(project=project,key=ip,type_id=60,event=event,pv=limit,query_hour=query_hour,date=date,hour=hour,arr_mode=arr_mode)
+                        if result_ip[0]:
+                            result_combine.append(result_ip[0])
+                        result_ip_group = query_access_control(project=project,key=ip_group,type_id=61,event=event,pv=limit,query_hour=query_hour,date=date,hour=hour,arr_mode=arr_mode)
+                        if result_ip_group[0]:
+                            result_combine.append(result_ip_group[0])
+                    if (mode == 'cdn' or mode == 'cdn2') and admin.access_control_cdn_mode_distinct_id_check is True:
+                        distinct_id = distinct_cdn if not distinct_id else distinct_id #如果强制检查cdn模式的distinct_id，哪怕提交参数时不提交distinct_id，也会取header里的disntict_id用于检查
+                    if distinct_id:
+                        result_distinct_id = query_access_control(project=project,key=distinct_id,type_id=62,event=event,pv=limit,query_hour=query_hour,date=date,hour=hour,arr_mode=arr_mode)
+                        if result_distinct_id[0]:
+                            result_combine.append(result_distinct_id[0])
+                    if add_on_key:
+                        result_add_on_key = query_access_control(project=project,key=add_on_key,type_id=63,event=event,pv=limit,query_hour=query_hour,date=date,hour=hour,arr_mode=arr_mode)
+                        if result_add_on_key[0]:
+                            result_combine.append(result_add_on_key[0])
+                    if len(result_combine) > 0:
+                        insert_data(project=project,data_decode={'ip_data':{'args_http_x_forward_for':args_http_x_forward_for,'args_remote_addr':args_remote_addr,'args_ip':args_ip,'headers_x_forward_for':headers_x_forward_for,'remote_addr':remote_addr},'type':'access_control','distinct_id':distinct_event,'event':'access_control','lib':{'$lib':'ghost_sa'},'_track_id':0,'properties':{'owner':owner,'args':args,'forms':forms,'jsons':req_jsons,'$device_id':device_id,'auth':'failed','return':result_combine,'return_code':403,'time_cost':int(time.time()*1000) - time1}},User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good,created_at=None,updated_at=None,use_kafka=admin.use_kafka)
+                        return jsonify({'auth':'failed','data':result_combine,'time_cost':int(time.time()*1000) - time1}),403
+                if admin.access_control_force_result_record is True:
+                    insert_data(project=project,data_decode={'ip_data':{'args_http_x_forward_for':args_http_x_forward_for,'args_remote_addr':args_remote_addr,'args_ip':args_ip,'headers_x_forward_for':headers_x_forward_for,'remote_addr':remote_addr},'type':'access_control','distinct_id':distinct_event,'event':'access_control','lib':{'$lib':'ghost_sa'},'_track_id':0,'properties':{'owner':owner,'args':args,'forms':forms,'jsons':req_jsons,'$device_id':device_id,'auth':'success','return':result_combine,'return_code':200,'time_cost':int(time.time()*1000) - time1}},User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good,created_at=None,updated_at=None,use_kafka=admin.use_kafka)
+                return jsonify({'auth':'success','data':result_combine,'time_cost':int(time.time()*1000) - time1}),200
+        if project:
+            insert_data(project=project,data_decode={'ip_data':{'args_http_x_forward_for':args_http_x_forward_for,'args_remote_addr':args_remote_addr,'args_ip':args_ip,'headers_x_forward_for':headers_x_forward_for,'remote_addr':remote_addr},'type':'access_control','distinct_id':distinct_event,'event':'access_control','lib':{'$lib':'ghost_sa'},'_track_id':0,'properties':{'owner':owner,'args':args,'forms':forms,'jsons':req_jsons,'$device_id':device_id,'auth':'wrong_password','return_code':403,'time_cost':int(time.time()*1000) - time1}},User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good,created_at=None,updated_at=None,use_kafka=admin.use_kafka)
+        return jsonify({'auth':'miss_info','data':result_combine,'time_cost':int(time.time()*1000) - time1}),403
+    else:
+        if admin.access_control_force_result_record is True and project:
+            insert_data(project=project,data_decode={'ip_data':{'args_http_x_forward_for':args_http_x_forward_for,'args_remote_addr':args_remote_addr,'args_ip':args_ip,'headers_x_forward_for':headers_x_forward_for,'remote_addr':remote_addr},'type':'access_control','distinct_id':distinct_event,'event':'access_control','lib':{'$lib':'ghost_sa'},'_track_id':0,'properties':{'owner':owner,'args':args,'forms':forms,'jsons':req_jsons,'$device_id':device_id,'auth':'offload','return':result_combine,'return_code':200,'time_cost':int(time.time()*1000) - time1}},User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good,created_at=None,updated_at=None,use_kafka=admin.use_kafka)
+        return jsonify({'auth':'offload','data':result_combine,'time_cost':int(time.time()*1000) - time1}),200
