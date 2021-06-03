@@ -876,6 +876,8 @@ def access_permit():
                             result_combine.append(result_ip_group[0])
                     if (mode == 'cdn' or mode == 'cdn2') and admin.access_control_cdn_mode_distinct_id_check is True:
                         distinct_id = distinct_cdn if not distinct_id else distinct_id #如果强制检查cdn模式的distinct_id，哪怕提交参数时不提交distinct_id，也会取header里的disntict_id用于检查
+                        if admin.access_control_cdn_mode_distinct_id_token_check is True:
+                            distinct_id = distinct_cdn #如果强制校验且校验失败，则检测cdn的id
                     if distinct_id:
                         result_distinct_id = query_access_control(project=project,key=distinct_id,type_id=62,event=event,pv=limit,query_hour=query_hour,date=date,hour=hour,arr_mode=arr_mode)
                         if result_distinct_id[0]:
