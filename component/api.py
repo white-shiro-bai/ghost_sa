@@ -16,7 +16,7 @@ import os
 from component.db_func import insert_event,get_long_url_from_short, insert_noti_temple,insert_shortcut_history,check_long_url,insert_shortcut,show_shortcut,count_shortcut,show_check,insert_properties,insert_user_db,show_project,read_mobile_ad_list,count_mobile_ad_list,read_mobile_ad_src_list,check_mobile_ad_url,insert_mobile_ad_list,distinct_id_query,insert_shortcut_read,query_access_control
 from geoip.geo import get_addr,get_asn
 import gzip
-from component.api_tools import insert_device,encode_urlutm,insert_user,recall_dsp,return_dsp_utm
+from component.api_tools import insert_device,encode_urlutm,insert_user,recall_dsp,return_dsp_utm,gen_token
 from configs.export import write_to_log
 from component.shorturl import get_suoim_short_url
 from configs import admin
@@ -27,6 +27,7 @@ import re
 from trigger import trigger
 from component.qrcode import gen_qrcode
 from component.url_tools import get_url_params
+import hashlib
 if admin.access_control_commit_mode =='none_kafka':
     from component.access_control import access_control
     ac_none_kafka = access_control()
@@ -832,10 +833,22 @@ def access_permit():
     if cookie_peoperties:
         properties = json.loads(urllib.parse.unquote(cookie_peoperties))
     device_id = properties['$device_id'] if '$device_id' in properties else None
-    distinct_event = distinct_id
+    cdn_token = get_url_params('cdn_token')
+    cdn_token_list = []
+    token_checked = False
+    if admin.access_control_cdn_mode_distinct_id_token_check is True:
+        if distinct_id:
+            for token in gen_token():
+                sha1 = hashlib.sha1()
+                sha1.update((distinct_id+token['token']).encode(encoding='utf-8'))
+                cdn_token_list.append(sha1.hexdigest()[int(token['hour_str']):int(token['hour_str'])+int(token['length'])])
+        token_checked = True if cdn_token in cdn_token_list else False
+    distinct_event = distinct_id if admin.access_control_cdn_mode_distinct_id_token_check is False or token_checked is True or mode not in ('cdn','cdn2') else None
     if not distinct_event and 'distinct_id' in properties:
         distinct_event = properties['distinct_id']
     if project and (mode == 'cdn' or mode == 'cdn2' or admin.access_control_force_cdn_record is True) :
+        if "http_referer" in args and "kitchen.tvcbook.com" in args["http_referer"]:
+            dnt = admin.admin_do_not_track_code
         distinct_cdn = distinct_event
         if not distinct_cdn and 'uri' in args and args['uri'] == "/favicon.ico":
             distinct_cdn = "favicon.ico"
@@ -884,3 +897,25 @@ def access_permit():
         if admin.access_control_force_result_record is True and project:
             insert_data(project=project,data_decode={'ip_data':{'args_http_x_forward_for':args_http_x_forward_for,'args_remote_addr':args_remote_addr,'args_ip':args_ip,'headers_x_forward_for':headers_x_forward_for,'remote_addr':remote_addr},'type':'access_control','distinct_id':distinct_event,'event':'access_control','lib':{'$lib':'ghost_sa'},'_track_id':0,'properties':{'owner':owner,'args':args,'forms':forms,'jsons':req_jsons,'$device_id':device_id,'auth':'offload','return':result_combine,'return_code':200,'time_cost':int(time.time()*1000) - time1}},User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good,created_at=None,updated_at=None,use_kafka=admin.use_kafka)
         return jsonify({'auth':'offload','data':result_combine,'time_cost':int(time.time()*1000) - time1}),200
+
+
+def get_access_control_token():
+    time1 = int(time.time()*1000)
+    tokenlist = gen_token()
+    mode = get_url_params('mode')
+    if mode == 'json':
+        return jsonify({'data':{'token':tokenlist[1]['hour_str'] + tokenlist[1]['token'] + tokenlist[1]['length']},'code':200,'message':'success','result':'success','result_count':1,'time_cost':int(time.time()*1000) - time1})
+    return tokenlist[1]['hour_str'] + tokenlist[1]['token'] + tokenlist[1]['length']
+
+def get_check_token():
+    distinct_id = get_url_params('distinct_id')
+    override = get_url_params('override')
+    password = get_url_params('password')
+    if password == admin.admin_password and override == admin.admin_override_code:
+        cdn_token_list = []
+        keys = gen_token()
+        for token in keys:
+            sha1 = hashlib.sha1()
+            sha1.update((distinct_id+token['token']).encode(encoding='utf-8'))
+            cdn_token_list.append(sha1.hexdigest()[int(token['hour_str']):int(token['hour_str'])+int(token['length'])])
+        return jsonify({'key':keys,'token':cdn_token_list})

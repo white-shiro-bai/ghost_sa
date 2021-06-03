@@ -68,6 +68,7 @@ access_control_event_default = 100 #默认是100，分片时间内，如果没�
 access_control_force_result_record = False #记录所有的查询结果，如果该值为False，则只记录返回命中的记录（普通模式，记录命中的。CDN模式，记录不通过的）。该值为True时，记录所有的查询结果。不论True还是False。数据返回格式按照模式指定的返回，不会强制使用CDN模式。该记录通常用来处理用户投诉和核算节约费用，放行的记录没太大意义，还浪费资源。
 access_control_force_cdn_record = False #该记录值为True时，无论是否采用CDN模式的查询，都会在进一份CDN埋点进CDN事件。意义是无论什么接口进数据，都会对CDN查询造成影响，进一步限制CDN消费。当该记录值为False时，只有CDN模式的请求，会被记录到埋点，其他的请求，埋点由请求端上报，以获得更正确更清晰的数据。\
 access_control_cdn_mode_distinct_id_check = True #CDN模式是否查验distinct_id。
+access_control_cdn_mode_distinct_id_token_check = True #CDN模式是否查验distinct_id与token的匹配度。默认关。
 access_control_cdn_mode_mega_match = False #CDN模式是否参考其他event作为封禁依据。当False时，CDN模式只核对event是cdn_mode的事件。
 access_control_distinct_id_per_ip = 4 # ip触发进入黑名单的量是distinct_id的阈值的倍数
 access_control_ip_per_ip_group = 3 # ip组触发进入黑名单的量是ip的阈值的倍数
