@@ -87,7 +87,7 @@ class access_control:
                             if self.projects[projects_project][projects_project_event][term][content] >= limit*self.term_times[term]*admin.access_control_max_window/3600:
                                 self.insert_data(project=projects_project,key=content,type_str=term,event=projects_project_event,pv=self.projects[projects_project][projects_project_event][term][content],hour=hour,date=date)
             elif projects_project:
-                if 'all' in self.threshold_list[projects_project]:
+                if self.projects[projects_project][projects_project_event] == 'all' :
                     limit =  admin.access_control_sum_count
                 else:
                     limit = admin.access_control_event_default
