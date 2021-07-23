@@ -5,7 +5,7 @@ open_server for sensorsdata
 
 感谢神策公司开源了他们的SDK，让用不起神策服务端的中小微企业也可以使用大数据带来的便利。
 
-ghost_sa（鬼策）的结构设计主要考虑方便技术资源不足的中小微企业使用，部署测试快速，并支持复杂数据字段上报（神策原版不支持），所以在长时间段，多字段扫描的场景，性能不如神策原版。需要完整的神策，请购买神策官方授权，他们的程序很给力。https://www.sensorsdata.cn/
+ghost_sa（鬼策）的结构设计主要考虑方便技术资源不足的中小微企业使用，部署测试快速，并支持复杂数据字段上报（神策原版不支持），所以在长时间段，多字段扫描的场景，性能不如神策原版。需要完整的神策，请购买神策官方授权，他们的程序很给力。https://www.sensorsdata.cn/?utm_source=github&utm_campaign=ghost_sa
 
 
 # 介绍：
@@ -43,7 +43,7 @@ ghost_sa(鬼策)可以理解为不带前端界面的神策服务端。
 
 目前经过测试，支持IOS，Android，JS，小程序，Python的SDK上报。
 SDK可以在神策的项目中下载 https://github.com/sensorsdata
-SDK的使用方法，可以直接查看神策官方文档 https://www.sensorsdata.cn/manual/
+SDK的使用方法，可以直接查看神策官方文档 https://www.sensorsdata.cn/manual/?utm_source=github&utm_campaign=ghost_sa
 
 
 # 框架说明：
@@ -102,13 +102,15 @@ SDK的使用方法，可以直接查看神策官方文档 https://www.sensorsdat
 
 但鬼策在产品理念与路线上与神策有差异，神策倾向给运营赋能，对运营友好，鬼策倾向自动化运营取代传统运营，对技术友好。所以在一些高级功能，特别是理念不同的方面，将采取完全不同的产品路线，功能也会存在不兼容的情况，大家各取所需，尽量支持神策原版，有了神策开源，才有的鬼策。
 
+鬼策没有兼容魔改神策SDK且不注明源于神策的各种程序的计划。吃水不忘挖井人是对开源社区基本的尊重。
+
 目前已知问题问的比较频繁的有：
 
 1.鬼策不支持beacon方式上报 https://github.com/white-shiro-bai/ghost_sa/issues/27 使用鬼策建议js用image方式，其他端用默认方式即可。
 
-这个请参考神策官方文档 https://manual.sensorsdata.cn/sa/latest/tech_sdk_client_web_high-7549300.html 的相关说明：( 神策系统 1.10 版本以后 ) 支持使用 'ajax' 和 'beacon' 方式发送数据，这两种默认都是 post 方式， beacon 方式兼容性较差。
+这个请参考神策官方文档 https://manual.sensorsdata.cn/sa/latest/tech_sdk_client_web_high-7549300.html?utm_source=github&utm_campaign=ghost_sa 的相关说明：( 神策系统 1.10 版本以后 ) 支持使用 'ajax' 和 'beacon' 方式发送数据，这两种默认都是 post 方式， beacon 方式兼容性较差。
 
-2.不支持神策的新版本可视化全埋点功能，所以请使用较新SDK的用户，根据神策文档 https://manual.sensorsdata.cn/sa/latest/enable_visualized_autotrack-7548675.html 关闭 可视化全埋点功能，减少报错。
+2.不支持神策的新版本可视化全埋点功能，所以请使用较新SDK的用户，根据神策文档 https://manual.sensorsdata.cn/sa/latest/enable_visualized_autotrack-7548675.html?utm_source=github&utm_campaign=ghost_sa 关闭 可视化全埋点功能，减少报错。
 
 # 更多文档：
 
@@ -116,11 +118,11 @@ wiki  https://github.com/white-shiro-bai/ghost_sa/wiki
 
 讨论组 https://github.com/white-shiro-bai/ghost_sa/discussions
 
-国内用户可以加我微信 Ben_Xiaobai ，加入鬼策微信群
+国内用户可以加我微信 Ben_Xiaobai ，加入鬼策微信群。请直奔主题，不要绕来绕去。
 
 也可以通过视频，了解鬼策。这里有一个以鬼策为基础的视频分析课（还在佛系更新）
 
-https://space.bilibili.com/920446/channel/detail?cid=124583
+https://space.bilibili.com/920446/channel/detail?cid=124583&utm_source=github&utm_campaign=ghost_sa
 
 
 # 2020年12月28日版本升级注意事项(to_20201015)：
