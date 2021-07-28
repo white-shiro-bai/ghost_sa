@@ -249,8 +249,8 @@ def show_short_cut_list():
     if 'sort' in request.args:
         sort_org = request.args.get('sort')
         sort = '`shortcut`.'+sort_org
-        if sort_org == 'visit_times':
-            sort = 'visit_times'
+        if sort_org in ['visit_times','read_times']:
+            sort = sort_org
     way = request.args.get('way') if 'way' in request.args else 'desc'
     add_on_parames = []
     if 'create_date_start' in request.args:

@@ -117,7 +117,30 @@ def insert_shortcut(project,short_url,long_url,expired_at,src,src_short_url,subm
 
 
 def show_shortcut(page,length,filters='',sort='`shortcut`.created_at',way='desc'):
-    sql = """SELECT `shortcut`.project,`shortcut`.short_url,`shortcut`.long_url,from_unixtime(`shortcut`.expired_at),from_unixtime(`shortcut`.created_at),`shortcut`.src,`shortcut`.src_short_url,`shortcut`.submitter,`shortcut`.utm_source,`shortcut`.utm_medium,`shortcut`.utm_campaign,`shortcut`.utm_content,`shortcut`.utm_term,shortcut.created_at,shortcut.expired_at,count(shortcut_history.created_at) as visit_times,count(shortcut_read.created_at) as read_times FROM `shortcut` left join `shortcut_history` on `shortcut`.short_url = `shortcut_history`.`short_url`    left join `shortcut_read` on `shortcut`.short_url = `shortcut_read`.`short_url` {filters} GROUP BY `shortcut`.project,`shortcut`.short_url,`shortcut`.long_url,from_unixtime(`shortcut`.expired_at),from_unixtime(`shortcut`.created_at),`shortcut`.src,`shortcut`.src_short_url,`shortcut`.submitter,`shortcut`.utm_source,`shortcut`.utm_medium,`shortcut`.utm_campaign,`shortcut`.utm_content,`shortcut`.utm_term,shortcut.created_at,shortcut.expired_at ORDER BY {sort} {way} Limit {start_pageline},{length}""".format(start_pageline=(page-1)*length if page>1 else 0,length=length,filters=filters,sort=sort,way=way)
+    sql= """SELECT
+    `shortcut`.project,
+    `shortcut`.short_url,
+    `shortcut`.long_url,
+    from_unixtime( `shortcut`.expired_at ),
+    from_unixtime( `shortcut`.created_at ),
+    `shortcut`.src,
+    `shortcut`.src_short_url,
+    `shortcut`.submitter,
+    `shortcut`.utm_source,
+    `shortcut`.utm_medium,
+    `shortcut`.utm_campaign,
+    `shortcut`.utm_content,
+    `shortcut`.utm_term,
+    shortcut.created_at,
+    shortcut.expired_at,
+    if(his.history is not null,his.history,0) as visit_times,
+    if(rea.rea is not null,rea.rea,0) as read_times
+    FROM
+        `shortcut`
+    LEFT JOIN (select short_url,count(*) as history from `shortcut_history` GROUP BY short_url)his ON `shortcut`.short_url = `his`.`short_url`
+    LEFT JOIN (select short_url,count(*) as rea from `shortcut_read` GROUP BY short_url)rea ON `shortcut`.short_url = `rea`.`short_url` 
+    {filters}
+    ORDER BY {sort} {way} Limit {start_pageline},{length}""".format(start_pageline=(page-1)*length if page>1 else 0,length=length,filters=filters,sort=sort,way=way)
     result = do_tidb_select(sql)
     if result[1] == 0:
         write_to_log(filename='db_func',defname='show_shortcut',result=str(result)+sql)
