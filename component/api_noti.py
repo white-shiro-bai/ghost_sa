@@ -32,7 +32,7 @@ def show_usergroup_plan():
             temp_json = []
             for item in results[0]:
                 if mode and mode =='cli':
-                     temp_json.append({"plan_id":item[0],"group_title":item[1],"latest_data_list_index":item[3],"repeatable":item[4],"priority":item[6],"enable_policy":item[8],"repeat_times":item[9],"latest_data_time":item[10],"latest_apply_temple_name":item[12],"latest_apply_temple_time":item[13],"updated_at":item[15]})
+                    temp_json.append({"plan_id":item[0],"group_title":item[1],"latest_data_list_index":item[3],"repeatable":item[4],"priority":item[6],"enable_policy":item[8],"repeat_times":item[9],"latest_data_time":item[10],"latest_apply_temple_name":item[12],"latest_apply_temple_time":item[13],"updated_at":item[15]})
                 else:
                     temp_json.append({"plan_id":item[0],"group_title":item[1],"group_desc":item[2],"latest_data_list_index":item[3],"repeatable":item[4],"priority_id":item[5],"priority":item[6],"enable_policy_id":item[7],"enable_policy":item[8],"repeat_times":item[9],"latest_data_time":item[10],"latest_apply_temple_id":item[11],"latest_apply_temple_name":item[12],"latest_apply_temple_time":item[13],"created_at":item[14],"updated_at":item[15]})
             time_cost = round(time.time() - start_time,2)
