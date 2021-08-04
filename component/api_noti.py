@@ -236,7 +236,7 @@ def show_noti_group():
             add_on_where = add_on_where +(f''' and {project}_noti_group.owner like "%{owner}%"''' if owner and owner !='' else '')
         try:
             results = show_noti_group_db(project=project,length=length,page=page,everywhere=add_on_where)
-            resultscount = show_noti_group_count_db(project=project,length=length,page=page,everywhere=add_on_where)
+            resultscount = show_noti_group_count_db(project=project,everywhere=add_on_where)
             temp_json = []
             for item in results[0]:
                 if mode and mode =='cli':
@@ -283,7 +283,7 @@ def show_noti_detial():
         # print(add_on_where)
         try:
             results = show_noti_db(project=project,length=length,page=page,everywhere=add_on_where)
-            resultscount = show_noti_count_db(project=project,length=length,page=page,everywhere=add_on_where)
+            resultscount = show_noti_count_db(project=project,everywhere=add_on_where)
             temp_json = []
             for item in results[0]:
                 if mode and mode =='cli':

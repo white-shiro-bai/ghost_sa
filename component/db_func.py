@@ -691,14 +691,12 @@ FROM
     result = do_tidb_select(sql=sql)
     return result
 
-def show_noti_group_count_db(project,length,page,everywhere):
+def show_noti_group_count_db(project,everywhere):
     #查询推送分组列表
-    page = (page-1)*length if page and length and page > 1 else 0
     sql=f"""SELECT count(*)
 FROM
 	`{project}_noti_group` 
-    where 1=1 {everywhere}
-    ORDER BY `{project}_noti_group`.created_at desc limit {page},{length}"""
+    where 1=1 {everywhere}"""
     result = do_tidb_select(sql=sql)
     return result
 def show_noti_db(project,length,page,everywhere):
@@ -746,14 +744,12 @@ FROM
     result = do_tidb_select(sql=sql)
     return result
 
-def show_noti_count_db(project,length,page,everywhere):
+def show_noti_count_db(project,everywhere):
     #查询推送分组列表
-    page = (page-1)*length if page and length and page > 1 else 0
     sql=f"""SELECT count(*)
 FROM
 	`{project}_noti` 
-    where 1=1 {everywhere}
-    ORDER BY `{project}_noti`.created_at desc limit {page},{length}"""
+    where 1=1 {everywhere}"""
     result = do_tidb_select(sql=sql)
     return result
 
