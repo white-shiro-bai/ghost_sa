@@ -505,7 +505,8 @@ def insert_usergroup_plan(project,group_title,group_desc,repeatable,priority,ena
     return result
 
 
-def show_project_usergroup_plan(project):
+def show_project_usergroup_plan(project,page=1,length=50):
+    page = (page-1)*length if page and length and page > 1 else 0
     sql = f"""SELECT
 	`{project}_usergroup_plan`.id as id,
 	`{project}_usergroup_plan`.group_title as group_title,
@@ -529,13 +530,21 @@ FROM
 	LEFT JOIN status_code AS sc2 ON {project}_usergroup_plan.enable_policy = sc2.id
 	LEFT JOIN {project}_noti_temple ON latest_apply_temple_id = {project}_noti_temple.id
 ORDER BY
-	`{project}_usergroup_plan`.created_at desc"""
+	`{project}_usergroup_plan`.created_at desc limit {page},{length}"""
     # timenow = int(time.time())
     result = do_tidb_select(sql=sql)
     return result
 
+def show_project_usergroup_plan_count(project):
+    sql = f"""SELECT count(*)
+FROM
+	`{project}_usergroup_plan`"""
+    # timenow = int(time.time())
+    result = do_tidb_select(sql=sql)
+    return result
 
-def show_project_usergroup_list(project,plan_id):
+def show_project_usergroup_list(project,plan_id,page=1,length=50):
+    page = (page-1)*length if page and length and page > 1 else 0
     sql = f"""SELECT
 {project}_usergroup_list.id as list_id,
 {project}_usergroup_list.group_id as group_id,
@@ -558,11 +567,22 @@ FROM
 	
 WHERE
 	group_id = {plan_id}
-	ORDER BY group_list_index desc"""
+	ORDER BY group_list_index desc limit {page},{length} """
     # timenow = int(time.time())
     result = do_tidb_select(sql=sql)
     return result
-
+    
+def show_project_usergroup_list_count(project,plan_id):
+    sql = f"""SELECT
+count(*)
+FROM
+	{project}_usergroup_list 
+	
+WHERE
+	group_id = {plan_id}
+"""
+    result = do_tidb_select(sql=sql)
+    return result
 
 def duplicate_scheduler_jobs_sql(project,list_id):
     sql=f"""insert INTO scheduler_jobs (project,
