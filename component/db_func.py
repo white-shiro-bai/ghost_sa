@@ -747,11 +747,13 @@ def show_noti_db(project,length,page,everywhere):
 	{project}_noti.recall_result, 
 	from_unixtime( `{project}_noti`.send_at, "%Y-%m-%d %H:%i:%s" ) AS send_at,
 	from_unixtime( `{project}_noti`.created_at, "%Y-%m-%d %H:%i:%s" ) AS created_at,
-	from_unixtime( `{project}_noti`.updated_at, "%Y-%m-%d %H:%i:%s" ) AS updated_at
+	from_unixtime( `{project}_noti`.updated_at, "%Y-%m-%d %H:%i:%s" ) AS updated_at,
+    {project}_usergroup_data.data_json
 FROM
 	`{project}_noti`
 	LEFT JOIN {project}_usergroup_plan ON {project}_noti.plan_id = {project}_usergroup_plan.id
 	LEFT JOIN {project}_usergroup_list ON {project}_noti.list_id = {project}_usergroup_list.id
+	LEFT JOIN {project}_usergroup_data ON {project}_noti.data_id = {project}_usergroup_data.id
 	LEFT JOIN {project}_noti_temple ON {project}_noti.temple_id = {project}_noti_temple.id
 	LEFT JOIN status_code AS pid ON {project}_noti.priority = pid.`id`
 	LEFT JOIN status_code AS sid ON {project}_noti.`status` = sid.`id`
