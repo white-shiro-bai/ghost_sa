@@ -9,7 +9,10 @@ sys.setrecursionlimit(10000000)
 
 def get_url_params(params):
     #获取参数信息，JSON》FORM》ARGS的顺序
-    got_json = request.json
+    try:
+        got_json = request.json
+    except:
+        got_json = None
     v = None
     if got_json:
         if params in got_json:
