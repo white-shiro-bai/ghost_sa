@@ -30,13 +30,16 @@ def insert_message_to_kafka(key, msg):
 
 kafka_offset_reset = 'earliest' #latest,earliest,none 首次拉取kafka订阅的模式
 
+
 def get_message_from_kafka():
     consumer=KafkaConsumer(kafka.kafka_topic, bootstrap_servers=kafka.bootstrap_servers, group_id=kafka.client_group_id,auto_offset_reset=kafka_offset_reset,client_id='get_message_from_kafka')
     return consumer
 
+
 def get_message_from_kafka_independent_listener():
     consumer=KafkaConsumer(kafka.kafka_topic, bootstrap_servers=kafka.bootstrap_servers, group_id=admin.independent_listener_kafka_client_group_id,auto_offset_reset=kafka_offset_reset,client_id='get_message_from_kafka_independent_listener')
     return consumer
+
 
 if __name__ == "__main__":
     future = insert_message_to_kafka(key='123231231', msg={'msg': 'test'})
