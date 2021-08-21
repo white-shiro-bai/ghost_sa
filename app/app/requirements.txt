@@ -1,6 +1,6 @@
 pymysql==1.0.2
 kafka-python==2.0.2
-Pillow==8.1.2
+Pillow==8.2.0
 qrcode==6.1
 flask-cors==3.0.10
-geoip2==4.1.0
+guppy3==3.1.0

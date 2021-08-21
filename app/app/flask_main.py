@@ -8,10 +8,9 @@ from app.component.api import get_datas, get_long, shortit, show_short_cut_list,
 from app.component.api_noti import show_usergroup_plan,show_usergroup_list,duplicate_scheduler_jobs,show_usergroup_data,disable_usergroup_data,show_temples,apply_temples_list,show_noti_group,show_noti_detial,manual_send,disable_single,show_scheduler_jobs,create_scheduler_jobs_manual,create_manual_temple_noti,create_manual_non_temple_noti
 from app.configs import admin
 from flask_cors import CORS
-from flask import jsonify
-from flask import make_response
-from flask import request
-from flask import Flask
+from flask import Flask,Response
+import sys
+import os
 
 
 app = Flask(__name__)
@@ -28,24 +27,34 @@ def return_error(code=0):
 
 @app.errorhandler(404)
 def miss(e):
-    return return_error(code=404)
+    return return_error(code=404),404
 
 @app.errorhandler(500)
 def error(e):
-    return return_error(code=500)
+    return return_error(code=500),500
 
 @app.errorhandler(405)
 def error2(e):
-    return return_error(code=405)
+    return return_error(code=405),405
 
 
 @app.route('/')
 def index():
     return return_error()
 
+
+@app.route('/favicon.ico')
+def favicon():
+    bitimage1 = os.path.join('image', '43byte.gif')
+    with open(bitimage1, 'rb') as f:
+        returnimage = f.read()
+    return Response(returnimage, mimetype="image/gif")
+
+
 #项目管理
 app.add_url_rule('/show_project_list', view_func=show_project_list, methods=['POST'])#查询已有项目信息
 #数据收集
+app.add_url_rule('/sa', view_func=get_datas, methods=['GET', 'POST'])#神策SDK上报接口
 app.add_url_rule('/sa.gif', view_func=get_datas, methods=['GET', 'POST'])#神策SDK上报接口
 #短连接
 app.add_url_rule('/t/<short_url>', view_func=get_long, methods=['GET', 'POST'])#解析接口
@@ -86,6 +95,15 @@ app.add_url_rule('/usergroups/show_scheduler_jobs', view_func=show_scheduler_job
 app.add_url_rule('/usergroups/create_scheduler_jobs_manual',view_func=create_scheduler_jobs_manual, methods=['POST'])#手动开始执行分群
 app.add_url_rule('/usergroups/create_manual_temple_noti',view_func=create_manual_temple_noti, methods=['POST'])#手动创建模板消息
 app.add_url_rule('/usergroups/create_manual_non_temple_noti',view_func=create_manual_non_temple_noti, methods=['POST'])#手动创建非模板消息
+app.add_url_rule('/usergroups/show_temple_args',view_func=show_temple_args, methods=['POST'])#查询模板需要的参数
+app.add_url_rule('/usergroups/recall_blacklist_commit',view_func=recall_blacklist_commit, methods=['POST'])#手工添加和修改黑名单
+app.add_url_rule('/usergroups/noti_type',view_func=query_msg_type, methods=['POST'])#查询开启的消息类型
+app.add_url_rule('/usergroups/blacklist_single',view_func=query_blacklist_single, methods=['POST'])#查询开启的消息类型
+
+#接入控制
+app.add_url_rule('/access_control/access_permit',view_func=access_permit, methods=['POST','GET'])#查询接入控制
+app.add_url_rule('/access_control/token',view_func=get_access_control_token, methods=['POST','GET'])#生成cdn_mode的token
+app.add_url_rule('/access_control/get_check_token',view_func=get_check_token, methods=['POST','GET'])#查询正确的token
 
 if __name__ == '__main__':
     app.run(threaded=True, host='0.0.0.0', port=8000)  # 默认不填写的话，是5000端口；

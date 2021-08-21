@@ -8,14 +8,14 @@ import time
 from app.component.db_func import insert_event
 import json
 from app.component.api_req import get_json_from_postjson
-from app.component.db_op import do_tidb_select,do_tvcbook_select
+from app.component.db_op import do_tidb_select
 from app.component.public_value import *
 from app.scheduler_jobs.etl_model import insert_usergroup
 import traceback
 from app.configs.export import write_to_log
 from app.component.api_req import get_json_from_api
 
- 
+
 
 
 
@@ -36,7 +36,7 @@ def last_1500_email(args):
         all_data = {'data_list':[]}
         for user in users_result[0]:
             sql_email = """select email,nickname from yii2_user left join yii2_user_profile on yii2_user.id = yii2_user_profile.user_id where uid = '{uid}';""".format(uid=user[0])
-            sql_email_result,sql_email_count = do_tvcbook_select(sql=sql_email)
+            sql_email_result,sql_email_count = do_tidb_select(sql=sql_email)
             if sql_email_count>0 and sql_email_result[0][0] is not None and sql_email_result[0][0] !='' and total_insert<count:
                 all_data['data_list'].append({'key':user[0],'enable':9,'json':{'email':sql_email_result[0][0],'nickname':sql_email_result[0][1],'last_active_time':get_time_str(inttime=user[1])}})
                 total_insert = total_insert + 1

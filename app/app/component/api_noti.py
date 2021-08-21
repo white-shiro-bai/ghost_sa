@@ -16,6 +16,8 @@ import json
 from app.scheduler import create_noti_group
 from app.component.messenger import send_manual,create_non_usergroup_noti,create_non_usergroup_non_temple_noti
 from app.scheduler_jobs.etl_model import apply_temple
+from app.component.recall_blacklist import blacklist_commit, blacklist_query
+
 
 
 def show_usergroup_plan():
@@ -24,18 +26,23 @@ def show_usergroup_plan():
     password = get_url_params('password')
     project = get_url_params('project')
     mode = get_url_params('mode')
+    length = get_url_params('length')
+    page = get_url_params('page')
+    length = int(length) if length else 50
+    page = int(page) if page else 1
     if password == admin.admin_password and project and request.method == 'POST':#只有正确的密码才能触发动作
         # remark = request.form.get('remark',None)k+'\''
         try:
-            results= show_project_usergroup_plan(project=project)
+            results = show_project_usergroup_plan(project=project,length=length,page=page)
+            total_count = show_project_usergroup_plan_count(project=project)
             temp_json = []
             for item in results[0]:
                 if mode and mode =='cli':
-                     temp_json.append({"plan_id":item[0],"group_title":item[1],"latest_data_list_index":item[3],"repeatable":item[4],"priority":item[6],"enable_policy":item[8],"repeat_times":item[9],"latest_data_time":item[10],"latest_apply_temple_name":item[12],"latest_apply_temple_time":item[13],"updated_at":item[15]})
+                    temp_json.append({"plan_id":item[0],"group_title":item[1],"latest_data_list_index":item[3],"repeatable":item[4],"priority":item[6],"enable_policy":item[8],"repeat_times":item[9],"latest_data_time":item[10],"latest_apply_temple_name":item[12],"latest_apply_temple_time":item[13],"updated_at":item[15]})
                 else:
                     temp_json.append({"plan_id":item[0],"group_title":item[1],"group_desc":item[2],"latest_data_list_index":item[3],"repeatable":item[4],"priority_id":item[5],"priority":item[6],"enable_policy_id":item[7],"enable_policy":item[8],"repeat_times":item[9],"latest_data_time":item[10],"latest_apply_temple_id":item[11],"latest_apply_temple_name":item[12],"latest_apply_temple_time":item[13],"created_at":item[14],"updated_at":item[15]})
             time_cost = round(time.time() - start_time,2)
-            returnjson = {'result':'success','results_count':results[1],'timecost':time_cost,'data':temp_json}
+            returnjson = {'result':'success','results_count':results[1],'timecost':time_cost,'data':temp_json,'total_count':total_count[0][0][0]}
             # print(returnjson)
             return jsonify(returnjson)
         except Exception:
@@ -53,10 +60,15 @@ def show_usergroup_list():
     project = get_url_params('project')
     plan_id = get_url_params('plan_id')
     mode = get_url_params('mode')
+    length = get_url_params('length')
+    page = get_url_params('page')
+    length = int(length) if length else 50
+    page = int(page) if page else 1
     if password == admin.admin_password and project and request.method == 'POST' and plan_id:#只有正确的密码才能触发动作
         # remark = request.form.get('remark',None)k+'\''
         try:
-            results= show_project_usergroup_list(project=project,plan_id=plan_id)
+            results= show_project_usergroup_list(project=project,plan_id=plan_id,length=length,page=page)
+            total_count =show_project_usergroup_list_count(project=project,plan_id=plan_id)
             temp_json = []
             for item in results[0]:
                 if mode and mode =='cli':
@@ -65,7 +77,7 @@ def show_usergroup_list():
                     temp_json.append({"list_id":item[0],"group_id":item[1],"group_title":item[2],"group_list_index":item[3],"list_init_date":item[4],"list_desc":item[5],"jobs_id":item[6],"item_count":item[7],"status_id":item[8],"status_name":item[9],"complete_at":item[10],"apply_temple_times":item[11],"created_at":item[12],"updated_at":item[13]})
             
             time_cost = round(time.time() - start_time,2)
-            returnjson = {'result':'success','results_count':results[1],'timecost':time_cost,'data':temp_json}
+            returnjson = {'result':'success','results_count':results[1],'timecost':time_cost,'data':temp_json,'total_count':total_count[0][0][0]}
             # print(returnjson)
             return jsonify(returnjson)
         except Exception:
@@ -213,14 +225,14 @@ def show_noti_group():
     start_time = time.time()
     password = get_url_params('password')
     project = get_url_params('project')
-    length = get_url_params('length')
     plan_id = get_url_params('plan_id')
     list_id = get_url_params('list_id')
     temple_id = get_url_params('temple_id')
-    page = get_url_params('page')
     owner = get_url_params('owner')
     ngid = get_url_params('id')
     mode = get_url_params('mode')
+    length = get_url_params('length')
+    page = get_url_params('page')
     length = int(length) if length else 50
     page = int(page) if page else 1
 
@@ -235,7 +247,7 @@ def show_noti_group():
             add_on_where = add_on_where +(f''' and {project}_noti_group.owner like "%{owner}%"''' if owner and owner !='' else '')
         try:
             results = show_noti_group_db(project=project,length=length,page=page,everywhere=add_on_where)
-            resultscount = show_noti_group_count_db(project=project,length=length,page=page,everywhere=add_on_where)
+            resultscount = show_noti_group_count_db(project=project,everywhere=add_on_where)
             temp_json = []
             for item in results[0]:
                 if mode and mode =='cli':
@@ -282,13 +294,13 @@ def show_noti_detial():
         # print(add_on_where)
         try:
             results = show_noti_db(project=project,length=length,page=page,everywhere=add_on_where)
-            resultscount = show_noti_count_db(project=project,length=length,page=page,everywhere=add_on_where)
+            resultscount = show_noti_count_db(project=project,everywhere=add_on_where)
             temp_json = []
             for item in results[0]:
                 if mode and mode =='cli':
                     temp_json.append({"noti_id":item[0],"plan_name":item[2],"list_desc":item[5],"data_id":item[8],"temple_name":item[10],"noti_group_id":item[11],"distinct_id":item[12],"type_name":item[14],"priority_name":item[17],"status_name":item[19],"owner":item[20],"recall_result":item[21],"send_at":item[22],"created_at":item[23],"updated_at":item[24]})
                 else:
-                    temp_json.append({"noti_id":item[0],"plan_id":item[1],"plan_name":item[2],"list_id":item[3],"list_init_date":item[4],"list_desc":item[5],"jobs_id":item[6],"list_status":item[7],"data_id":item[8],"temple_id":item[9],"temple_name":item[10],"noti_group_id":item[11],"distinct_id":item[12],"type_id":item[13],"type_name":item[14],"content":json.loads(item[15]),"priority_id":item[16],"priority_name":item[17],"status_id":item[18],"status_name":item[19],"owner":item[20],"recall_result":item[21],"send_at":item[22],"created_at":item[23],"updated_at":item[24]})
+                    temp_json.append({"noti_id":item[0],"plan_id":item[1],"plan_name":item[2],"list_id":item[3],"list_init_date":item[4],"list_desc":item[5],"jobs_id":item[6],"list_status":item[7],"data_id":item[8],"temple_id":item[9],"temple_name":item[10],"noti_group_id":item[11],"distinct_id":item[12],"type_id":item[13],"type_name":item[14],"content":json.loads(item[15]),"priority_id":item[16],"priority_name":item[17],"status_id":item[18],"status_name":item[19],"owner":item[20],"recall_result":item[21],"send_at":item[22],"created_at":item[23],"updated_at":item[24],"user_data":json.loads(item[25]) if item[25] else None})
             time_cost = round(time.time() - start_time,2)
             total_count = resultscount[0][0][0] if resultscount[1] > 0 else 0
             returnjson = {'result':'success','results_count':results[1],'timecost':time_cost,'data':temp_json,'total_count':total_count,'page':page,'length':length}
@@ -466,16 +478,82 @@ def create_manual_non_temple_noti():
 
 def show_temple_args():
     #查询模板需要的参数
-    # project = get_url_params('project')
-    # password = get_url_params('password')
-    # data = get_url_params('data')
-    # if password == admin.admin_password and request.method == 'POST' and owner and owner !='' and project:
-    result_temple = select_noti_temple(project='tvcbook',temple_id=1011)
-    args = json.loads(result_temple[0][0][2])
-    print(args)
-    for arg in args:
-        for key in args[arg]:
-            print(arg,key,args[arg][key])
-    
+    project = get_url_params('project')
+    password = get_url_params('password')
+    owner = get_url_params('owner')
+    temple_id = get_url_params('temple_id')
+    if password == admin.admin_password and request.method == 'POST' and owner and owner !='' and project:
+        result_temple = select_noti_temple(project=project,temple_id=temple_id)
+        args = json.loads(result_temple[0][0][2])
+        contents = json.loads(result_temple[0][0][3])
+        if result_temple[1]>0:
+            args_pending =['distinct_id']
+            import re
+            args_content = re.findall(r'___(\w+)___', result_temple[0][0][2])
+            for item in args_content:
+                if item not in args_pending:
+                    args_pending.append(item)
+            returnjson = {'result':'success','args':args,'content':contents,'need':args_pending}
+            return jsonify(returnjson)
+        else:
+            returnjson = {'result':'fail','error':'该模板不存在'}
+            return jsonify(returnjson)
+    else:
+        returnjson = {'result':'fail','error':'参数错误'}
+        return jsonify(returnjson)
+
+def recall_blacklist_commit():
+    #手动添加黑名单
+    start_time = time.time()
+    password = get_url_params('password')
+    project = get_url_params('project')
+    owner = get_url_params('owner')
+    key = get_url_params('key')
+    distinct_id = get_url_params('distinct_id')
+    type_id = get_url_params('type_id')
+    reason_id = get_url_params('reason_id')
+    status = get_url_params('status')
+    comment = get_url_params('comment')
+    if password == admin.admin_password and request.method == 'POST' and owner and owner !='' and project and key:
+        commit = blacklist_commit(data={'project':project,'distinct_id':distinct_id,'key':key,'type':type_id,'status':status,'reason_id':reason_id,'owner':owner,'comment':comment})
+        data = commit.universal()
+        returnjson = {'result':'success','timecost':time.time()-start_time,'data':data}
+        return jsonify(returnjson)
+    else:
+        returnjson = {'result':'fail','error':'参数错误'}
+        return jsonify(returnjson)
+
+def query_msg_type():
+    #查询支持的消息类型
+    start_time = time.time()
+    password = get_url_params('password')
+    if password == admin.admin_password and request.method == 'POST':
+        result = select_msg_type()
+        data = []
+        for i in result[0]:
+            data.append({"id":i[0],"desc":i[1]})
+        returnjson = {'result':'success','results_count':result[1],'timecost':time.time()-start_time,'data':data,'total_count':result[1],'page':1,'length':result[1]}
+        return jsonify(returnjson)
+
+
+def query_blacklist_single():
+    #查询黑名单记录
+    start_time = time.time()
+    password = get_url_params('password')
+    project = get_url_params('project')
+    owner = get_url_params('owner')
+    key = get_url_params('key')
+    distinct_id = get_url_params('distinct_id')
+    type_id = get_url_params('type')
+    level = get_url_params('level')
+    if password == admin.admin_password and request.method == 'POST' and owner and owner !='' and (distinct_id or key):
+        query = blacklist_query(data={'project':project,'distinct_id':distinct_id,'key':key,'type':type_id,'level':level})
+        data = query.check_messenger()
+        returnjson = {'result':'success','timecost':time.time()-start_time,'data':data}
+        return jsonify(returnjson)
+    else:
+        returnjson = {'result':'fail','error':'参数错误'}
+        return jsonify(returnjson)
+
 if __name__ == "__main__":
     show_temple_args()
