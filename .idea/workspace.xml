@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="BranchesTreeState">
+    <expand>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:origin" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+    </expand>
+    <select />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="dd7fa941-0710-4db4-9d37-7c5dc3824f4a" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/docs/接入控制/cdn_token加密步骤.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/接入控制/cdn模式加密校验原理.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/接入控制/cdn模式示例_阿里云.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/接入控制/key获取接口.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/接入控制/原理介绍.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/接入控制/查询接口及原理.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/app/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/app/app/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/app/component/access_control.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/app/component/access_control.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/app/component/api.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/app/component/api.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/app/component/api_noti.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/app/component/api_noti.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/app/component/api_tools.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/app/component/api_tools.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/app/component/db_func.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/app/component/db_func.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/app/component/db_op.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/app/component/db_op.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/app/component/kafka_op.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/app/component/kafka_op.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/app/component/messenger.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/app/component/messenger.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/app/component/public_func.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/app/component/public_func.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/app/component/recall_blacklist.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/app/component/recall_blacklist.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/app/component/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/app/component/setup.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/app/component/url_tools.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/app/component/url_tools.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/app/configs/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/app/configs/admin.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/app/configs/kafka.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/app/configs/kafka.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/app/flask_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/app/flask_main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/app/geoip/geo.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/app/geoip/geo.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/app/kafka_consumer.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/app/kafka_consumer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/app/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/app/app/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/app/scheduler.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/app/scheduler.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/app/scheduler_jobs/demo_app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/app/scheduler_jobs/demo_app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/app/scheduler_jobs/scheduler_job_creator.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/app/scheduler_jobs/scheduler_job_creator.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/app/tools/subscribe.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/app/tools/subscribe.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/app/tools/update_20201015_to_20210406.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/app/tools/update_20201015_to_20210406.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/app/tools/update_20210226_to_20210406.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/app/tools/update_20210226_to_20210406.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/app/tools/update_base_to_20210406.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/app/tools/update_base_to_20210406.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/app/trigger.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/app/trigger.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/用户分群及召回/用户分群/查询分群列表.png" beforeDir="false" afterPath="$PROJECT_DIR$/docs/用户分群及召回/用户分群/查询分群列表.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/用户分群及召回/用户分群/查询分群计划.png" beforeDir="false" afterPath="$PROJECT_DIR$/docs/用户分群及召回/用户分群/查询分群计划.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/用户分群及召回/用户分群/查询计划下的用户分群列表的详情.png" beforeDir="false" afterPath="$PROJECT_DIR$/docs/用户分群及召回/用户分群/查询计划下的用户分群列表的详情.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/用户分群及召回/用户分群/重新执行该分群.png" beforeDir="false" afterPath="$PROJECT_DIR$/docs/用户分群及召回/用户分群/重新执行该分群.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/用户分群及召回/自动化消息/查询推送详情.png" beforeDir="false" afterPath="$PROJECT_DIR$/docs/用户分群及召回/自动化消息/查询推送详情.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/短链接/服务端二维码生成_短链_.png" beforeDir="false" afterPath="$PROJECT_DIR$/docs/短链接/服务端二维码生成_短链.png" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectId" id="1qvdreXj1o4Bf3UOXlMvfqvNkdj" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/app" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="dd7fa941-0710-4db4-9d37-7c5dc3824f4a" name="Default Changelist" comment="" />
+      <created>1617964197937</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1617964197937</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="2334" y="346" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1629467569340">
+      <screen x="1920" y="171" width="1920" height="1040" />
+    </state>
+    <state x="2334" y="346" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629467569340" />
+    <state x="2657" y="431" key="FileChooserDialogImpl" timestamp="1629468503436">
+      <screen x="1920" y="171" width="1920" height="1040" />
+    </state>
+    <state x="2657" y="431" key="FileChooserDialogImpl/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629468503436" />
+    <state x="2381" y="335" key="SettingsEditor" timestamp="1629468436887">
+      <screen x="1920" y="171" width="1920" height="1040" />
+    </state>
+    <state x="2381" y="335" key="SettingsEditor/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629468436887" />
+    <state x="2673" y="604" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1629463388088">
+      <screen x="1920" y="171" width="1920" height="1040" />
+    </state>
+    <state x="2673" y="604" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629463388088" />
+    <state x="2543" y="396" width="672" height="678" key="search.everywhere.popup" timestamp="1629467271092">
+      <screen x="1920" y="171" width="1920" height="1040" />
+    </state>
+    <state x="2543" y="396" width="672" height="678" key="search.everywhere.popup/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629467271092" />
+  </component>
+</project>
