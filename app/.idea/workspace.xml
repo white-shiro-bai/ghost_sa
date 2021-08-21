@@ -19,47 +19,7 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b6346c84-2a36-4f2a-b4da-9be6806931d8" name="Default Changelist" comment="Merge remote-tracking branch 'github/master'&#10;&#10;# Conflicts:&#10;#&#9;app/app/component/access_control.py&#10;#&#9;app/app/component/api.py&#10;#&#9;app/app/component/api_noti.py&#10;#&#9;app/app/component/api_tools.py&#10;#&#9;app/app/component/db_func.py&#10;#&#9;app/app/component/kafka_op.py&#10;#&#9;app/app/component/messenger.py&#10;#&#9;app/app/component/public_func.py&#10;#&#9;app/app/component/setup.py&#10;#&#9;app/app/configs/admin.py&#10;#&#9;app/app/configs/kafka.py&#10;#&#9;app/app/flask_main.py&#10;#&#9;app/app/geoip/geo.py&#10;#&#9;app/app/kafka_consumer.py&#10;#&#9;app/app/requirements.txt&#10;#&#9;app/app/scheduler_jobs/demo_app.py&#10;#&#9;app/app/tools/subscribe.py&#10;#&#9;app/app/tools/update_20201015_to_20210406.py&#10;#&#9;app/app/tools/update_20210226_to_20210406.py&#10;#&#9;app/app/tools/update_base_to_20210406.py&#10;#&#9;app/app/trigger.py">
-      <change afterPath="$PROJECT_DIR$/app/component/access_control.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/component/public_func.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/tools/update_20201015_to_20210406.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/tools/update_20210226_to_20210406.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/tools/update_base_to_20210406.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../docs/接入控制/cdn_token加密步骤.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../docs/接入控制/cdn模式加密校验原理.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../docs/接入控制/cdn模式示例_阿里云.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../docs/接入控制/key获取接口.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../docs/接入控制/原理介绍.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../docs/接入控制/查询接口及原理.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/app/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/component/api.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/component/api.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/component/api_noti.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/component/api_noti.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/component/api_tools.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/component/api_tools.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/component/db_func.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/component/db_func.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/component/db_op.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/component/db_op.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/component/kafka_op.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/component/kafka_op.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/component/messenger.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/component/messenger.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/component/recall_blacklist.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/component/recall_blacklist.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/component/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/component/setup.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/component/url_tools.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/component/url_tools.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/configs/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/configs/admin.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/configs/kafka.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/configs/kafka.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/flask_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/flask_main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/geoip/geo.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/geoip/geo.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/kafka_consumer.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/kafka_consumer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/app/requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/scheduler.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/scheduler.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/scheduler_jobs/demo_app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/scheduler_jobs/demo_app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/scheduler_jobs/scheduler_job_creator.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/scheduler_jobs/scheduler_job_creator.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/tools/subscribe.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/tools/subscribe.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/trigger.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/trigger.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../docs/用户分群及召回/用户分群/查询分群列表.png" beforeDir="false" afterPath="$PROJECT_DIR$/../docs/用户分群及召回/用户分群/查询分群列表.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../docs/用户分群及召回/用户分群/查询分群计划.png" beforeDir="false" afterPath="$PROJECT_DIR$/../docs/用户分群及召回/用户分群/查询分群计划.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../docs/用户分群及召回/用户分群/查询计划下的用户分群列表的详情.png" beforeDir="false" afterPath="$PROJECT_DIR$/../docs/用户分群及召回/用户分群/查询计划下的用户分群列表的详情.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../docs/用户分群及召回/用户分群/重新执行该分群.png" beforeDir="false" afterPath="$PROJECT_DIR$/../docs/用户分群及召回/用户分群/重新执行该分群.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../docs/用户分群及召回/自动化消息/查询推送详情.png" beforeDir="false" afterPath="$PROJECT_DIR$/../docs/用户分群及召回/自动化消息/查询推送详情.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../docs/短链接/服务端二维码生成_短链_.png" beforeDir="false" afterPath="$PROJECT_DIR$/../docs/短链接/服务端二维码生成_短链.png" afterDir="false" />
-    </list>
+    <list default="true" id="b6346c84-2a36-4f2a-b4da-9be6806931d8" name="Default Changelist" comment="Merge remote-tracking branch 'github/master'&#10;&#10;# Conflicts:&#10;#&#9;app/app/component/access_control.py&#10;#&#9;app/app/component/api.py&#10;#&#9;app/app/component/api_noti.py&#10;#&#9;app/app/component/api_tools.py&#10;#&#9;app/app/component/db_func.py&#10;#&#9;app/app/component/kafka_op.py&#10;#&#9;app/app/component/messenger.py&#10;#&#9;app/app/component/public_func.py&#10;#&#9;app/app/component/setup.py&#10;#&#9;app/app/configs/admin.py&#10;#&#9;app/app/configs/kafka.py&#10;#&#9;app/app/flask_main.py&#10;#&#9;app/app/geoip/geo.py&#10;#&#9;app/app/kafka_consumer.py&#10;#&#9;app/app/requirements.txt&#10;#&#9;app/app/scheduler_jobs/demo_app.py&#10;#&#9;app/app/tools/subscribe.py&#10;#&#9;app/app/tools/update_20201015_to_20210406.py&#10;#&#9;app/app/tools/update_20210226_to_20210406.py&#10;#&#9;app/app/tools/update_base_to_20210406.py&#10;#&#9;app/app/trigger.py" />
     <list id="a9b1d2d1-d349-4bc3-a37e-8d0b9ba7c59d" name="Revert &quot;'发送kafka捕获异常'&quot;" comment="Revert &quot;'发送kafka捕获异常'&quot;&#10;&#10;This reverts commit 67db3a72" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -78,6 +38,7 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="ToolWindowCommit.ShowToolbar" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
@@ -92,6 +53,21 @@
       <option name="presentableId" value="Default" />
       <updated>1617964418254</updated>
     </task>
+    <task id="LOCAL-00001" summary="Merge remote-tracking branch 'github/master'&#10;&#10;# Conflicts:&#10;#&#9;app/app/component/access_control.py&#10;#&#9;app/app/component/api.py&#10;#&#9;app/app/component/api_noti.py&#10;#&#9;app/app/component/api_tools.py&#10;#&#9;app/app/component/db_func.py&#10;#&#9;app/app/component/kafka_op.py&#10;#&#9;app/app/component/messenger.py&#10;#&#9;app/app/component/public_func.py&#10;#&#9;app/app/component/setup.py&#10;#&#9;app/app/configs/admin.py&#10;#&#9;app/app/configs/kafka.py&#10;#&#9;app/app/flask_main.py&#10;#&#9;app/app/geoip/geo.py&#10;#&#9;app/app/kafka_consumer.py&#10;#&#9;app/app/requirements.txt&#10;#&#9;app/app/scheduler_jobs/demo_app.py&#10;#&#9;app/app/tools/subscribe.py&#10;#&#9;app/app/tools/update_20201015_to_20210406.py&#10;#&#9;app/app/tools/update_20210226_to_20210406.py&#10;#&#9;app/app/tools/update_base_to_20210406.py&#10;#&#9;app/app/trigger.py">
+      <created>1629513911396</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1629513911396</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Merge remote-tracking branch 'github/master'&#10;&#10;# Conflicts:&#10;#&#9;app/app/component/access_control.py&#10;#&#9;app/app/component/api.py&#10;#&#9;app/app/component/api_noti.py&#10;#&#9;app/app/component/api_tools.py&#10;#&#9;app/app/component/db_func.py&#10;#&#9;app/app/component/kafka_op.py&#10;#&#9;app/app/component/messenger.py&#10;#&#9;app/app/component/public_func.py&#10;#&#9;app/app/component/setup.py&#10;#&#9;app/app/configs/admin.py&#10;#&#9;app/app/configs/kafka.py&#10;#&#9;app/app/flask_main.py&#10;#&#9;app/app/geoip/geo.py&#10;#&#9;app/app/kafka_consumer.py&#10;#&#9;app/app/requirements.txt&#10;#&#9;app/app/scheduler_jobs/demo_app.py&#10;#&#9;app/app/tools/subscribe.py&#10;#&#9;app/app/tools/update_20201015_to_20210406.py&#10;#&#9;app/app/tools/update_20210226_to_20210406.py&#10;#&#9;app/app/tools/update_base_to_20210406.py&#10;#&#9;app/app/trigger.py">
+      <created>1629513926316</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1629513926316</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="Vcs.Log.History.Properties">
@@ -116,6 +92,10 @@
     </option>
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Merge remote-tracking branch 'github/master'&#10;&#10;# Conflicts:&#10;#&#9;app/app/component/access_control.py&#10;#&#9;app/app/component/api.py&#10;#&#9;app/app/component/api_noti.py&#10;#&#9;app/app/component/api_tools.py&#10;#&#9;app/app/component/db_func.py&#10;#&#9;app/app/component/kafka_op.py&#10;#&#9;app/app/component/messenger.py&#10;#&#9;app/app/component/public_func.py&#10;#&#9;app/app/component/setup.py&#10;#&#9;app/app/configs/admin.py&#10;#&#9;app/app/configs/kafka.py&#10;#&#9;app/app/flask_main.py&#10;#&#9;app/app/geoip/geo.py&#10;#&#9;app/app/kafka_consumer.py&#10;#&#9;app/app/requirements.txt&#10;#&#9;app/app/scheduler_jobs/demo_app.py&#10;#&#9;app/app/tools/subscribe.py&#10;#&#9;app/app/tools/update_20201015_to_20210406.py&#10;#&#9;app/app/tools/update_20210226_to_20210406.py&#10;#&#9;app/app/tools/update_base_to_20210406.py&#10;#&#9;app/app/trigger.py" />
+    <option name="LAST_COMMIT_MESSAGE" value="Merge remote-tracking branch 'github/master'&#10;&#10;# Conflicts:&#10;#&#9;app/app/component/access_control.py&#10;#&#9;app/app/component/api.py&#10;#&#9;app/app/component/api_noti.py&#10;#&#9;app/app/component/api_tools.py&#10;#&#9;app/app/component/db_func.py&#10;#&#9;app/app/component/kafka_op.py&#10;#&#9;app/app/component/messenger.py&#10;#&#9;app/app/component/public_func.py&#10;#&#9;app/app/component/setup.py&#10;#&#9;app/app/configs/admin.py&#10;#&#9;app/app/configs/kafka.py&#10;#&#9;app/app/flask_main.py&#10;#&#9;app/app/geoip/geo.py&#10;#&#9;app/app/kafka_consumer.py&#10;#&#9;app/app/requirements.txt&#10;#&#9;app/app/scheduler_jobs/demo_app.py&#10;#&#9;app/app/tools/subscribe.py&#10;#&#9;app/app/tools/update_20201015_to_20210406.py&#10;#&#9;app/app/tools/update_20210226_to_20210406.py&#10;#&#9;app/app/tools/update_base_to_20210406.py&#10;#&#9;app/app/trigger.py" />
+  </component>
   <component name="WindowStateProjectService">
     <state x="1951" y="228" width="1774" height="868" key="MergeDialog" timestamp="1629513606410">
       <screen x="1920" y="171" width="1920" height="1040" />
@@ -125,6 +105,10 @@
       <screen x="1920" y="171" width="1920" height="1040" />
     </state>
     <state x="2402" y="554" width="600" height="457" key="MultipleFileMergeDialog/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629513606416" />
+    <state x="2472" y="424" key="Vcs.Push.Dialog.v2" timestamp="1629513929035">
+      <screen x="1920" y="171" width="1920" height="1040" />
+    </state>
+    <state x="2472" y="424" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629513929035" />
     <state x="2012" y="263" width="1736" height="856" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1629468587236">
       <screen x="1920" y="171" width="1920" height="1040" />
     </state>
