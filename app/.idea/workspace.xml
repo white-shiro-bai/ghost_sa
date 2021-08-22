@@ -20,14 +20,35 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b6346c84-2a36-4f2a-b4da-9be6806931d8" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/app/configs/code.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/configs/default.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/configs/development.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/configs/production.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/configs/testing.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/flaskr/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/flaskr/sa.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/my_extensions.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/templates/404.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/utils/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/utils/database.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/utils/response.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/app/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/component/api.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/component/api.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/configs/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/configs/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/flask_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/flask_main.py" afterDir="false" />
     </list>
     <list id="a9b1d2d1-d349-4bc3-a37e-8d0b9ba7c59d" name="Revert &quot;'发送kafka捕获异常'&quot;" comment="Revert &quot;'发送kafka捕获异常'&quot;&#10;&#10;This reverts commit 67db3a72" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
@@ -42,8 +63,15 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="ToolWindowCommit.ShowToolbar" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/app" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="E:\data-workspace\ghost_sa\app\app" />
+      <recent name="E:\data-workspace\ghost_sa\app\app\utils" />
+      <recent name="E:\data-workspace\ghost_sa\app\app\configs" />
+    </key>
   </component>
   <component name="SvnConfiguration">
     <configuration />
@@ -77,7 +105,14 @@
       <option name="project" value="LOCAL" />
       <updated>1629513982140</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Merge remote-tracking branch 'github/master'&#10;&#10;# Conflicts:&#10;#&#9;app/app/component/access_control.py&#10;#&#9;app/app/component/api.py&#10;#&#9;app/app/component/api_noti.py&#10;#&#9;app/app/component/api_tools.py&#10;#&#9;app/app/component/db_func.py&#10;#&#9;app/app/component/kafka_op.py&#10;#&#9;app/app/component/messenger.py&#10;#&#9;app/app/component/public_func.py&#10;#&#9;app/app/component/setup.py&#10;#&#9;app/app/configs/admin.py&#10;#&#9;app/app/configs/kafka.py&#10;#&#9;app/app/flask_main.py&#10;#&#9;app/app/geoip/geo.py&#10;#&#9;app/app/kafka_consumer.py&#10;#&#9;app/app/requirements.txt&#10;#&#9;app/app/scheduler_jobs/demo_app.py&#10;#&#9;app/app/tools/subscribe.py&#10;#&#9;app/app/tools/update_20201015_to_20210406.py&#10;#&#9;app/app/tools/update_20210226_to_20210406.py&#10;#&#9;app/app/tools/update_base_to_20210406.py&#10;#&#9;app/app/trigger.py">
+      <created>1629514255524</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1629514255524</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="Vcs.Log.History.Properties">
@@ -107,10 +142,14 @@
     <option name="LAST_COMMIT_MESSAGE" value="Merge remote-tracking branch 'github/master'&#10;&#10;# Conflicts:&#10;#&#9;app/app/component/access_control.py&#10;#&#9;app/app/component/api.py&#10;#&#9;app/app/component/api_noti.py&#10;#&#9;app/app/component/api_tools.py&#10;#&#9;app/app/component/db_func.py&#10;#&#9;app/app/component/kafka_op.py&#10;#&#9;app/app/component/messenger.py&#10;#&#9;app/app/component/public_func.py&#10;#&#9;app/app/component/setup.py&#10;#&#9;app/app/configs/admin.py&#10;#&#9;app/app/configs/kafka.py&#10;#&#9;app/app/flask_main.py&#10;#&#9;app/app/geoip/geo.py&#10;#&#9;app/app/kafka_consumer.py&#10;#&#9;app/app/requirements.txt&#10;#&#9;app/app/scheduler_jobs/demo_app.py&#10;#&#9;app/app/tools/subscribe.py&#10;#&#9;app/app/tools/update_20201015_to_20210406.py&#10;#&#9;app/app/tools/update_20210226_to_20210406.py&#10;#&#9;app/app/tools/update_base_to_20210406.py&#10;#&#9;app/app/trigger.py" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="2345" y="217" width="955" height="846" key="CommitChangelistDialog2" timestamp="1629513981326">
+    <state x="2345" y="217" width="955" height="846" key="CommitChangelistDialog2" timestamp="1629514254378">
       <screen x="1920" y="171" width="1920" height="1040" />
     </state>
-    <state x="2345" y="217" width="955" height="846" key="CommitChangelistDialog2/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629513981326" />
+    <state x="2345" y="217" width="955" height="846" key="CommitChangelistDialog2/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629514254377" />
+    <state x="2660" y="446" key="FileChooserDialogImpl" timestamp="1629515308141">
+      <screen x="1920" y="171" width="1920" height="1040" />
+    </state>
+    <state x="2660" y="446" key="FileChooserDialogImpl/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629515308141" />
     <state x="1951" y="228" width="1774" height="868" key="MergeDialog" timestamp="1629513606410">
       <screen x="1920" y="171" width="1920" height="1040" />
     </state>
@@ -119,13 +158,25 @@
       <screen x="1920" y="171" width="1920" height="1040" />
     </state>
     <state x="2402" y="554" width="600" height="457" key="MultipleFileMergeDialog/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629513606416" />
-    <state x="2472" y="424" key="Vcs.Push.Dialog.v2" timestamp="1629513984846">
+    <state width="498" height="446" key="SwitcherDM" timestamp="1629640452670">
       <screen x="1920" y="171" width="1920" height="1040" />
     </state>
-    <state x="2472" y="424" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629513984846" />
+    <state width="498" height="446" key="SwitcherDM/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629640452670" />
+    <state x="2472" y="424" key="Vcs.Push.Dialog.v2" timestamp="1629514257777">
+      <screen x="1920" y="171" width="1920" height="1040" />
+    </state>
+    <state x="2472" y="424" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629514257777" />
     <state x="2012" y="263" width="1736" height="856" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1629468587236">
       <screen x="1920" y="171" width="1920" height="1040" />
     </state>
     <state x="2012" y="263" width="1736" height="856" key="com.intellij.history.integration.ui.views.FileHistoryDialog/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629468587236" />
+    <state x="2582" y="289" width="596" height="804" key="find.popup" timestamp="1629608259628">
+      <screen x="1920" y="171" width="1920" height="1040" />
+    </state>
+    <state x="2582" y="289" width="596" height="804" key="find.popup/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629608259628" />
+    <state x="2543" y="396" width="672" height="678" key="search.everywhere.popup" timestamp="1629639282633">
+      <screen x="1920" y="171" width="1920" height="1040" />
+    </state>
+    <state x="2543" y="396" width="672" height="678" key="search.everywhere.popup/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629639282633" />
   </component>
 </project>

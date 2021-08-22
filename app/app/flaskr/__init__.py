@@ -1,5 +1,5 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
 """
-    ghost_sa配置目录.
+    request请求配置目录.
 """

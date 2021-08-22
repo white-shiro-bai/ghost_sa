@@ -111,8 +111,9 @@ def insert_data(project,data_decode,User_Agent,Host,Connection,Pragma,Cache_Cont
         insert_message_to_kafka(key=distinct_id ,msg=msg)
     print(time.time()-start_time)
 
+
 def get_data():
-    bitimage1 = os.path.join('image','43byte.gif')
+    bitimage1 = os.path.join('image', '43byte.gif')
     with open(bitimage1, 'rb') as f:
         returnimage = f.read()
     remark = request.args.get('remark') if 'remark' in request.args else 'normal'
