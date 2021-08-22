@@ -2,10 +2,14 @@
 # author: unknowwhite@outlook.com
 # wechat: Ben_Xiaobai
 import sys
+
+from app.configs.code import ResponseCode
+from app.utils.response import res
+
 sys.path.append("./")
 sys.setrecursionlimit(10000000)
 
-from flask import request,jsonify,Response,redirect
+from flask import request, jsonify, Response, redirect, current_app
 import traceback
 import urllib.parse
 import base64
@@ -113,63 +117,76 @@ def insert_data(project,data_decode,User_Agent,Host,Connection,Pragma,Cache_Cont
 
 
 def get_data():
-    remark = request.args.get('remark') if 'remark' in request.args else 'normal'
-    project = request.args.get('project')
+    remark = request.args.get('remark', None)
+    project = request.args.get('project', None)
 
-    if project:
-        user_agent_source = request.headers.get('User-Agent')[0:2047].lower() if request.headers.get('User-Agent') else None   # Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36
-        if user_agent_source and ('spider' in user_agent_source or 'googlebot' in user_agent_source
-                                  or 'adsbot-google' in user_agent_source):
-            remark = 'spider'
+    # 不合法情况，直接过滤，避免造成后续处理负担
+    if not remark or not project:
+        return res(code=ResponseCode.SYSTEM_ERROR, msg='project或remark为空，此2项参数必填!')
 
-        Host = request.headers.get('Host')                  #: 10.16.5.241:5000
-        Connection = request.headers.get('Connection')      #: keep-alive
-        Pragma = request.headers.get('Pragma')              #: no-cache
-        Cache_Control = request.headers.get('Cache-Control')#: no-cache
-        Accept = request.headers.get('Accept')[0:254] if request.headers.get('Accept') else None#: image/webp,image/apng,image/*,*/*;q=0.8
-        Accept_Encoding = request.headers.get('Accept-Encoding')[0:254] if request.headers.get('Accept-Encoding') else None#: gzip, deflate
-        Accept_Language = request.headers.get('Accept-Language')[0:254] if request.headers.get('Accept-Language') else None#: zh-CN,zh;q=0.9
-        ua_platform = request.user_agent.platform #客户端操作系统
-        ua_browser = request.user_agent.browser #客户端的浏览器
-        ua_version = request.user_agent.version #客户端浏览器的版本
-        ua_language = request.user_agent.language #客户端浏览器的语言
-        ext = request.args.get('ext')
-        url = request.url
-        # ip = '124.115.214.179' #测试西安bug
-        # ip = '36.5.99.68' #测试安徽bug
-        if request.headers.get('X-Forwarded-For') is None:
-            ip = request.remote_addr#服务器直接暴露
-        else:
-            ip = request.headers.get('X-Forwarded-For') # 获取SLB真实地址
-        ip_city, ip_is_good = get_addr(ip)
-        ip_asn, ip_asn_is_good = get_asn(ip)
-        referrer = request.referrer[0:2047] if request.referrer else None
-        pending_data_list_all = []
-        # data_list_all.append( get_url_params('data') )
-        if get_url_params('data'):
-            de64 = base64.b64decode(urllib.parse.unquote(get_url_params('data')).encode('utf-8'))
-            try:
-                pending_data_list_all.append(json.loads(gzip.decompress(de64)))
-            except:
-                pending_data_list_all.append(json.loads(de64))
+    # eg: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100
+    # Safari/537.36
+    user_agent_source = request.headers.get('User-Agent', '')
+    if len(user_agent_source) > 2048:
+        return res(code=ResponseCode.SYSTEM_ERROR, msg='User-Agent参数不合法!')
 
-        if get_url_params('data_list'):
-            de64_list = base64.b64decode(urllib.parse.unquote(get_url_params('data_list')).encode('utf-8'))
-            try:
-                data_decodes = json.loads(gzip.decompress(de64_list))
-            except:
-                data_decodes = json.loads(de64_list)
-            for data_decode in data_decodes:
-                pending_data_list_all.append(data_decode)
-        for pending_data in pending_data_list_all:
-            if admin.user_ip_first is True:
-                if 'properties' in pending_data and admin.user_ip_key in pending_data['properties'] and pending_data['properties'][admin.user_ip_key]:
-                    user_ip = pending_data['properties'][admin.user_ip_key]
-                    if len(user_ip) - len(user_ip.replace('.', '')) == 3:
-                        ip = user_ip
-                        ip_city, ip_is_good = get_addr(user_ip)
-                        ip_asn, ip_asn_is_good = get_asn(user_ip)
-            insert_data(project=project,data_decode=pending_data,User_Agent=user_agent_source,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good)
+    # 若是爬虫，则将remark置成爬虫标识
+    user_agent = user_agent_source.lower()
+    if user_agent and any([pt in user_agent for pt in ['spider', 'googlebot', 'adsbot-google']]):
+        remark = 'spider'
+
+    # eg: 10.16.5.241:5000
+    Host = request.headers.get('Host', '')
+    # eg: keep-alive
+    Connection = request.headers.get('Connection', '')
+    # eg: no-cache
+    Pragma = request.headers.get('Pragma', '')
+    #: no-cache
+    Cache_Control = request.headers.get('Cache-Control', '')
+    Accept = request.headers.get('Accept')[0:254] if request.headers.get('Accept') else None#: image/webp,image/apng,image/*,*/*;q=0.8
+    Accept_Encoding = request.headers.get('Accept-Encoding')[0:254] if request.headers.get('Accept-Encoding') else None#: gzip, deflate
+    Accept_Language = request.headers.get('Accept-Language')[0:254] if request.headers.get('Accept-Language') else None#: zh-CN,zh;q=0.9
+    ua_platform = request.user_agent.platform #客户端操作系统
+    ua_browser = request.user_agent.browser #客户端的浏览器
+    ua_version = request.user_agent.version #客户端浏览器的版本
+    ua_language = request.user_agent.language #客户端浏览器的语言
+    ext = request.args.get('ext')
+    url = request.url
+    # ip = '124.115.214.179' #测试西安bug
+    # ip = '36.5.99.68' #测试安徽bug
+    if request.headers.get('X-Forwarded-For') is None:
+        ip = request.remote_addr#服务器直接暴露
+    else:
+        ip = request.headers.get('X-Forwarded-For') # 获取SLB真实地址
+    ip_city, ip_is_good = get_addr(ip)
+    ip_asn, ip_asn_is_good = get_asn(ip)
+    referrer = request.referrer[0:2047] if request.referrer else None
+    pending_data_list_all = []
+    # data_list_all.append( get_url_params('data') )
+    if get_url_params('data'):
+        de64 = base64.b64decode(urllib.parse.unquote(get_url_params('data')).encode('utf-8'))
+        try:
+            pending_data_list_all.append(json.loads(gzip.decompress(de64)))
+        except:
+            pending_data_list_all.append(json.loads(de64))
+
+    if get_url_params('data_list'):
+        de64_list = base64.b64decode(urllib.parse.unquote(get_url_params('data_list')).encode('utf-8'))
+        try:
+            data_decodes = json.loads(gzip.decompress(de64_list))
+        except:
+            data_decodes = json.loads(de64_list)
+        for data_decode in data_decodes:
+            pending_data_list_all.append(data_decode)
+    for pending_data in pending_data_list_all:
+        if admin.user_ip_first is True:
+            if 'properties' in pending_data and admin.user_ip_key in pending_data['properties'] and pending_data['properties'][admin.user_ip_key]:
+                user_ip = pending_data['properties'][admin.user_ip_key]
+                if len(user_ip) - len(user_ip.replace('.', '')) == 3:
+                    ip = user_ip
+                    ip_city, ip_is_good = get_addr(user_ip)
+                    ip_asn, ip_asn_is_good = get_asn(user_ip)
+        insert_data(project=project,data_decode=pending_data,User_Agent=user_agent_source,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good)
     return Response(default_return_image, mimetype="image/gif")
 
 
