@@ -20,22 +20,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b6346c84-2a36-4f2a-b4da-9be6806931d8" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/app/configs/code.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/configs/default.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/configs/development.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/configs/production.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/configs/testing.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/flaskr/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/flaskr/sa.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/my_extensions.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/templates/404.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/utils/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/utils/database.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/utils/response.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/component/api.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/component/api.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/configs/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/configs/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/flask_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/flask_main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/geoip/geo.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/geoip/geo.py" afterDir="false" />
     </list>
     <list id="a9b1d2d1-d349-4bc3-a37e-8d0b9ba7c59d" name="Revert &quot;'发送kafka捕获异常'&quot;" comment="Revert &quot;'发送kafka捕获异常'&quot;&#10;&#10;This reverts commit 67db3a72" />
     <option name="SHOW_DIALOG" value="false" />
@@ -112,7 +99,14 @@
       <option name="project" value="LOCAL" />
       <updated>1629514255524</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="#Updates#开始改造鬼策平台，优化鬼策平台">
+      <created>1629640787412</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1629640787412</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="Vcs.Log.History.Properties">
@@ -139,13 +133,14 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Merge remote-tracking branch 'github/master'&#10;&#10;# Conflicts:&#10;#&#9;app/app/component/access_control.py&#10;#&#9;app/app/component/api.py&#10;#&#9;app/app/component/api_noti.py&#10;#&#9;app/app/component/api_tools.py&#10;#&#9;app/app/component/db_func.py&#10;#&#9;app/app/component/kafka_op.py&#10;#&#9;app/app/component/messenger.py&#10;#&#9;app/app/component/public_func.py&#10;#&#9;app/app/component/setup.py&#10;#&#9;app/app/configs/admin.py&#10;#&#9;app/app/configs/kafka.py&#10;#&#9;app/app/flask_main.py&#10;#&#9;app/app/geoip/geo.py&#10;#&#9;app/app/kafka_consumer.py&#10;#&#9;app/app/requirements.txt&#10;#&#9;app/app/scheduler_jobs/demo_app.py&#10;#&#9;app/app/tools/subscribe.py&#10;#&#9;app/app/tools/update_20201015_to_20210406.py&#10;#&#9;app/app/tools/update_20210226_to_20210406.py&#10;#&#9;app/app/tools/update_base_to_20210406.py&#10;#&#9;app/app/trigger.py" />
-    <option name="LAST_COMMIT_MESSAGE" value="Merge remote-tracking branch 'github/master'&#10;&#10;# Conflicts:&#10;#&#9;app/app/component/access_control.py&#10;#&#9;app/app/component/api.py&#10;#&#9;app/app/component/api_noti.py&#10;#&#9;app/app/component/api_tools.py&#10;#&#9;app/app/component/db_func.py&#10;#&#9;app/app/component/kafka_op.py&#10;#&#9;app/app/component/messenger.py&#10;#&#9;app/app/component/public_func.py&#10;#&#9;app/app/component/setup.py&#10;#&#9;app/app/configs/admin.py&#10;#&#9;app/app/configs/kafka.py&#10;#&#9;app/app/flask_main.py&#10;#&#9;app/app/geoip/geo.py&#10;#&#9;app/app/kafka_consumer.py&#10;#&#9;app/app/requirements.txt&#10;#&#9;app/app/scheduler_jobs/demo_app.py&#10;#&#9;app/app/tools/subscribe.py&#10;#&#9;app/app/tools/update_20201015_to_20210406.py&#10;#&#9;app/app/tools/update_20210226_to_20210406.py&#10;#&#9;app/app/tools/update_base_to_20210406.py&#10;#&#9;app/app/trigger.py" />
+    <MESSAGE value="#Updates#开始改造鬼策平台，优化鬼策平台" />
+    <option name="LAST_COMMIT_MESSAGE" value="#Updates#开始改造鬼策平台，优化鬼策平台" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="2345" y="217" width="955" height="846" key="CommitChangelistDialog2" timestamp="1629514254378">
+    <state x="2345" y="217" width="955" height="846" key="CommitChangelistDialog2" timestamp="1629640785333">
       <screen x="1920" y="171" width="1920" height="1040" />
     </state>
-    <state x="2345" y="217" width="955" height="846" key="CommitChangelistDialog2/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629514254377" />
+    <state x="2345" y="217" width="955" height="846" key="CommitChangelistDialog2/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629640785333" />
     <state x="2660" y="446" key="FileChooserDialogImpl" timestamp="1629515308141">
       <screen x="1920" y="171" width="1920" height="1040" />
     </state>
@@ -162,18 +157,18 @@
       <screen x="1920" y="171" width="1920" height="1040" />
     </state>
     <state width="498" height="446" key="SwitcherDM/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629640452670" />
-    <state x="2472" y="424" key="Vcs.Push.Dialog.v2" timestamp="1629514257777">
+    <state x="2472" y="424" key="Vcs.Push.Dialog.v2" timestamp="1629640789678">
       <screen x="1920" y="171" width="1920" height="1040" />
     </state>
-    <state x="2472" y="424" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629514257777" />
+    <state x="2472" y="424" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629640789678" />
     <state x="2012" y="263" width="1736" height="856" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1629468587236">
       <screen x="1920" y="171" width="1920" height="1040" />
     </state>
     <state x="2012" y="263" width="1736" height="856" key="com.intellij.history.integration.ui.views.FileHistoryDialog/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629468587236" />
-    <state x="2582" y="289" width="596" height="804" key="find.popup" timestamp="1629608259628">
+    <state x="2582" y="289" width="596" height="804" key="find.popup" timestamp="1629640830423">
       <screen x="1920" y="171" width="1920" height="1040" />
     </state>
-    <state x="2582" y="289" width="596" height="804" key="find.popup/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629608259628" />
+    <state x="2582" y="289" width="596" height="804" key="find.popup/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629640830423" />
     <state x="2543" y="396" width="672" height="678" key="search.everywhere.popup" timestamp="1629639282633">
       <screen x="1920" y="171" width="1920" height="1040" />
     </state>

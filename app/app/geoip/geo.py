@@ -21,7 +21,7 @@ def get_addr(ip='8.8.8.8'):
         return raw_json,1
     except Exception:
         error = traceback.format_exc()
-        return '{}',0
+        return '{}', 0
 
 def get_asn(ip='8.8.8.8'):
     #获取ip的自治系统号
