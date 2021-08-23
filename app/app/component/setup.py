@@ -46,7 +46,9 @@ def create_project(project_name,expired=None):
     `event_count` bigint(20) DEFAULT NULL COMMENT '事件量',
     `device_count` bigint(20) DEFAULT NULL COMMENT '设备数',
     `user_count` bigint(20) DEFAULT NULL COMMENT '用户数',
-    `enable_scheduler` int(4) DEFAULT 1 COMMENT '是否启动定时器支持'
+    `enable_scheduler` int(4) DEFAULT 1 COMMENT '是否启动定时器支持',
+    `access_control_threshold_sum` int(11) DEFAULT NULL COMMENT '接入控制的全局缺省值',
+    `access_control_threshold_event` int(11) DEFAULT NULL COMMENT '接入控制的单项缺省值'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;"""
 
     create_shortcut = """CREATE TABLE if not EXISTS `shortcut` (
@@ -124,7 +126,7 @@ def create_project(project_name,expired=None):
     `referrer` text DEFAULT NULL COMMENT '页面',
     KEY `short_url` (`short_url`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;"""
-    blacklist_sql_1="""CREATE TABLE `recall_blacklist` (
+    blacklist_sql_1="""CREATE TABLE IF NOT EXISTS `recall_blacklist` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
     `project` varchar(255) NOT NULL COMMENT '项目名',
     `distinct_id` varchar(255) DEFAULT NULL,
@@ -140,7 +142,7 @@ def create_project(project_name,expired=None):
     UNIQUE KEY `anti_copy` (`key`,`type_id`,`project`),
     KEY `check_blacklist` (`status`,`key`,`type_id`,`project`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin AUTO_INCREMENT=1;"""
-    blacklist_sql_2="""CREATE TABLE `recall_blacklist_history` (
+    blacklist_sql_2="""CREATE TABLE IF NOT EXISTS `recall_blacklist_history` (
     `rbid` int(11) NOT NULL COMMENT 'recall_blacklist的id',
     `checker` varchar(255) DEFAULT NULL COMMENT '查询者的名字',
     `result_status_id` int(11) DEFAULT NULL COMMENT '返回的status_code里pid是39的状态',
@@ -148,7 +150,7 @@ def create_project(project_name,expired=None):
     `created_at` int(11) DEFAULT NULL COMMENT '创建时间',
     KEY `rbid` (`rbid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;"""
-    blacklist_sql_3="""CREATE TABLE `recall_blacklist_reason` (
+    blacklist_sql_3="""CREATE TABLE IF NOT EXISTS `recall_blacklist_reason` (
     `rbid` int(11) NOT NULL COMMENT 'recall_blacklist的id',
     `reason_id` int(11) DEFAULT NULL COMMENT 'status_code里pid是30的状态',
     `reason_owner` varchar(255) DEFAULT NULL COMMENT '修改人',
@@ -157,6 +159,20 @@ def create_project(project_name,expired=None):
     `created_at` varchar(255) DEFAULT NULL COMMENT '创建的时间',
     KEY `rbid` (`rbid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;"""
+    sql_access_control = """CREATE TABLE IF NOT EXISTS `access_control` (
+    `project` varchar(255) NOT NULL COMMENT '项目名',
+    `key` varchar(255) NOT NULL COMMENT 'status_code里pid=56',
+    `type` int(4) NOT NULL COMMENT 'key类型',
+    `event` varchar(255) NOT NULL COMMENT 'event类型',
+    `status` int(4) DEFAULT NULL COMMENT 'status_code里pid=59',
+    `date` date NOT NULL COMMENT '日期',
+    `hour` int(4) NOT NULL COMMENT '小时',
+    `pv` int(10) DEFAULT NULL COMMENT '事件量',
+    `updated_at` int(10) DEFAULT NULL COMMENT '更新时间',
+    PRIMARY KEY (`project`,`key`,`type`,`event`,`date`,`hour`),
+    KEY `hour_key` (`date`,`hour`,`key`),
+    KEY `key` (`key`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;"""
     do_tidb_exe(create_project_list)
     do_tidb_exe(create_shortcut)
     do_tidb_exe(create_shortcut_history)
@@ -166,6 +182,7 @@ def create_project(project_name,expired=None):
     do_tidb_exe(blacklist_sql_1)
     do_tidb_exe(blacklist_sql_2)
     do_tidb_exe(blacklist_sql_3)
+    do_tidb_exe(sql_access_control)
     # print('project_list已生成')
     check_sql = "show tables"
     check_result,check_count = do_tidb_select(check_sql)
@@ -216,20 +233,20 @@ def create_project(project_name,expired=None):
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;""".format(project_name=project_name)
         table_device_sql ="""CREATE TABLE `{project_name}_device` (
     `distinct_id` varchar(255) NOT NULL,
-    `lib` varchar(255) DEFAULT NULL,
+    `lib` varchar(200) DEFAULT NULL,
     `device_id` varchar(255) DEFAULT NULL,
-    `manufacturer` varchar(255) DEFAULT NULL,
-    `model` varchar(255) DEFAULT NULL,
-    `os` varchar(255) DEFAULT NULL,
-    `os_version` varchar(255) DEFAULT NULL,
-    `ua_platform` varchar(1024) DEFAULT NULL,
-    `ua_browser` varchar(1024) DEFAULT NULL,
-    `ua_version` varchar(1024) DEFAULT NULL,
-    `ua_language` varchar(1024) DEFAULT NULL,
+    `manufacturer` varchar(200) DEFAULT NULL,
+    `model` varchar(200) DEFAULT NULL,
+    `os` varchar(200) DEFAULT NULL,
+    `os_version` varchar(200) DEFAULT NULL,
+    `ua_platform` varchar(200) DEFAULT NULL,
+    `ua_browser` varchar(200) DEFAULT NULL,
+    `ua_version` varchar(200) DEFAULT NULL,
+    `ua_language` varchar(200) DEFAULT NULL,
     `screen_width` int(11) DEFAULT NULL,
     `screen_height` int(11) DEFAULT NULL,
-    `network_type` varchar(255) DEFAULT NULL,
-    `user_agent` varchar(2048) DEFAULT NULL,
+    `network_type` varchar(32) DEFAULT NULL,
+    `user_agent` varchar(768) DEFAULT NULL,
     `accept_language` varchar(255) DEFAULT NULL,
     `ip` varchar(255) DEFAULT NULL,
     `ip_city` json DEFAULT NULL,
@@ -238,21 +255,21 @@ def create_project(project_name,expired=None):
     `app_version` varchar(255) DEFAULT NULL,
     `carrier` varchar(255) DEFAULT NULL,
     `referrer` text DEFAULT NULL,
-    `referrer_host` varchar(2048) DEFAULT NULL,
+    `referrer_host` varchar(512) DEFAULT NULL,
     `bot_name` varchar(255) DEFAULT NULL,
-    `browser` varchar(255) DEFAULT NULL,
-    `browser_version` varchar(255) DEFAULT NULL,
-    `is_login_id` varchar(255) DEFAULT NULL,
-    `screen_orientation` varchar(255) DEFAULT NULL,
+    `browser` varchar(128) DEFAULT NULL,
+    `browser_version` varchar(128) DEFAULT NULL,
+    `is_login_id` varchar(32) DEFAULT NULL,
+    `screen_orientation` varchar(64) DEFAULT NULL,
     `gps_latitude` decimal(11,7) DEFAULT NULL,
     `gps_longitude` decimal(11,7) DEFAULT NULL,
     `first_visit_time` datetime DEFAULT NULL,
     `first_referrer` text DEFAULT NULL,
-    `first_referrer_host` varchar(768) DEFAULT NULL,
-    `first_browser_language` varchar(768) DEFAULT NULL,
-    `first_browser_charset` varchar(768) DEFAULT NULL,
+    `first_referrer_host` varchar(512) DEFAULT NULL,
+    `first_browser_language` varchar(128) DEFAULT NULL,
+    `first_browser_charset` varchar(128) DEFAULT NULL,
     `first_search_keyword` varchar(768) DEFAULT NULL,
-    `first_traffic_source_type` varchar(768) DEFAULT NULL,
+    `first_traffic_source_type` varchar(255) DEFAULT NULL,
     `utm_content` varchar(768) DEFAULT NULL,
     `utm_campaign` varchar(768) DEFAULT NULL,
     `utm_medium` varchar(768) DEFAULT NULL,
@@ -263,8 +280,8 @@ def create_project(project_name,expired=None):
     `latest_utm_medium` varchar(768) DEFAULT NULL,
     `latest_utm_term` varchar(768) DEFAULT NULL,
     `latest_utm_source` varchar(768) DEFAULT NULL,
-    `latest_referrer` varchar(2048) DEFAULT NULL,
-    `latest_referrer_host` varchar(2048) DEFAULT NULL,
+    `latest_referrer` text DEFAULT NULL,
+    `latest_referrer_host` varchar(512) DEFAULT NULL,
     `latest_search_keyword` varchar(768) DEFAULT NULL,
     `latest_traffic_source_type` varchar(255) DEFAULT NULL,
     `created_at` int(11) DEFAULT NULL,
@@ -302,8 +319,9 @@ def create_project(project_name,expired=None):
     `updated_at` int(10) DEFAULT NULL,
     `lastinsert_at` int(10) DEFAULT NULL,
     `total_count` bigint(20) DEFAULT NULL,
+    `access_control_threshold` int(10) DEFAULT NULL,
     PRIMARY KEY (`lib`,`remark`,`event`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;;""".format(project_name=project_name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;""".format(project_name=project_name)
         do_tidb_exe(table_sql)
         print(project_name+'table表单已插入')
         do_tidb_exe(table_device_sql)
@@ -320,7 +338,7 @@ def create_project(project_name,expired=None):
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin AUTO_INCREMENT=1;"""
         do_tidb_exe(sql_insert_status_code)
         print('状态码表创建完')
-        status_codes = ["INSERT IGNORE INTO `events`.`status_code`(`id`, `desc`, `p_id`) VALUES (1, '分群列表状态', 0);","INSERT IGNORE INTO `events`.`status_code`(`id`, `desc`, `p_id`) VALUES (2, '创建列表开始', 1);","INSERT IGNORE INTO `events`.`status_code`(`id`, `desc`, `p_id`) VALUES (3, '分群信息写入中', 1);","INSERT IGNORE INTO `events`.`status_code`(`id`, `desc`, `p_id`) VALUES (4, '分群写入完成并包含错误', 1);","INSERT IGNORE INTO `events`.`status_code`(`id`, `desc`, `p_id`) VALUES (5, '分群写入完成', 1);","INSERT IGNORE INTO `events`.`status_code`(`id`, `desc`, `p_id`) VALUES (6, '分群写入失败', 1);","INSERT IGNORE INTO `events`.`status_code`(`id`, `desc`, `p_id`) VALUES (7, '生效策略', 0);","INSERT IGNORE INTO `events`.`status_code`(`id`, `desc`, `p_id`) VALUES (8, '自动', 7);","INSERT IGNORE INTO `events`.`status_code`(`id`, `desc`, `p_id`) VALUES (9, '手动', 7);","INSERT IGNORE INTO `events`.`status_code`(`id`, `desc`, `p_id`) VALUES (10, '禁用', 7);","INSERT IGNORE INTO `events`.`status_code`(`id`, `desc`, `p_id`) VALUES (11, '进入分群队列', 1);","INSERT IGNORE INTO `events`.`status_code`(`id`, `desc`, `p_id`) VALUES (12, '优先级', 0);","INSERT IGNORE INTO `events`.`status_code`(`id`, `desc`, `p_id`) VALUES (13, '普通', 12);","INSERT IGNORE INTO `events`.`status_code`(`id`, `desc`, `p_id`) VALUES (14, '高', 12);","INSERT IGNORE INTO `events`.`status_code`(`id`, `desc`, `p_id`) VALUES (15, '最高', 12);","INSERT IGNORE INTO `events`.`status_code`(`id`, `desc`, `p_id`) VALUES (16, '已添加任务队列', 1);","INSERT IGNORE INTO `events`.`status_code`(`id`, `desc`, `p_id`) VALUES (17, '任务已被选取', 1);","INSERT IGNORE INTO `events`.`status_code`(`id`, `desc`, `p_id`) VALUES (18, '任务方法加载完', 1);","INSERT IGNORE INTO `events`.`status_code`(`id`, `desc`, `p_id`) VALUES (19, '任务执行成功', 1);","INSERT IGNORE INTO `events`.`status_code`(`id`, `desc`, `p_id`) VALUES (20, '分群ETL失败', 1);","INSERT IGNORE INTO `events`.`status_code`(`id`, `desc`, `p_id`) VALUES (21, '任务执行失败', 1);","INSERT IGNORE INTO `events`.`status_code`(`id`, `desc`, `p_id`) VALUES (22, '通知方式', 0);","INSERT IGNORE INTO `events`.`status_code`(`id`, `desc`, `p_id`) VALUES (23, 'email', 22);","INSERT IGNORE INTO `events`.`status_code`(`id`, `desc`, `p_id`) VALUES (24, '自动分群但不自动应用模板', 7);","INSERT IGNORE INTO `events`.`status_code`(`id`, `desc`, `p_id`) VALUES (25, '推送状态', 0);","INSERT IGNORE INTO `events`.`status_code`(`id`, `desc`, `p_id`) VALUES (26, '推送成功', 25);","INSERT IGNORE INTO `events`.`status_code`(`id`, `desc`, `p_id`) VALUES (27, '推送失败', 25);","INSERT IGNORE INTO `events`.`status_code`(`id`, `desc`, `p_id`) VALUES (28, '自动分群自动应用模板但不自动发送', 7);"]
+        status_codes = ["INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (1, '分群列表状态', 0);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (2, '创建列表开始', 1);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (3, '分群信息写入中', 1);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (4, '分群写入完成并包含错误', 1);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (5, '分群写入完成', 1);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (6, '分群写入失败', 1);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (7, '生效策略', 0);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (8, '自动', 7);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (9, '手动', 7);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (10, '禁用', 7);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (11, '进入分群队列', 1);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (12, '优先级', 0);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (13, '普通', 12);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (14, '高', 12);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (15, '最高', 12);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (16, '已添加任务队列', 1);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (17, '任务已被选取', 1);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (18, '任务方法加载完', 1);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (19, '任务执行成功', 1);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (20, '分群ETL失败', 1);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (21, '任务执行失败', 1);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (22, '通知方式', 0);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (23, 'email', 22);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (24, '自动分群但不自动应用模板', 7);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (25, '推送状态', 0);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (26, '推送成功', 25);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (27, '推送失败', 25);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (28, '自动分群自动应用模板但不自动发送', 7);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (29,'微信公众号',22);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (30,'黑名单修改原因',0);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (31,'用户自助退订',30);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (32,'用户自助取消退订',30);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (33,'客服投诉退订',30);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (34,'客服取消退订',30);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (35,'接收地址错误',30);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (36,'接收地址判定为垃圾邮件',30);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (37,'导入第三方黑名单',30);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (38,'第三方白名单覆盖',30);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (39,'黑名单状态',0);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (40,'全部禁用',39);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (41,'推广类禁用',39);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (42,'通知类禁用',39);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (43,'拟加入黑名单待确认（如等待运营确认）',39);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (44,'已解禁',39);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (45,'不允许解禁',39);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (46,'误判人工解除',30);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (47,'客服主观退订',30);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (48,'消息级别',0);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (49,'紧急广播（忽略一切退订限制）',48);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (50,'IM',48);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (51,'通知',48);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (52,'运营',48);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (53,'推广',48);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (54,'运营类禁用',39);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (55,'接入控制状态',0);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (56,'取消黑名单',55);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (57,'临时黑名单',55);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (58,'永久黑名单',55);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (59,'接入控制类型',0);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (60,'ip',59);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (61,'ip_group',59);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (62,'distinct_id',59);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (63,'add_on_key',59);"]
         for code in status_codes:
             do_tidb_exe(code)
         print('状态码添加完毕')
@@ -469,5 +487,5 @@ def update_mobile_ad_src():
 
 if __name__ == "__main__":
         # create_project(project_name='test_app_with_date',expired='2020-01-01')
-        create_project(project_name='my_app_test')
+        create_project(project_name='test_me')
         update_mobile_ad_src()

@@ -41,10 +41,10 @@ def select_tidb(sql, args=None,presql=None):
 
 def do_tidb_exe(sql,presql=None, args=None, retrycount=5):
     # 执行库
-    if "update" in sql.lower() and "where" not in sql.lower():
+    if  sql.lower().startswith('update') and "where" not in sql.lower():
         write_to_log(filename='db_op', defname='do_tidb_exe', result=sql+str(args)+'update必须包含where条件才能执行')
         return 'update必须包含where条件才能执行', 0 , 0
-    elif "delete" in sql.lower() and "where" not in sql.lower():
+    elif  sql.lower().startswith('delete') and "where" not in sql.lower():
         write_to_log(filename='db_op', defname='do_tidb_exe', result=sql+str(args)+'delete必须包含where条件才能执行')
         return 'delete必须包含where条件才能执行', 0 , 0
     else:

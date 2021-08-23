@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="BranchesTreeState">
+    <expand>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:origin" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+    </expand>
+    <select />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="b6346c84-2a36-4f2a-b4da-9be6806931d8" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/wei_nana.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dictionaries/wei_nana.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/component/api.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/component/api.py" afterDir="false" />
+    </list>
+    <list id="a9b1d2d1-d349-4bc3-a37e-8d0b9ba7c59d" name="Revert &quot;'发送kafka捕获异常'&quot;" comment="Revert &quot;'发送kafka捕获异常'&quot;&#10;&#10;This reverts commit 67db3a72" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectId" id="1qveJUda5uq9HmqJYhKXH3ymZ3t" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="ToolWindowCommit.ShowToolbar" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/app" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="E:\data-workspace\ghost_sa\app\app" />
+      <recent name="E:\data-workspace\ghost_sa\app\app\utils" />
+      <recent name="E:\data-workspace\ghost_sa\app\app\configs" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="scratch" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="app" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$APPLICATION_CONFIG_DIR$/scratches" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$APPLICATION_CONFIG_DIR$/scratches/scratch.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.scratch" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="b6346c84-2a36-4f2a-b4da-9be6806931d8" name="Default Changelist" comment="" />
+      <created>1617964418254</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1617964418254</updated>
+    </task>
+    <task id="LOCAL-00001" summary="Merge remote-tracking branch 'github/master'&#10;&#10;# Conflicts:&#10;#&#9;app/app/component/access_control.py&#10;#&#9;app/app/component/api.py&#10;#&#9;app/app/component/api_noti.py&#10;#&#9;app/app/component/api_tools.py&#10;#&#9;app/app/component/db_func.py&#10;#&#9;app/app/component/kafka_op.py&#10;#&#9;app/app/component/messenger.py&#10;#&#9;app/app/component/public_func.py&#10;#&#9;app/app/component/setup.py&#10;#&#9;app/app/configs/admin.py&#10;#&#9;app/app/configs/kafka.py&#10;#&#9;app/app/flask_main.py&#10;#&#9;app/app/geoip/geo.py&#10;#&#9;app/app/kafka_consumer.py&#10;#&#9;app/app/requirements.txt&#10;#&#9;app/app/scheduler_jobs/demo_app.py&#10;#&#9;app/app/tools/subscribe.py&#10;#&#9;app/app/tools/update_20201015_to_20210406.py&#10;#&#9;app/app/tools/update_20210226_to_20210406.py&#10;#&#9;app/app/tools/update_base_to_20210406.py&#10;#&#9;app/app/trigger.py">
+      <created>1629513911396</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1629513911396</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Merge remote-tracking branch 'github/master'&#10;&#10;# Conflicts:&#10;#&#9;app/app/component/access_control.py&#10;#&#9;app/app/component/api.py&#10;#&#9;app/app/component/api_noti.py&#10;#&#9;app/app/component/api_tools.py&#10;#&#9;app/app/component/db_func.py&#10;#&#9;app/app/component/kafka_op.py&#10;#&#9;app/app/component/messenger.py&#10;#&#9;app/app/component/public_func.py&#10;#&#9;app/app/component/setup.py&#10;#&#9;app/app/configs/admin.py&#10;#&#9;app/app/configs/kafka.py&#10;#&#9;app/app/flask_main.py&#10;#&#9;app/app/geoip/geo.py&#10;#&#9;app/app/kafka_consumer.py&#10;#&#9;app/app/requirements.txt&#10;#&#9;app/app/scheduler_jobs/demo_app.py&#10;#&#9;app/app/tools/subscribe.py&#10;#&#9;app/app/tools/update_20201015_to_20210406.py&#10;#&#9;app/app/tools/update_20210226_to_20210406.py&#10;#&#9;app/app/tools/update_base_to_20210406.py&#10;#&#9;app/app/trigger.py">
+      <created>1629513926316</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1629513926316</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Merge remote-tracking branch 'github/master'&#10;&#10;# Conflicts:&#10;#&#9;app/app/component/access_control.py&#10;#&#9;app/app/component/api.py&#10;#&#9;app/app/component/api_noti.py&#10;#&#9;app/app/component/api_tools.py&#10;#&#9;app/app/component/db_func.py&#10;#&#9;app/app/component/kafka_op.py&#10;#&#9;app/app/component/messenger.py&#10;#&#9;app/app/component/public_func.py&#10;#&#9;app/app/component/setup.py&#10;#&#9;app/app/configs/admin.py&#10;#&#9;app/app/configs/kafka.py&#10;#&#9;app/app/flask_main.py&#10;#&#9;app/app/geoip/geo.py&#10;#&#9;app/app/kafka_consumer.py&#10;#&#9;app/app/requirements.txt&#10;#&#9;app/app/scheduler_jobs/demo_app.py&#10;#&#9;app/app/tools/subscribe.py&#10;#&#9;app/app/tools/update_20201015_to_20210406.py&#10;#&#9;app/app/tools/update_20210226_to_20210406.py&#10;#&#9;app/app/tools/update_base_to_20210406.py&#10;#&#9;app/app/trigger.py">
+      <created>1629513982140</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1629513982140</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Merge remote-tracking branch 'github/master'&#10;&#10;# Conflicts:&#10;#&#9;app/app/component/access_control.py&#10;#&#9;app/app/component/api.py&#10;#&#9;app/app/component/api_noti.py&#10;#&#9;app/app/component/api_tools.py&#10;#&#9;app/app/component/db_func.py&#10;#&#9;app/app/component/kafka_op.py&#10;#&#9;app/app/component/messenger.py&#10;#&#9;app/app/component/public_func.py&#10;#&#9;app/app/component/setup.py&#10;#&#9;app/app/configs/admin.py&#10;#&#9;app/app/configs/kafka.py&#10;#&#9;app/app/flask_main.py&#10;#&#9;app/app/geoip/geo.py&#10;#&#9;app/app/kafka_consumer.py&#10;#&#9;app/app/requirements.txt&#10;#&#9;app/app/scheduler_jobs/demo_app.py&#10;#&#9;app/app/tools/subscribe.py&#10;#&#9;app/app/tools/update_20201015_to_20210406.py&#10;#&#9;app/app/tools/update_20210226_to_20210406.py&#10;#&#9;app/app/tools/update_base_to_20210406.py&#10;#&#9;app/app/trigger.py">
+      <created>1629514255524</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1629514255524</updated>
+    </task>
+    <task id="LOCAL-00005" summary="#Updates#开始改造鬼策平台，优化鬼策平台">
+      <created>1629640787412</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1629640787412</updated>
+    </task>
+    <task id="LOCAL-00006" summary="#Updates#开始优化解析数据api模块">
+      <created>1629641794029</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1629641794029</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
+    <servers />
+  </component>
+  <component name="Vcs.Log.History.Properties">
+    <option name="COLUMN_ORDER">
+      <list>
+        <option value="0" />
+        <option value="2" />
+        <option value="3" />
+        <option value="1" />
+      </list>
+    </option>
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Merge remote-tracking branch 'github/master'&#10;&#10;# Conflicts:&#10;#&#9;app/app/component/access_control.py&#10;#&#9;app/app/component/api.py&#10;#&#9;app/app/component/api_noti.py&#10;#&#9;app/app/component/api_tools.py&#10;#&#9;app/app/component/db_func.py&#10;#&#9;app/app/component/kafka_op.py&#10;#&#9;app/app/component/messenger.py&#10;#&#9;app/app/component/public_func.py&#10;#&#9;app/app/component/setup.py&#10;#&#9;app/app/configs/admin.py&#10;#&#9;app/app/configs/kafka.py&#10;#&#9;app/app/flask_main.py&#10;#&#9;app/app/geoip/geo.py&#10;#&#9;app/app/kafka_consumer.py&#10;#&#9;app/app/requirements.txt&#10;#&#9;app/app/scheduler_jobs/demo_app.py&#10;#&#9;app/app/tools/subscribe.py&#10;#&#9;app/app/tools/update_20201015_to_20210406.py&#10;#&#9;app/app/tools/update_20210226_to_20210406.py&#10;#&#9;app/app/tools/update_base_to_20210406.py&#10;#&#9;app/app/trigger.py" />
+    <MESSAGE value="#Updates#开始改造鬼策平台，优化鬼策平台" />
+    <MESSAGE value="#Updates#开始优化解析数据api模块" />
+    <option name="LAST_COMMIT_MESSAGE" value="#Updates#开始优化解析数据api模块" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="2345" y="217" width="955" height="846" key="CommitChangelistDialog2" timestamp="1629641792710">
+      <screen x="1920" y="171" width="1920" height="1040" />
+    </state>
+    <state x="2345" y="217" width="955" height="846" key="CommitChangelistDialog2/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629641792710" />
+    <state x="2660" y="446" key="FileChooserDialogImpl" timestamp="1629515308141">
+      <screen x="1920" y="171" width="1920" height="1040" />
+    </state>
+    <state x="2660" y="446" key="FileChooserDialogImpl/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629515308141" />
+    <state width="1899" height="282" key="GridCell.Tab.0.bottom" timestamp="1629643480923">
+      <screen x="1920" y="171" width="1920" height="1040" />
+    </state>
+    <state width="1899" height="282" key="GridCell.Tab.0.bottom/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629643480923" />
+    <state width="1899" height="282" key="GridCell.Tab.0.center" timestamp="1629643480923">
+      <screen x="1920" y="171" width="1920" height="1040" />
+    </state>
+    <state width="1899" height="282" key="GridCell.Tab.0.center/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629643480923" />
+    <state width="1899" height="282" key="GridCell.Tab.0.left" timestamp="1629643480923">
+      <screen x="1920" y="171" width="1920" height="1040" />
+    </state>
+    <state width="1899" height="282" key="GridCell.Tab.0.left/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629643480923" />
+    <state width="1899" height="282" key="GridCell.Tab.0.right" timestamp="1629643480923">
+      <screen x="1920" y="171" width="1920" height="1040" />
+    </state>
+    <state width="1899" height="282" key="GridCell.Tab.0.right/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629643480923" />
+    <state x="1951" y="228" width="1774" height="868" key="MergeDialog" timestamp="1629513606410">
+      <screen x="1920" y="171" width="1920" height="1040" />
+    </state>
+    <state x="1951" y="228" width="1774" height="868" key="MergeDialog/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629513606410" />
+    <state x="2402" y="554" width="600" height="457" key="MultipleFileMergeDialog" timestamp="1629513606416">
+      <screen x="1920" y="171" width="1920" height="1040" />
+    </state>
+    <state x="2402" y="554" width="600" height="457" key="MultipleFileMergeDialog/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629513606416" />
+    <state width="498" height="446" key="SwitcherDM" timestamp="1629642662079">
+      <screen x="1920" y="171" width="1920" height="1040" />
+    </state>
+    <state width="498" height="446" key="SwitcherDM/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629642662079" />
+    <state x="2472" y="424" key="Vcs.Push.Dialog.v2" timestamp="1629641796411">
+      <screen x="1920" y="171" width="1920" height="1040" />
+    </state>
+    <state x="2472" y="424" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629641796411" />
+    <state x="2012" y="263" width="1736" height="856" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1629468587236">
+      <screen x="1920" y="171" width="1920" height="1040" />
+    </state>
+    <state x="2012" y="263" width="1736" height="856" key="com.intellij.history.integration.ui.views.FileHistoryDialog/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629468587236" />
+    <state x="2582" y="289" width="596" height="804" key="find.popup" timestamp="1629640830423">
+      <screen x="1920" y="171" width="1920" height="1040" />
+    </state>
+    <state x="2582" y="289" width="596" height="804" key="find.popup/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629640830423" />
+    <state x="2543" y="396" width="672" height="678" key="search.everywhere.popup" timestamp="1629642177089">
+      <screen x="1920" y="171" width="1920" height="1040" />
+    </state>
+    <state x="2543" y="396" width="672" height="678" key="search.everywhere.popup/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629642177089" />
+  </component>
+</project>

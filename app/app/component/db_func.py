@@ -7,6 +7,7 @@ sys.path.append("./")
 sys.setrecursionlimit(10000000)
 import time
 from app.component.db_op import do_tidb_exe,do_tidb_select
+from app.component.public_value import get_display_day
 from app.configs.export import write_to_log
 from app.configs import admin
 import traceback
@@ -24,7 +25,7 @@ def insert_event(table,alljson,track_id,distinct_id,lib,event,type_1,User_Agent,
     key = {'alljson':alljson,'track_id':track_id,'distinct_id':distinct_id,'lib':lib,'event':event,'type':type_1,'created_at':timenow,'date':date,'hour':hour,'User_Agent':User_Agent,'Host':Host,'Connection':Connection,'Pragma':Pragma,'Cache_Control':Cache_Control,'Accept':Accept,'Accept_Encoding':Accept_Encoding,'Accept_Language':Accept_Language,'ip':ip,'ip_city':ip_city,'ip_asn':ip_asn,'url':url,'referrer':referrer,'remark':remark,'ua_platform':ua_platform,'ua_browser':ua_browser,'ua_version':ua_version,'ua_language':ua_language}
     result = do_tidb_exe(sql=sql, args=key)
     if result[1] == 0:
-        write_to_log(filename='db_func',defname='insert_event',result=result+sql+str(key))
+        write_to_log(filename='db_func',defname='insert_event',result=result[0]+sql+str(key))
     return result[1]
 
 
@@ -37,9 +38,7 @@ def insert_devicedb(table,distinct_id,device_id,manufacturer,model,os,os_version
         timenow = created_at
         date = time.strftime("%Y-%m-%d", time.localtime(created_at))
         hour = int(time.strftime("%H", time.localtime(created_at)))
-    sql = """set @@tidb_disable_txn_auto_retry = 0;
-set @@tidb_retry_limit = 10;
-    insert HIGH_PRIORITY into `{table}_device` (`distinct_id`,`device_id`,`manufacturer`,`model`,`os`,`os_version`,`screen_width`,`screen_height`,`network_type`,`user_agent`,`accept_language`,`ip`,`ip_city`,`ip_asn`,`wifi`,`app_version`,`carrier`,`referrer`,`referrer_host`,`bot_name`,`browser`,`browser_version`,`is_login_id`,`screen_orientation`,`gps_latitude`,`gps_longitude`,`first_visit_time`,`first_referrer`,`first_referrer_host`,`first_browser_language`,`first_browser_charset`,`first_search_keyword`,`first_traffic_source_type`,`utm_content`,`utm_campaign`,`utm_medium`,`utm_term`,`utm_source`,`latest_utm_content`,`latest_utm_campaign`,`latest_utm_medium`,`latest_utm_term`,`latest_utm_source`,`latest_referrer`,`latest_referrer_host`,`latest_search_keyword`,`latest_traffic_source_type`,`created_at`,`updated_at`,`ua_platform`,`ua_browser`,`ua_version`,`ua_language`,`lib`) values ( %(distinct_id)s,%(device_id)s,%(manufacturer)s,%(model)s,%(os)s,%(os_version)s,%(screen_width)s,%(screen_height)s,%(network_type)s,%(user_agent)s,%(accept_language)s,%(ip)s,%(ip_city)s,%(ip_asn)s,%(wifi)s,%(app_version)s,%(carrier)s,%(referrer)s,%(referrer_host)s,%(bot_name)s,%(browser)s,%(browser_version)s,%(is_login_id)s,%(screen_orientation)s,%(gps_latitude)s,%(gps_longitude)s,%(first_visit_time)s,%(first_referrer)s,%(first_referrer_host)s,%(first_browser_language)s,%(first_browser_charset)s,%(first_search_keyword)s,%(first_traffic_source_type)s,%(utm_content)s,%(utm_campaign)s,%(utm_medium)s,%(utm_term)s,%(utm_source)s,%(latest_utm_content)s,%(latest_utm_campaign)s,%(latest_utm_medium)s,%(latest_utm_term)s,%(latest_utm_source)s,%(latest_referrer)s,%(latest_referrer_host)s,%(latest_search_keyword)s,%(latest_traffic_source_type)s,%(created_at)s,%(updated_at)s,%(ua_platform)s,%(ua_browser)s,%(ua_version)s,%(ua_language)s,%(lib)s) ON DUPLICATE KEY UPDATE `updated_at`={updated_at}{update_content};""".format(table=table,updated_at=timenow,update_content=update_content)
+    sql = """set @@tidb_disable_txn_auto_retry = 0;set @@tidb_retry_limit = 10;insert HIGH_PRIORITY into `{table}_device` (`distinct_id`,`device_id`,`manufacturer`,`model`,`os`,`os_version`,`screen_width`,`screen_height`,`network_type`,`user_agent`,`accept_language`,`ip`,`ip_city`,`ip_asn`,`wifi`,`app_version`,`carrier`,`referrer`,`referrer_host`,`bot_name`,`browser`,`browser_version`,`is_login_id`,`screen_orientation`,`gps_latitude`,`gps_longitude`,`first_visit_time`,`first_referrer`,`first_referrer_host`,`first_browser_language`,`first_browser_charset`,`first_search_keyword`,`first_traffic_source_type`,`utm_content`,`utm_campaign`,`utm_medium`,`utm_term`,`utm_source`,`latest_utm_content`,`latest_utm_campaign`,`latest_utm_medium`,`latest_utm_term`,`latest_utm_source`,`latest_referrer`,`latest_referrer_host`,`latest_search_keyword`,`latest_traffic_source_type`,`created_at`,`updated_at`,`ua_platform`,`ua_browser`,`ua_version`,`ua_language`,`lib`) values ( %(distinct_id)s,%(device_id)s,%(manufacturer)s,%(model)s,%(os)s,%(os_version)s,%(screen_width)s,%(screen_height)s,%(network_type)s,%(user_agent)s,%(accept_language)s,%(ip)s,%(ip_city)s,%(ip_asn)s,%(wifi)s,%(app_version)s,%(carrier)s,%(referrer)s,%(referrer_host)s,%(bot_name)s,%(browser)s,%(browser_version)s,%(is_login_id)s,%(screen_orientation)s,%(gps_latitude)s,%(gps_longitude)s,%(first_visit_time)s,%(first_referrer)s,%(first_referrer_host)s,%(first_browser_language)s,%(first_browser_charset)s,%(first_search_keyword)s,%(first_traffic_source_type)s,%(utm_content)s,%(utm_campaign)s,%(utm_medium)s,%(utm_term)s,%(utm_source)s,%(latest_utm_content)s,%(latest_utm_campaign)s,%(latest_utm_medium)s,%(latest_utm_term)s,%(latest_utm_source)s,%(latest_referrer)s,%(latest_referrer_host)s,%(latest_search_keyword)s,%(latest_traffic_source_type)s,%(created_at)s,%(updated_at)s,%(ua_platform)s,%(ua_browser)s,%(ua_version)s,%(ua_language)s,%(lib)s) ON DUPLICATE KEY UPDATE `updated_at`={updated_at}{update_content};""".format(table=table,updated_at=timenow,update_content=update_content)
     key = {'distinct_id':distinct_id,'device_id':device_id,'manufacturer':manufacturer,'model':model,'os':os,'os_version':os_version,'screen_width':screen_width,'screen_height':screen_height,'network_type':network_type,'user_agent':user_agent,'accept_language':accept_language,'ip':ip,'ip_city':ip_city,'ip_asn':ip_asn,'wifi':wifi,'app_version':app_version,'carrier':carrier,'referrer':referrer,'referrer_host':referrer_host,'bot_name':bot_name,'browser':browser,'browser_version':browser_version,'is_login_id':is_login_id,'screen_orientation':screen_orientation,'gps_latitude':gps_latitude,'gps_longitude':gps_longitude,'first_visit_time':first_visit_time,'first_referrer':first_referrer,'first_referrer_host':first_referrer_host,'first_browser_language':first_browser_language,'first_browser_charset':first_browser_charset,'first_search_keyword':first_search_keyword,'first_traffic_source_type':first_traffic_source_type,'utm_content':utm_content,'utm_campaign':utm_campaign,'utm_medium':utm_medium,'utm_term':utm_term,'utm_source':utm_source,'latest_utm_content':latest_utm_content,'latest_utm_campaign':latest_utm_campaign,'latest_utm_medium':latest_utm_medium,'latest_utm_term':latest_utm_term,'latest_utm_source':latest_utm_source,'latest_referrer':latest_referrer,'latest_referrer_host':latest_referrer_host,'latest_search_keyword':latest_search_keyword,'latest_traffic_source_type':latest_traffic_source_type,'created_at':timenow,'updated_at':timenow,'ua_platform':ua_platform,'ua_browser':ua_browser,'ua_version':ua_version,'ua_language':ua_language,'lib':lib}
     result = do_tidb_exe(sql=sql, args=key)
     return result[1]
@@ -53,9 +52,7 @@ def insert_user_db(project,distinct_id,lib,map_id,original_id,user_id,all_user_p
         timenow = created_at
         date = time.strftime("%Y-%m-%d", time.localtime(created_at))
         hour = int(time.strftime("%H", time.localtime(created_at)))
-    sql = """set @@tidb_disable_txn_auto_retry = 0;
-set @@tidb_retry_limit = 10;
-    insert HIGH_PRIORITY into `{table}_user` (`distinct_id`,`lib`,`map_id`,`original_id`,`user_id`,`all_user_profile`,`created_at`,`updated_at`) values (%(distinct_id)s,%(lib)s,%(map_id)s,%(original_id)s,%(user_id)s,%(all_user_profile)s,%(created_at)s,%(updated_at)s) ON DUPLICATE KEY UPDATE `updated_at`={updated_at}{update_params}""".format(table=project,update_params=update_params,updated_at=timenow)
+    sql = """set @@tidb_disable_txn_auto_retry = 0;set @@tidb_retry_limit = 10;insert HIGH_PRIORITY into `{table}_user` (`distinct_id`,`lib`,`map_id`,`original_id`,`user_id`,`all_user_profile`,`created_at`,`updated_at`) values (%(distinct_id)s,%(lib)s,%(map_id)s,%(original_id)s,%(user_id)s,%(all_user_profile)s,%(created_at)s,%(updated_at)s) ON DUPLICATE KEY UPDATE `updated_at`={updated_at}{update_params}""".format(table=project,update_params=update_params,updated_at=timenow)#.replace("'None'","Null").replace("None","Null")
     key={'distinct_id':distinct_id,'lib':lib,'map_id':map_id,'original_id':original_id,'user_id':user_id,'all_user_profile':all_user_profile,'created_at':timenow,'updated_at':timenow}
     result = do_tidb_exe(sql=sql, args=key)
     return result[1]
@@ -66,16 +63,9 @@ def insert_properties(project,lib,remark,event,properties,properties_len,created
         created_at = int(time.time())
     if updated_at is None:
         updated_at = int(time.time())
-    sql = """set @@tidb_disable_txn_auto_retry = 0;
-set @@tidb_retry_limit = 10;
-    insert HIGH_PRIORITY into `{table}_properties` (`lib`,`remark`,`event`,`properties`,`properties_len`,`created_at`,`updated_at`,`total_count`,`lastinsert_at`) values ( %(lib)s,%(remark)s,%(event)s,%(properties)s,%(properties_len)s,%(created_at)s,%(updated_at)s,1,%(updated_at)s) ON DUPLICATE KEY UPDATE `properties`=if(properties_len<%(properties_len)s,%(properties)s,properties),`properties_len`=if(properties_len<%(properties_len)s,%(properties_len)s,properties_len),updated_at=if(properties_len<%(properties_len)s,%(updated_at)s,updated_at),total_count=total_count+1,lastinsert_at=%(updated_at)s;""".format(table=project)
+    sql = """set @@tidb_disable_txn_auto_retry = 0;set @@tidb_retry_limit = 10;insert HIGH_PRIORITY into `{table}_properties` (`lib`,`remark`,`event`,`properties`,`properties_len`,`created_at`,`updated_at`,`total_count`,`lastinsert_at`) values ( %(lib)s,%(remark)s,%(event)s,%(properties)s,%(properties_len)s,%(created_at)s,%(updated_at)s,1,%(updated_at)s) ON DUPLICATE KEY UPDATE `properties`=if(properties_len<%(properties_len)s,%(properties)s,properties),`properties_len`=if(properties_len<%(properties_len)s,%(properties_len)s,properties_len),updated_at=if(properties_len<%(properties_len)s,%(updated_at)s,updated_at),total_count=total_count+1,lastinsert_at=%(updated_at)s;""".format(table=project)
     key = {'lib':lib,'remark':remark,'event':event,'properties':properties,'properties_len':properties_len,'created_at':created_at,'updated_at':updated_at}
     result = do_tidb_exe(sql=sql, args=key)
-
-def check_user_device(project,distinct_id,first_id):
-    #仅用于导入神策旧数据
-    sql = """select first_id,second_id from users where first_id = '{first_id}'""".format(first_id=first_id)
-
 
 
 def get_long_url_from_short(short_url):
@@ -128,7 +118,30 @@ def insert_shortcut(project,short_url,long_url,expired_at,src,src_short_url,subm
 
 
 def show_shortcut(page,length,filters='',sort='`shortcut`.created_at',way='desc'):
-    sql = """SELECT `shortcut`.project,`shortcut`.short_url,`shortcut`.long_url,from_unixtime(`shortcut`.expired_at),from_unixtime(`shortcut`.created_at),`shortcut`.src,`shortcut`.src_short_url,`shortcut`.submitter,`shortcut`.utm_source,`shortcut`.utm_medium,`shortcut`.utm_campaign,`shortcut`.utm_content,`shortcut`.utm_term,shortcut.created_at,shortcut.expired_at,count(shortcut_history.created_at) as visit_times,count(shortcut_read.created_at) as read_times FROM `shortcut` left join `shortcut_history` on `shortcut`.short_url = `shortcut_history`.`short_url`    left join `shortcut_read` on `shortcut`.short_url = `shortcut_read`.`short_url` {filters} GROUP BY `shortcut`.project,`shortcut`.short_url,`shortcut`.long_url,from_unixtime(`shortcut`.expired_at),from_unixtime(`shortcut`.created_at),`shortcut`.src,`shortcut`.src_short_url,`shortcut`.submitter,`shortcut`.utm_source,`shortcut`.utm_medium,`shortcut`.utm_campaign,`shortcut`.utm_content,`shortcut`.utm_term,shortcut.created_at,shortcut.expired_at ORDER BY {sort} {way} Limit {start_pageline},{length}""".format(start_pageline=(page-1)*length if page>1 else 0,length=length,filters=filters,sort=sort,way=way)
+    sql= """SELECT
+    `shortcut`.project,
+    `shortcut`.short_url,
+    `shortcut`.long_url,
+    from_unixtime( `shortcut`.expired_at ),
+    from_unixtime( `shortcut`.created_at ),
+    `shortcut`.src,
+    `shortcut`.src_short_url,
+    `shortcut`.submitter,
+    `shortcut`.utm_source,
+    `shortcut`.utm_medium,
+    `shortcut`.utm_campaign,
+    `shortcut`.utm_content,
+    `shortcut`.utm_term,
+    shortcut.created_at,
+    shortcut.expired_at,
+    if(his.history is not null,his.history,0) as visit_times,
+    if(rea.rea is not null,rea.rea,0) as read_times
+    FROM
+        `shortcut`
+    LEFT JOIN (select short_url,count(*) as history from `shortcut_history` GROUP BY short_url)his ON `shortcut`.short_url = `his`.`short_url`
+    LEFT JOIN (select short_url,count(*) as rea from `shortcut_read` GROUP BY short_url)rea ON `shortcut`.short_url = `rea`.`short_url` 
+    {filters}
+    ORDER BY {sort} {way} Limit {start_pageline},{length}""".format(start_pageline=(page-1)*length if page>1 else 0,length=length,filters=filters,sort=sort,way=way)
     result = do_tidb_select(sql)
     if result[1] == 0:
         write_to_log(filename='db_func',defname='show_shortcut',result=str(result)+sql)
@@ -159,7 +172,7 @@ def show_check(project,date,hour,order,start,limit,add_on_where):
     return result[0],result[1]
 
 def show_project():
-    sql = """select project_name,FROM_UNIXTIME(created_at),FROM_UNIXTIME(expired_at),enable_scheduler from project_list order by project_name"""
+    sql = """select project_name,FROM_UNIXTIME(created_at),FROM_UNIXTIME(expired_at),enable_scheduler,access_control_threshold_sum,access_control_threshold_event from project_list order by project_name"""
     result = do_tidb_select(sql)
     if result[1] == 0:
         write_to_log(filename='db_func',defname='show_project',result=str(result)+sql)
@@ -334,7 +347,7 @@ def check_next_scheduler_job(priority=13,current_time=None):
         priorities = '13,14,15'
     elif priority == 14 :
         priorities = '14,15'
-    sql = """select id,project,group_id,datetime,data from app.scheduler_jobs where priority={priority} and datetime<={current_time}  and `status` = 16 order by id limit 1""".format(priority=priority,current_time=current_time)
+    sql = """select id,project,group_id,datetime,data from scheduler_jobs where priority={priority} and datetime<={current_time}  and `status` = 16 order by id limit 1""".format(priority=priority,current_time=current_time)
     result = do_tidb_exe(sql=sql)
     return result[0],result[1]
 
@@ -493,7 +506,8 @@ def insert_usergroup_plan(project,group_title,group_desc,repeatable,priority,ena
     return result
 
 
-def show_project_usergroup_plan(project):
+def show_project_usergroup_plan(project,page=1,length=50):
+    page = (page-1)*length if page and length and page > 1 else 0
     sql = f"""SELECT
 	`{project}_usergroup_plan`.id as id,
 	`{project}_usergroup_plan`.group_title as group_title,
@@ -517,13 +531,21 @@ FROM
 	LEFT JOIN status_code AS sc2 ON {project}_usergroup_plan.enable_policy = sc2.id
 	LEFT JOIN {project}_noti_temple ON latest_apply_temple_id = {project}_noti_temple.id
 ORDER BY
-	`{project}_usergroup_plan`.created_at desc"""
+	`{project}_usergroup_plan`.created_at desc limit {page},{length}"""
     # timenow = int(time.time())
     result = do_tidb_select(sql=sql)
     return result
 
+def show_project_usergroup_plan_count(project):
+    sql = f"""SELECT count(*)
+FROM
+	`{project}_usergroup_plan`"""
+    # timenow = int(time.time())
+    result = do_tidb_select(sql=sql)
+    return result
 
-def show_project_usergroup_list(project,plan_id):
+def show_project_usergroup_list(project,plan_id,page=1,length=50):
+    page = (page-1)*length if page and length and page > 1 else 0
     sql = f"""SELECT
 {project}_usergroup_list.id as list_id,
 {project}_usergroup_list.group_id as group_id,
@@ -546,11 +568,22 @@ FROM
 	
 WHERE
 	group_id = {plan_id}
-	ORDER BY group_list_index desc"""
+	ORDER BY group_list_index desc limit {page},{length} """
     # timenow = int(time.time())
     result = do_tidb_select(sql=sql)
     return result
 
+def show_project_usergroup_list_count(project,plan_id):
+    sql = f"""SELECT
+count(*)
+FROM
+	{project}_usergroup_list 
+	
+WHERE
+	group_id = {plan_id}
+"""
+    result = do_tidb_select(sql=sql)
+    return result
 
 def duplicate_scheduler_jobs_sql(project,list_id):
     sql=f"""insert INTO scheduler_jobs (project,
@@ -679,16 +712,15 @@ FROM
     result = do_tidb_select(sql=sql)
     return result
 
-def show_noti_group_count_db(project,length,page,everywhere):
+def show_noti_group_count_db(project,everywhere):
     #查询推送分组列表
-    page = (page-1)*length if page and length and page > 1 else 0
     sql=f"""SELECT count(*)
-FROM
-	`{project}_noti_group` 
-    where 1=1 {everywhere}
-    ORDER BY `{project}_noti_group`.created_at desc limit {page},{length}"""
+            FROM
+            `{project}_noti_group` 
+             where 1=1 {everywhere}"""
     result = do_tidb_select(sql=sql)
     return result
+
 def show_noti_db(project,length,page,everywhere):
     #查询推送分组列表
     page = (page-1)*length if page and length and page > 1 else 0
@@ -717,11 +749,13 @@ def show_noti_db(project,length,page,everywhere):
 	{project}_noti.recall_result, 
 	from_unixtime( `{project}_noti`.send_at, "%Y-%m-%d %H:%i:%s" ) AS send_at,
 	from_unixtime( `{project}_noti`.created_at, "%Y-%m-%d %H:%i:%s" ) AS created_at,
-	from_unixtime( `{project}_noti`.updated_at, "%Y-%m-%d %H:%i:%s" ) AS updated_at
+	from_unixtime( `{project}_noti`.updated_at, "%Y-%m-%d %H:%i:%s" ) AS updated_at,
+    {project}_usergroup_data.data_json
 FROM
 	`{project}_noti`
 	LEFT JOIN {project}_usergroup_plan ON {project}_noti.plan_id = {project}_usergroup_plan.id
 	LEFT JOIN {project}_usergroup_list ON {project}_noti.list_id = {project}_usergroup_list.id
+	LEFT JOIN {project}_usergroup_data ON {project}_noti.data_id = {project}_usergroup_data.id
 	LEFT JOIN {project}_noti_temple ON {project}_noti.temple_id = {project}_noti_temple.id
 	LEFT JOIN status_code AS pid ON {project}_noti.priority = pid.`id`
 	LEFT JOIN status_code AS sid ON {project}_noti.`status` = sid.`id`
@@ -734,14 +768,12 @@ FROM
     result = do_tidb_select(sql=sql)
     return result
 
-def show_noti_count_db(project,length,page,everywhere):
+def show_noti_count_db(project,everywhere):
     #查询推送分组列表
-    page = (page-1)*length if page and length and page > 1 else 0
     sql=f"""SELECT count(*)
 FROM
 	`{project}_noti` 
-    where 1=1 {everywhere}
-    ORDER BY `{project}_noti`.created_at desc limit {page},{length}"""
+    where 1=1 {everywhere}"""
     result = do_tidb_select(sql=sql)
     return result
 
@@ -765,7 +797,7 @@ def show_scheduler_jobs_db(page,length):
     sid.desc as status_name,
     from_unixtime( scheduler_jobs.created_at, "%Y-%m-%d %H:%i:%s" ) AS created_at,
     from_unixtime( scheduler_jobs.updated_at, "%Y-%m-%d %H:%i:%s" ) AS updated_at
-    from app.scheduler_jobs 
+    from scheduler_jobs 
     left join status_code as pid on scheduler_jobs.priority = pid.id
     left join status_code as sid on scheduler_jobs.`status` = sid.id
     ORDER BY scheduler_jobs.created_at desc limit {page},{length}"""
@@ -774,7 +806,7 @@ def show_scheduler_jobs_db(page,length):
 
 def show_scheduler_jobs_count_db():
     sql = f"""select count(*)
-    from app.scheduler_jobs """
+    from scheduler_jobs """
     result = do_tidb_select(sql=sql)
     return result
 
@@ -854,9 +886,9 @@ FROM
 	join status_code as s_id on recall_blacklist.`status` = s_id.id
 	join status_code as r2_id on recall_blacklist_reason.`reason_id` = r2_id.id
 	join status_code as s2_id on recall_blacklist_reason.`final_status_id` = s2_id.id
-	where recall_blacklist.type_id = {type_id} {add_fliter} {add_on_status}
+	where 1=1 {add_fliter} {add_on_status}
 ORDER BY
-	recall_blacklist_reason.created_at DESC {add_limit} ;""".format(type_id=type_id,add_fliter=add_fliter,add_on_status=add_on_status,add_limit=add_limit)
+	recall_blacklist_reason.created_at DESC {add_limit} ;""".format(add_fliter=add_fliter,add_on_status=add_on_status,add_limit=add_limit)
     result = do_tidb_select(sql=sql)
     return result
 
@@ -905,4 +937,57 @@ def insert_recall_blacklist_history(rbid,checker,result_status_id,result_reason_
     timenow = int(time.time()) if not timenow else timenow
     key = {'rbid':rbid,'checker':checker,'result_status_id':result_status_id,'result_reason_id':result_reason_id,'created_at':timenow}
     result = do_tidb_exe(sql=sql, args=key)
+    return result
+
+def select_msg_type():
+    sql='select `id`,`desc` from status_code where p_id = 22'
+    result = do_tidb_select(sql=sql)
+    return result
+
+def select_properties(project):
+    sql="""select `event`,min(access_control_threshold) from {project}_properties where access_control_threshold is not null and access_control_threshold>0 GROUP BY `event`""".format(project=project)
+    result = do_tidb_select(sql=sql)
+    return result
+
+def insert_update_access_control_list(project,key,type_int,event,pv,date,hour):
+    sql="""insert into `access_control` (`project`,`key`,`type`,`event`,`status`,`date`,`hour`,`pv`,`updated_at`) VALUES  (%(project)s,%(key)s,%(type)s,%(event)s,%(status)s,%(date)s,%(hour)s,%(pv)s,%(updated_at)s) ON DUPLICATE KEY UPDATE `updated_at`=%(updated_at)s,`pv` = `pv`+ %(pv)s;"""
+    key = {'project':project,'key':key,'type':type_int,'event':event,'status':57,'date':date,'hour':hour,'pv':pv,'updated_at':int(time.time())}
+    result = do_tidb_exe(sql=sql,args=key,retrycount=0)
+    return result
+
+def query_access_control(key,project=None,type_id=None,event=None,date=None,hour=None,pv=None,query_hour=None,arr_mode=None):
+    arr_mode = arr_mode if arr_mode else 'each'
+    date = date if date else time.strftime("%Y-%m-%d", time.localtime())
+    hour = int(hour) if hour else int(time.strftime("%H", time.localtime()))
+    pv = pv if pv else 0
+    query_hour = int(query_hour) if query_hour else admin.access_control_query_hour
+    add_on_where = ""
+    if query_hour>=0:
+        hour_list_day=[]
+        hour_list_yesterday=[]
+        if hour-query_hour>=0:
+            for h in range(hour-query_hour,hour+1):
+                hour_list_day.append(str(h))
+            hour_str_day = ",".join(hour_list_day)
+            time_str = f'(date="{date}" and hour in ({hour_str_day}) and status =57 )'
+        elif hour-query_hour <0:
+            for h in range(0,hour+1):
+                hour_list_day.append(str(h))
+            hour_str_day = ",".join(hour_list_day)
+            for h in range(24+hour-query_hour,24):
+                hour_list_yesterday.append(str(h))
+            yesterday_hour_str_day = ",".join(hour_list_yesterday)
+            yesterday = get_display_day(date,-1)
+
+            time_str =  f' (((date="{date}" and hour in ({hour_str_day})) or (date="{yesterday}" and hour in ({yesterday_hour_str_day}))) and status =57 )'
+    add_on_where = add_on_where + (f' and project="{project}"' if project else '')
+    add_on_where = add_on_where + (f' and type={type_id}' if type_id else '')
+    add_on_where = add_on_where + (f' and event="{event}"' if event else '')
+    if arr_mode == 'sum':
+        having =  f' having spv>={pv}' if pv and pv!=0 else ''
+        sql="""select `event`,cast(sum(pv) as signed) as spv from access_control where `key`="{key}" and (status =58 or {time_str}) {add_on_where} group by `event` {having}""".format(type_id=type_id,key=key,time_str=time_str,add_on_where=add_on_where,having=having)
+    elif arr_mode == 'each':
+        add_on_where = add_on_where + (f' and pv>={pv}' if pv and pv!=0 else '')
+        sql="""select `event`,cast(date as char),hour,pv from access_control where `key`="{key}" and (status =58 or {time_str}) {add_on_where}""".format(type_id=type_id,key=key,time_str=time_str,add_on_where=add_on_where)
+    result = do_tidb_select(sql=sql,retrycount=0)
     return result
