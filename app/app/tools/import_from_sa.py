@@ -9,7 +9,7 @@ import json
 from app.component.api import insert_data
 from app.component.api_tools import insert_user
 from app.component.db_func import insert_shortcut
-from app.utils.geo import get_addr,get_asn
+from app.utils.geo import get_address,get_asn
 from app.configs.export import write_to_log
 import time
 import multiprocessing
@@ -73,7 +73,7 @@ def upload_events_from_pickle_to_sql(project='tvcbook',remark='production'):
                 # second_id = itemdict['second_id'] if 'second_id' in itemdict else None
                 # unionid = itemdict['unionid'] if 'unionid' in itemdict else None
                 # id = itemdict['id'] if 'id' in itemdict else None
-                ip_city,ip_is_good = get_addr(itemdict["$ip"])
+                ip_city,ip_is_good = get_address(itemdict["$ip"])
                 ip_asn,ip_asn_is_good = get_asn(itemdict["$ip"])
                 if ip_is_good ==0:
                     ip_city = '{}'
@@ -146,7 +146,7 @@ def upload_events_from_pickle_to_sql_m(project='tvcbook',remark='production',pro
                 # second_id = itemdict['second_id'] if 'second_id' in itemdict else None
                 # unionid = itemdict['unionid'] if 'unionid' in itemdict else None
                 # id = itemdict['id'] if 'id' in itemdict else None
-                ip_city,ip_is_good = get_addr(itemdict["$ip"])
+                ip_city,ip_is_good = get_address(itemdict["$ip"])
                 ip_asn,ip_asn_is_good = get_asn(itemdict["$ip"])
                 if ip_is_good ==0:
                     ip_city = '{}'

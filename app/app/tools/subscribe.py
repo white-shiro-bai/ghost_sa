@@ -4,7 +4,7 @@
 import sys
 sys.path.append("./")
 from kafka import KafkaConsumer
-from app.utils.geo import get_asn,get_addr
+from app.utils.geo import get_asn,get_address
 from app.component.api import insert_data
 from app.configs import admin
 import json
@@ -25,7 +25,7 @@ def realtime_subscribe(broker):
         ua_browser = data['properties']['$browser'] if '$browser' in data['properties'] else '' #客户端的浏览器
         ua_version = data['properties']['$browser_version'] if '$browser_version' in data['properties'] else '' #客户端浏览器的版本
         ip = data['properties']['$ip'] if '$ip'in data['properties'] else ''
-        ip_city,ip_is_good = get_addr(ip)
+        ip_city,ip_is_good = get_address(ip)
         ip_asn,ip_asn_is_good = get_asn(ip)
         if ip_is_good ==0:
             ip_city = '{}'

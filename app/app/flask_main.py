@@ -55,7 +55,7 @@ def create_app(config=None):
     # 应用上下文的钩子,应用关闭执行
     configure_teardown_handlers(app)
     # 配置异常处理
-    configure_errorhandlers(app)
+    configure_error_handlers(app)
     # 配置日志
     configure_logging(app)
 
@@ -302,17 +302,31 @@ def configure_after_handlers(app):
         pass
 
 
+# 配置应用关闭句柄
 def configure_teardown_handlers(app):
+    """
+        xiaowei.song 2021-8-23
+
+        请求之后处理器，非正常请求不处理
+
+        :param app:
+        """
     @app.teardown_appcontext
-    def teardown(cmd=None):
-        if cmd is None:
-            db.session.commit()
-        else:
-            db.session.rollback()
-        db.session.remove()
+    def teardown_geo_city_reader(exception):
+        geo_city_reader = g.geo_city_reader
+        g.pop('geo_city_reader', None)
+        if geo_city_reader is not None:
+            geo_city_reader.close()
+
+    @app.teardown_appcontext
+    def teardown_geo_asn_reader(exception):
+        geo_asn_reader = g.geo_asn_reader
+        g.pop('geo_asn_reader', None)
+        if geo_asn_reader is not None:
+            geo_asn_reader.close()
 
 
-def configure_errorhandlers(app):
+def configure_error_handlers(app):
     """
     配置异常处理返回值
 

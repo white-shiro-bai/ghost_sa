@@ -16,7 +16,7 @@ import base64
 import json
 import os
 from app.component.db_func import insert_event,get_long_url_from_short, insert_shortcut_history,check_long_url,insert_shortcut,show_shortcut,count_shortcut,show_check,insert_properties,insert_user_db,show_project,read_mobile_ad_list,count_mobile_ad_list,read_mobile_ad_src_list,check_mobile_ad_url,insert_mobile_ad_list,distinct_id_query,insert_shortcut_read,query_access_control
-from app.utils.geo import get_addr,get_asn
+from app.utils.geo import get_address,get_asn
 import gzip
 from app.component.api_tools import insert_device,encode_urlutm,insert_user,recall_dsp,return_dsp_utm,gen_token
 from app.configs.export import write_to_log
@@ -175,7 +175,7 @@ def get_data():
         # 服务器直接暴露
         ip = request.remote_addr
 
-    ip_city, ip_is_good = get_addr(ip)
+    ip_city, ip_is_good = get_address(ip)
     ip_asn, ip_asn_is_good = get_asn(ip)
     referrer = request.referrer[0:2047] if request.referrer else None
     pending_data_list_all = []
@@ -201,7 +201,7 @@ def get_data():
                 user_ip = pending_data['properties'][admin.user_ip_key]
                 if len(user_ip) - len(user_ip.replace('.', '')) == 3:
                     ip = user_ip
-                    ip_city, ip_is_good = get_addr(user_ip)
+                    ip_city, ip_is_good = get_address(user_ip)
                     ip_asn, ip_asn_is_good = get_asn(user_ip)
         insert_data(project=project,data_decode=pending_data,User_Agent=user_agent_source,Host=host,Connection=connection,Pragma=pragma,Cache_Control=cache_control,Accept=accept,Accept_Encoding=accept_encoding,Accept_Language=accept_language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good)
     return Response(default_return_image, mimetype="image/gif")
@@ -411,7 +411,7 @@ def installation_track():
             ip = request.headers.get('X-Forwarded-For') #获取SLB真实地址
         else:
             ip = request.remote_addr#服务器直接暴露
-        ip_city,ip_is_good = get_addr(ip)
+        ip_city,ip_is_good = get_address(ip)
         ip_asn,ip_asn_is_good = get_asn(ip)
         if ip_is_good ==0:
             ip_city = '{}'
@@ -514,7 +514,7 @@ def check_exist_distinct_id():
         ip = request.headers.get('X-Forwarded-For') #获取SLB真实地址
     else:
         ip = request.remote_addr#服务器直接暴露
-    ip_city,ip_is_good = get_addr(ip)
+    ip_city,ip_is_good = get_address(ip)
     ip_asn,ip_asn_is_good = get_asn(ip)
     if ip_is_good ==0:
         ip_city = '{}'
@@ -720,7 +720,7 @@ def who_am_i():
     if request.headers.get('X-Forwarded-For') is None:
         ip = request.remote_addr                #服务器直接暴露
 
-    ip_city,ip_is_good = get_addr(ip)
+    ip_city,ip_is_good = get_address(ip)
     ip_asn,ip_asn_is_good = get_asn(ip)
     if ip_is_good ==0:
         ip_city = '{}'
@@ -841,7 +841,7 @@ def access_permit():
         ip = request.headers.get('X-Forwarded-For') #获取SLB真实地址
     else:
         ip = request.remote_addr#服务器直接暴露
-    ip_city,ip_is_good = get_addr(ip)
+    ip_city,ip_is_good = get_address(ip)
     ip_asn,ip_asn_is_good = get_asn(ip)
     add_on_key = get_url_params('add_on_key')
     event = get_url_params('event')
