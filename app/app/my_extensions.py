@@ -13,7 +13,7 @@ from flask_plugins import PluginManager
 from flask_wtf.csrf import CsrfProtect
 
 """
-    sxw 2016-7-13
+    xiaowei.song 2016-7-13
 
     针对测试情况，重写Flask-sqlalchemy，默认开启第三方事物，不进行提交
 
@@ -64,7 +64,7 @@ login_manager = LoginManager()
 # Provide a class to allow SSL (Not TLS) connection for mail handlers by overloading the emit() method
 class MySMTPHandler(SMTPHandler):
     """
-    sxw 2016-9-14
+    xiaowei.song 2016-9-14
 
     自定义扩展SMTPHandler，使之支持ssl协议发送邮件
     """
@@ -132,7 +132,7 @@ csrf = CsrfProtect()
 
 class NonASCIIJsonEncoder(json.JSONEncoder):
     """
-    sxw 2016-9-21
+    xiaowei.song 2016-9-21
 
     重设json.dumps中参数设置，使之支持中文
     """

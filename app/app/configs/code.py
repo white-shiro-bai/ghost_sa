@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-    sxw 2016-7-7
+    xiaowei.song 2016-7-7
 
     返回关键字和返回代码
 """
@@ -34,7 +34,7 @@ class ResponseCode(object):
 
 class ResponseLevel(object):
     """
-    sxw 2016-7-7
+    xiaowei.song 2016-7-7
 
     定义错误等级
     """

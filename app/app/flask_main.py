@@ -52,12 +52,15 @@ def create_app(config=None):
     # configure_before_handlers(app)
     # 配置路由转发之后回调函数
     # configure_after_handlers(app)
+    # 应用上下文的钩子,应用关闭执行
+    configure_teardown_handlers(app)
     # 配置异常处理
     configure_errorhandlers(app)
     # 配置日志
     configure_logging(app)
 
     return app
+
 
 CORS(app)
 
@@ -68,6 +71,7 @@ def return_error(code=0):
         return page_name
     if admin.use_bbhj is True:
         return f"""<html><script type="text/javascript" src="//qzonestyle.gtimg.cn/qzone/hybrid/app/404/search_children.js" charset="utf-8" homePageUrl="{admin.bbhj_url}" homePageName="{page_name}"></script></html>"""
+
 
 @app.route('/')
 def index():
@@ -202,7 +206,7 @@ def configure_extensions(app):
     # @login_manager.token_loader
     # def token_loader(token):
     #     """
-    #     sxw 2016-6-24
+    #     xiaowei.song 2016-6-24
     #
     #     需要Flask-Login扩展，从cookie中获取令牌（token），进行解码分析，载入用户
     #
@@ -214,7 +218,7 @@ def configure_extensions(app):
     # @login_manager.request_loader
     # def load_user_from_request(req):
     #     """
-    #     sxw 2016-6-24
+    #     xiaowei.song 2016-6-24
     #
     #     需要Flask-Login扩展，可以从request-header中获取token，进行解码分析，载入用户
     #
@@ -226,7 +230,7 @@ def configure_extensions(app):
     # @login_manager.unauthorized_handler
     # def unauthorized():
     #     """
-    #     sxw 2016-6-24
+    #     xiaowei.song 2016-6-24
     #
     #     定制已经配置@login_required，但未登录的url请求错误
     #
@@ -280,21 +284,32 @@ def configure_before_handlers(app):
 # 配置回调方法
 def configure_after_handlers(app):
     """
-    sxw 2016-8-9
+    xiaowei.song 2016-8-9
 
     请求之后处理器，非正常请求不处理
 
     :param app:
     """
+
     @app.teardown_request
     def teardown_request(exception):
         """
-        sxw 2016-8-11
+        xiaowei.song 2016-8-11
         针对模型query异常，回滚所有操作
         :param exception:
         :return:
         """
         pass
+
+
+def configure_teardown_handlers(app):
+    @app.teardown_appcontext
+    def teardown(cmd=None):
+        if cmd is None:
+            db.session.commit()
+        else:
+            db.session.rollback()
+        db.session.remove()
 
 
 def configure_errorhandlers(app):
@@ -318,7 +333,7 @@ def configure_errorhandlers(app):
     @app.errorhandler(405)
     def method_not_allowed(error):
         """
-        sxw 2016-6-24
+        xiaowei.song 2016-6-24
 
         定制405错误，若请求url路由存在但是未配置请求方式，则回复`请求方式错误，请重试`
 
@@ -342,7 +357,7 @@ def configure_errorhandlers(app):
     @app.errorhandler(SQLAlchemyError)
     def sql_alchemy_error(error):
         """
-            sxw 2016-7-4
+            xiaowei.song 2016-7-4
 
             处理sqlqlchemy异常错误
         """
@@ -355,7 +370,7 @@ def configure_errorhandlers(app):
     @app.errorhandler(AccessTokenCredentialsError)
     def access_token_error(error):
         """
-            sxw 2017-3-9
+            xiaowei.song 2017-3-9
 
             处理access token认证异常错误
         """

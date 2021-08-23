@@ -5,3 +5,8 @@ qrcode==6.1
 flask==2.0.0
 flask-cors==3.0.10
 guppy3==3.1.0
+flask-sqlalchemy==2.5.1
+flask-login==0.5.0
+flask-migrate==3.1.0
+flask-plugins==1.6.1
+flask-wtf==0.15.1

@@ -19,10 +19,23 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b6346c84-2a36-4f2a-b4da-9be6806931d8" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/wei_nana.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dictionaries/wei_nana.xml" afterDir="false" />
+    <list default="true" id="b6346c84-2a36-4f2a-b4da-9be6806931d8" name="Default Changelist" comment="#Updates#开始优化解析数据api模块">
+      <change afterPath="$PROJECT_DIR$/app/flaskr/service/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/app.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/app.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/component/api.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/component/api.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/configs/code.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/configs/code.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/configs/default.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/configs/default.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/flask_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/flask_main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/geoip/geo.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/utils/geo.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/my_extensions.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/my_extensions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/app/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/tools/import_from_sa.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/tools/import_from_sa.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/tools/subscribe.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/tools/subscribe.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/utils/database.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/utils/database.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/utils/response.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/utils/response.py" afterDir="false" />
     </list>
     <list id="a9b1d2d1-d349-4bc3-a37e-8d0b9ba7c59d" name="Revert &quot;'发送kafka捕获异常'&quot;" comment="Revert &quot;'发送kafka捕获异常'&quot;&#10;&#10;This reverts commit 67db3a72" />
     <option name="SHOW_DIALOG" value="false" />
@@ -40,6 +53,14 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
+  <component name="GitSEFilterConfiguration">
+    <file-type-list>
+      <filtered-out-file-type name="LOCAL_BRANCH" />
+      <filtered-out-file-type name="REMOTE_BRANCH" />
+      <filtered-out-file-type name="TAG" />
+      <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
+    </file-type-list>
+  </component>
   <component name="ProjectId" id="1qveJUda5uq9HmqJYhKXH3ymZ3t" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
@@ -50,7 +71,7 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="ToolWindowCommit.ShowToolbar" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/app" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RecentsManager">
@@ -58,6 +79,9 @@
       <recent name="E:\data-workspace\ghost_sa\app\app" />
       <recent name="E:\data-workspace\ghost_sa\app\app\utils" />
       <recent name="E:\data-workspace\ghost_sa\app\app\configs" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="E:\workspace\ghost_sa\app\app\utils" />
     </key>
   </component>
   <component name="RunManager">
@@ -88,6 +112,7 @@
       </list>
     </recent_temporary>
   </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="project-level" UseSingleDictionary="true" transferred="true" />
   <component name="SvnConfiguration">
     <configuration />
   </component>
@@ -171,59 +196,5 @@
     <MESSAGE value="#Updates#开始改造鬼策平台，优化鬼策平台" />
     <MESSAGE value="#Updates#开始优化解析数据api模块" />
     <option name="LAST_COMMIT_MESSAGE" value="#Updates#开始优化解析数据api模块" />
-  </component>
-  <component name="WindowStateProjectService">
-    <state x="2345" y="217" width="955" height="846" key="CommitChangelistDialog2" timestamp="1629641792710">
-      <screen x="1920" y="171" width="1920" height="1040" />
-    </state>
-    <state x="2345" y="217" width="955" height="846" key="CommitChangelistDialog2/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629641792710" />
-    <state x="2660" y="446" key="FileChooserDialogImpl" timestamp="1629515308141">
-      <screen x="1920" y="171" width="1920" height="1040" />
-    </state>
-    <state x="2660" y="446" key="FileChooserDialogImpl/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629515308141" />
-    <state width="1899" height="282" key="GridCell.Tab.0.bottom" timestamp="1629643480923">
-      <screen x="1920" y="171" width="1920" height="1040" />
-    </state>
-    <state width="1899" height="282" key="GridCell.Tab.0.bottom/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629643480923" />
-    <state width="1899" height="282" key="GridCell.Tab.0.center" timestamp="1629643480923">
-      <screen x="1920" y="171" width="1920" height="1040" />
-    </state>
-    <state width="1899" height="282" key="GridCell.Tab.0.center/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629643480923" />
-    <state width="1899" height="282" key="GridCell.Tab.0.left" timestamp="1629643480923">
-      <screen x="1920" y="171" width="1920" height="1040" />
-    </state>
-    <state width="1899" height="282" key="GridCell.Tab.0.left/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629643480923" />
-    <state width="1899" height="282" key="GridCell.Tab.0.right" timestamp="1629643480923">
-      <screen x="1920" y="171" width="1920" height="1040" />
-    </state>
-    <state width="1899" height="282" key="GridCell.Tab.0.right/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629643480923" />
-    <state x="1951" y="228" width="1774" height="868" key="MergeDialog" timestamp="1629513606410">
-      <screen x="1920" y="171" width="1920" height="1040" />
-    </state>
-    <state x="1951" y="228" width="1774" height="868" key="MergeDialog/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629513606410" />
-    <state x="2402" y="554" width="600" height="457" key="MultipleFileMergeDialog" timestamp="1629513606416">
-      <screen x="1920" y="171" width="1920" height="1040" />
-    </state>
-    <state x="2402" y="554" width="600" height="457" key="MultipleFileMergeDialog/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629513606416" />
-    <state width="498" height="446" key="SwitcherDM" timestamp="1629642662079">
-      <screen x="1920" y="171" width="1920" height="1040" />
-    </state>
-    <state width="498" height="446" key="SwitcherDM/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629642662079" />
-    <state x="2472" y="424" key="Vcs.Push.Dialog.v2" timestamp="1629641796411">
-      <screen x="1920" y="171" width="1920" height="1040" />
-    </state>
-    <state x="2472" y="424" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629641796411" />
-    <state x="2012" y="263" width="1736" height="856" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1629468587236">
-      <screen x="1920" y="171" width="1920" height="1040" />
-    </state>
-    <state x="2012" y="263" width="1736" height="856" key="com.intellij.history.integration.ui.views.FileHistoryDialog/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629468587236" />
-    <state x="2582" y="289" width="596" height="804" key="find.popup" timestamp="1629640830423">
-      <screen x="1920" y="171" width="1920" height="1040" />
-    </state>
-    <state x="2582" y="289" width="596" height="804" key="find.popup/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629640830423" />
-    <state x="2543" y="396" width="672" height="678" key="search.everywhere.popup" timestamp="1629642177089">
-      <screen x="1920" y="171" width="1920" height="1040" />
-    </state>
-    <state x="2543" y="396" width="672" height="678" key="search.everywhere.popup/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629642177089" />
   </component>
 </project>

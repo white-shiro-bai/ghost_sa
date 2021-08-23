@@ -46,7 +46,7 @@ def res(code=ResponseCode.SUCCEED, msg=u"成功", level=None, data=None):
 
 def res_page(args, data=None, total_count=0):
     """
-    sxw 2016-6-28
+    xiaowei.song 2016-6-28
 
     添加分页返回方法
 

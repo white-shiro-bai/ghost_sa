@@ -4,11 +4,11 @@
 import sys
 sys.path.append("./")
 from kafka import KafkaConsumer
-from app.geoip.geo import get_asn,get_addr
+from app.utils.geo import get_asn,get_addr
 from app.component.api import insert_data
 from app.configs import admin
 import json
-import pprint
+
 
 #这个工具用来在迁移过程中，实时订阅神策官方服务端的数据。使得在迁移过程中，神策官方版和鬼策
 

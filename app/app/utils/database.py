@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-    sxw 2016-7-7
+    xiaowei.song 2016-7-7
 
     一些数据库帮助类或方法
     例如 CRUD mixin
@@ -21,7 +21,7 @@ class CRUDMixin(object):
 
     def create(self, commit=False, **kwargs):
         """
-        sxw 2016-7-7
+        xiaowei.song 2016-7-7
 
         根据parser解析的dict form字段，自动填充相应字段
 
@@ -44,7 +44,7 @@ class CRUDMixin(object):
 
     def update(self, commit=False, **kwargs):
         """
-        sxw 2016-7-7
+        xiaowei.song 2016-7-7
 
         更新已有实体的一些提交字段（排除id）
 
@@ -61,7 +61,7 @@ class CRUDMixin(object):
 
     def save(self, commit=False):
         """
-        sxw 2016-7-7
+        xiaowei.song 2016-7-7
 
         保存对象到数据库中，持久化对象
 
@@ -75,7 +75,7 @@ class CRUDMixin(object):
 
     def delete(self, commit=False):
         """
-        sxw 2016-7-7
+        xiaowei.song 2016-7-7
 
         删除对象，从数据库中删除记录
 
@@ -139,7 +139,7 @@ class CRUDMixin(object):
 
 def model_to_dict(obj, visited_children=None, back_relationships=None):
     """
-        sxw 2016-06-23
+        xiaowei.song 2016-06-23
 
         实现模型自动to_dict功能
         引用自：http://stackoverflow.com/questions/23554119/convert-sqlalchemy-orm-result-to-dict
@@ -187,7 +187,7 @@ def model_to_dict(obj, visited_children=None, back_relationships=None):
 @contextmanager
 def new_session():
     """
-    sxw 2016-12-7
+    xiaowei.song 2016-12-7
 
     上下文管理器生成session，为事务生成专用的会话
     """

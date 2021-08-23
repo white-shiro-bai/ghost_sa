@@ -9,15 +9,14 @@ from app.utils.response import res
 sys.path.append("./")
 sys.setrecursionlimit(10000000)
 
-from flask import request, jsonify, Response, redirect, current_app
+from flask import request, jsonify, Response, redirect
 import traceback
 import urllib.parse
 import base64
 import json
-import pprint
 import os
-from app.component.db_func import insert_event,get_long_url_from_short, insert_noti_temple,insert_shortcut_history,check_long_url,insert_shortcut,show_shortcut,count_shortcut,show_check,insert_properties,insert_user_db,show_project,read_mobile_ad_list,count_mobile_ad_list,read_mobile_ad_src_list,check_mobile_ad_url,insert_mobile_ad_list,distinct_id_query,insert_shortcut_read,query_access_control
-from app.geoip.geo import get_addr,get_asn
+from app.component.db_func import insert_event,get_long_url_from_short, insert_shortcut_history,check_long_url,insert_shortcut,show_shortcut,count_shortcut,show_check,insert_properties,insert_user_db,show_project,read_mobile_ad_list,count_mobile_ad_list,read_mobile_ad_src_list,check_mobile_ad_url,insert_mobile_ad_list,distinct_id_query,insert_shortcut_read,query_access_control
+from app.utils.geo import get_addr,get_asn
 import gzip
 from app.component.api_tools import insert_device,encode_urlutm,insert_user,recall_dsp,return_dsp_utm,gen_token
 from app.configs.export import write_to_log
@@ -136,28 +135,46 @@ def get_data():
         remark = 'spider'
 
     # eg: 10.16.5.241:5000
-    Host = request.headers.get('Host', '')
+    host = request.headers.get('Host', '')
     # eg: keep-alive
-    Connection = request.headers.get('Connection', '')
+    connection = request.headers.get('Connection', '')
     # eg: no-cache
-    Pragma = request.headers.get('Pragma', '')
-    #: no-cache
-    Cache_Control = request.headers.get('Cache-Control', '')
-    Accept = request.headers.get('Accept')[0:254] if request.headers.get('Accept') else None#: image/webp,image/apng,image/*,*/*;q=0.8
-    Accept_Encoding = request.headers.get('Accept-Encoding')[0:254] if request.headers.get('Accept-Encoding') else None#: gzip, deflate
-    Accept_Language = request.headers.get('Accept-Language')[0:254] if request.headers.get('Accept-Language') else None#: zh-CN,zh;q=0.9
-    ua_platform = request.user_agent.platform #客户端操作系统
-    ua_browser = request.user_agent.browser #客户端的浏览器
-    ua_version = request.user_agent.version #客户端浏览器的版本
-    ua_language = request.user_agent.language #客户端浏览器的语言
+    pragma = request.headers.get('Pragma', '')
+    # no-cache
+    cache_control = request.headers.get('Cache-Control', '')
+    # image/webp,image/apng,image/*,*/*;q=0.8
+    accept = request.headers.get('Accept', '')
+    if len(accept) > 255:
+        return res(code=ResponseCode.SYSTEM_ERROR, msg='Accept参数不合法!')
+
+    # image/webp,image/apng,image/*,*/*;q=0.8
+    accept_encoding = request.headers.get('Accept-Encoding', '')
+    if len(accept_encoding) > 255:
+        return res(code=ResponseCode.SYSTEM_ERROR, msg='Accept-Encoding参数不合法!')
+
+    #: zh-CN,zh;q=0.9
+    accept_language = request.headers.get('Accept-Language', '')
+    if len(accept_language) > 255:
+        return res(code=ResponseCode.SYSTEM_ERROR, msg='Accept-Language参数不合法!')
+
+    # 客户端操作系统
+    ua_platform = request.user_agent.platform
+    # 客户端的浏览器
+    ua_browser = request.user_agent.browser
+    # 客户端浏览器的版本
+    ua_version = request.user_agent.version
+    # 客户端浏览器的语言
+    ua_language = request.user_agent.language
+
     ext = request.args.get('ext')
     url = request.url
-    # ip = '124.115.214.179' #测试西安bug
-    # ip = '36.5.99.68' #测试安徽bug
-    if request.headers.get('X-Forwarded-For') is None:
-        ip = request.remote_addr#服务器直接暴露
-    else:
-        ip = request.headers.get('X-Forwarded-For') # 获取SLB真实地址
+
+    # 获取SLB真实地址
+    ip = request.headers.get('X-Forwarded-For')
+    if not ip:
+        # 服务器直接暴露
+        ip = request.remote_addr
+
     ip_city, ip_is_good = get_addr(ip)
     ip_asn, ip_asn_is_good = get_asn(ip)
     referrer = request.referrer[0:2047] if request.referrer else None
@@ -186,7 +203,7 @@ def get_data():
                     ip = user_ip
                     ip_city, ip_is_good = get_addr(user_ip)
                     ip_asn, ip_asn_is_good = get_asn(user_ip)
-        insert_data(project=project,data_decode=pending_data,User_Agent=user_agent_source,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good)
+        insert_data(project=project,data_decode=pending_data,User_Agent=user_agent_source,Host=host,Connection=connection,Pragma=pragma,Cache_Control=cache_control,Accept=accept,Accept_Encoding=accept_encoding,Accept_Language=accept_language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good)
     return Response(default_return_image, mimetype="image/gif")
 
 
