@@ -9,7 +9,7 @@ from app.utils.response import res
 sys.path.append("./")
 sys.setrecursionlimit(10000000)
 
-from flask import request, jsonify, Response, redirect
+from flask import request, jsonify, Response, redirect, current_app
 import traceback
 import urllib.parse
 import base64
@@ -28,7 +28,7 @@ if admin.use_kafka is True:
 import re
 from app.trigger import trigger
 from app.component.qrcode import gen_qrcode
-from app.component.url_tools import get_url_params
+from app.component.url_tools import get_url_params, get_post_datas
 import hashlib
 if admin.access_control_commit_mode =='none_kafka':
     from app.component.access_control import access_control
@@ -41,7 +41,35 @@ with open(bitimage1, 'rb') as f:
     default_return_image = f.read()
 
 
-def insert_data(project,data_decode,User_Agent,Host,Connection,Pragma,Cache_Control,Accept,Accept_Encoding,Accept_Language,ip,ip_city,ip_asn,url,referrer,remark,ua_platform,ua_browser,ua_version,ua_language,ip_is_good,ip_asn_is_good,created_at=None,updated_at=None,use_kafka=admin.use_kafka):
+def insert_data(project, data_decode, User_Agent,Host,Connection,Pragma,Cache_Control,Accept,Accept_Encoding,Accept_Language,ip,ip_city,ip_asn,url,referrer,remark,ua_platform,ua_browser,ua_version,ua_language,ip_is_good,ip_asn_is_good,created_at=None,updated_at=None,use_kafka=admin.use_kafka):
+    """保存数据.
+    :param project:
+    :param data_decode:
+    :param User_Agent:
+    :param Host:
+    :param Connection:
+    :param Pragma:
+    :param Cache_Control:
+    :param Accept:
+    :param Accept_Encoding:
+    :param Accept_Language:
+    :param ip:
+    :param ip_city:
+    :param ip_asn:
+    :param url:
+    :param referrer:
+    :param remark:
+    :param ua_platform:
+    :param ua_browser:
+    :param ua_version:
+    :param ua_language:
+    :param ip_is_good:
+    :param ip_asn_is_good:
+    :param created_at:
+    :param updated_at:
+    :param use_kafka:
+    :return:
+    """
     start_time = time.time()
     jsondump = json.dumps(data_decode, ensure_ascii=False)
     if '_track_id' in data_decode:
@@ -177,33 +205,32 @@ def get_data():
 
     ip_city, ip_is_good = get_address(ip)
     ip_asn, ip_asn_is_good = get_asn(ip)
-    referrer = request.referrer[0:2047] if request.referrer else None
-    pending_data_list_all = []
-    # data_list_all.append( get_url_params('data') )
-    if get_url_params('data'):
-        de64 = base64.b64decode(urllib.parse.unquote(get_url_params('data')).encode('utf-8'))
-        try:
-            pending_data_list_all.append(json.loads(gzip.decompress(de64)))
-        except:
-            pending_data_list_all.append(json.loads(de64))
+    #: zh-CN,zh;q=0.9
+    referrer = request.headers.get('Referer', '')
+    if len(referrer) > 2047:
+        return res(code=ResponseCode.SYSTEM_ERROR, msg='Referer参数不合法!')
 
-    if get_url_params('data_list'):
-        de64_list = base64.b64decode(urllib.parse.unquote(get_url_params('data_list')).encode('utf-8'))
-        try:
-            data_decodes = json.loads(gzip.decompress(de64_list))
-        except:
-            data_decodes = json.loads(de64_list)
-        for data_decode in data_decodes:
-            pending_data_list_all.append(data_decode)
-    for pending_data in pending_data_list_all:
-        if admin.user_ip_first is True:
-            if 'properties' in pending_data and admin.user_ip_key in pending_data['properties'] and pending_data['properties'][admin.user_ip_key]:
-                user_ip = pending_data['properties'][admin.user_ip_key]
+    datas = get_post_datas()
+    # ip透传
+    # user_ip_key字段优先作为用户ip。当检测到埋点里有 user_ip字段时，优先使用。使后端的埋点ip显示为用户ip，而非服务器ip。
+    for data in datas:
+        if current_app.config['USER_IP_FIRST']:
+            if 'properties' in data \
+                    and current_app.config['USER_IP_KEY'] in data.get('properties', {}) \
+                    and data.get('properties', {}).get(current_app.config['USER_IP_KEY']):
+                user_ip = data.get('properties', {}).get(current_app.config['USER_IP_KEY'])
                 if len(user_ip) - len(user_ip.replace('.', '')) == 3:
                     ip = user_ip
                     ip_city, ip_is_good = get_address(user_ip)
                     ip_asn, ip_asn_is_good = get_asn(user_ip)
-        insert_data(project=project,data_decode=pending_data,User_Agent=user_agent_source,Host=host,Connection=connection,Pragma=pragma,Cache_Control=cache_control,Accept=accept,Accept_Encoding=accept_encoding,Accept_Language=accept_language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good)
+
+        insert_data(project=project, data_decode=data, User_Agent=user_agent_source, Host=host,
+                    Connection=connection, Pragma=pragma, Cache_Control=cache_control, Accept=accept,
+                    Accept_Encoding=accept_encoding, Accept_Language=accept_language, ip=ip, ip_city=ip_city,
+                    ip_asn=ip_asn,
+                    url=url, referrer=referrer, remark=remark, ua_platform=ua_platform, ua_browser=ua_browser,
+                    ua_version=ua_version, ua_language=ua_language, ip_is_good=ip_is_good,
+                    ip_asn_is_good=ip_asn_is_good)
     return Response(default_return_image, mimetype="image/gif")
 
 
