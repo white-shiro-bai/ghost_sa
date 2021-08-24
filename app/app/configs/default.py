@@ -282,3 +282,9 @@ class DefaultConfig(object):
     # 这个文件在去这里下载对应的mmdb文件 https://dev.maxmind.com/geoip/geoip2/geolite2/
     GEO_LITE2CITY_FILE = 'app/resources/GeoLite2-City.mmdb'
     GEO_LITE2ASN_FILE = 'app/resources/GeoLite2-ASN.mmdb'
+
+    # ip透传
+    # user_ip_key字段优先作为用户ip。当检测到埋点里有 user_ip字段时，优先使用。使后端的埋点ip显示为用户ip，而非服务器ip。
+    USER_IP_FIRST = True
+    # 后端上报埋点时传递ip用的key。
+    USER_IP_KEY = '$ip'
