@@ -5,7 +5,7 @@ import sys
 sys.path.append("..")
 sys.path.append("./")
 # sys.setrecursionlimt(10000000)
-from app.component.db_func import insert_devicedb,insert_user_db,find_recall_url,insert_event,find_recall_history,insert_properties,check_utm
+from app.component.db_func import insert_device_db,insert_user_db,find_recall_url,insert_event,find_recall_history,insert_properties,check_utm
 from app.component.api_req import get_json_from_api
 from app.configs import admin
 import urllib.parse
@@ -149,7 +149,7 @@ def return_dsp_utm(project,device_id,distinct_id,created_at):
         update_content = update_content +',latest_traffic_source_type=%(latest_traffic_source_type)s' if src else update_content
         update_content = update_content +',first_traffic_source_type=%(first_traffic_source_type)s' if his_count == 0 or his_result[0][12] is None and src else update_content
 
-        insert_device_count = insert_devicedb(table=project,distinct_id=distinct_id,device_id=device_id,manufacturer=None,model=None,os=None,os_version=None,screen_width=None,screen_height=None,network_type=None,user_agent=None,accept_language=None,ip=None,ip_city=None,ip_asn=None,wifi=None,app_version=None,carrier=None,referrer=None,referrer_host=None,bot_name=None,browser=None,browser_version=None,is_login_id=None,screen_orientation=None,gps_latitude=None,gps_longitude=None,first_visit_time=None,first_referrer=None,first_referrer_host=None,first_browser_language=None,first_browser_charset=None,first_search_keyword=None,first_traffic_source_type=src,utm_content=utm_content,utm_campaign=utm_campaign,utm_medium=utm_medium,utm_term=utm_term,utm_source=utm_source,latest_utm_content=utm_content,latest_utm_campaign=utm_campaign,latest_utm_medium=utm_medium,latest_utm_term=utm_term,latest_utm_source=utm_source,latest_referrer=None,latest_referrer_host=None,latest_search_keyword=None,latest_traffic_source_type=src,update_content=update_content,ua_platform=None,ua_browser=None,ua_version=None,ua_language=None,lib=None,created_at=created_at,updated_at=created_at)
+        insert_device_count = insert_device_db(table=project, distinct_id=distinct_id, device_id=device_id, manufacturer=None, model=None, os=None, os_version=None, screen_width=None, screen_height=None, network_type=None, user_agent=None, accept_language=None, ip=None, ip_city=None, ip_asn=None, wifi=None, app_version=None, carrier=None, referrer=None, referrer_host=None, bot_name=None, browser=None, browser_version=None, is_login_id=None, screen_orientation=None, gps_latitude=None, gps_longitude=None, first_visit_time=None, first_referrer=None, first_referrer_host=None, first_browser_language=None, first_browser_charset=None, first_search_keyword=None, first_traffic_source_type=src, utm_content=utm_content, utm_campaign=utm_campaign, utm_medium=utm_medium, utm_term=utm_term, utm_source=utm_source, latest_utm_content=utm_content, latest_utm_campaign=utm_campaign, latest_utm_medium=utm_medium, latest_utm_term=utm_term, latest_utm_source=utm_source, latest_referrer=None, latest_referrer_host=None, latest_search_keyword=None, latest_traffic_source_type=src, update_content=update_content, ua_platform=None, ua_browser=None, ua_version=None, ua_language=None, lib=None, created_at=created_at, updated_at=created_at)
         return insert_device_count
 
 

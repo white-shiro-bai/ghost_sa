@@ -44,6 +44,49 @@ class RequestData(object):
         self.lib = ""
         self.type_ = ""
 
+        self.device_id = ""
+        self.manufacturer = ""
+        self.model = ""
+        self.os = ""
+        self.os_version = ""
+        self.screen_width = ""
+        self.screen_height = ""
+        self.network_type = ""
+        self.is_first_day = ""
+        self.is_first_time = ""
+        self.wifi = ""
+        self.app_version = ""
+        self.carrier = ""
+        self.referrer_host = ""
+        self.bot_name = ""
+        self.browser = ""
+        self.browser_version = ""
+        self.is_login_id = ""
+        self.screen_orientation = ""
+        self.gps_latitude = ""
+        self.gps_longitude = ""
+        self.utm_content = ""
+        self.utm_campaign = ""
+        self.utm_medium = ""
+        self.utm_term = ""
+        self.utm_source = ""
+        self.latest_utm_content = ""
+        self.latest_utm_campaign = ""
+        self.latest_utm_medium = ""
+        self.latest_utm_term = ""
+        self.latest_utm_source = ""
+        self.latest_referrer = ""
+        self.latest_referrer_host = ""
+        self.latest_search_keyword = ""
+        self.latest_traffic_source_type = ""
+        self.first_visit_time = ""
+        self.first_referrer = ""
+        self.first_referrer_host = ""
+        self.first_browser_language = ""
+        self.first_browser_charset = ""
+        self.first_search_keyword = ""
+        self.first_traffic_source_type = ""
+
     def set_ua_properties(self, user_agent, ua_platform, ua_browser, ua_version):
         """设置ua属性.
         :param user_agent:
@@ -116,6 +159,56 @@ class RequestData(object):
         self.lib = lib
         self.type_ = type_
 
+    def set_other_properties(self):
+        """从properties中解析其它属性.
+        :return:
+        """
+        data = self.data
+        data_properties = data.get('properties', {})
+        self.device_id = data_properties.get('$device_id')
+        self.manufacturer = data_properties.get('$manufacturer')
+        self.model = data_properties.get('$model')
+        self.os = data_properties.get('$os')
+        self.os_version = data_properties.get('$os_version')
+        self.screen_width = data_properties.get('$screen_width')
+        self.screen_height = data_properties.get('$screen_height')
+        self.network_type = data_properties.get('$network_type')
+        self.is_first_day = data_properties.get('$is_first_day')
+        self.is_first_time = data_properties.get('$is_first_time')
+        self.wifi = data_properties.get('$wifi')
+        self.app_version = data_properties.get('$app_version')
+        self.carrier = data_properties.get('$carrier')
+        self.referrer = data_properties.get('$referrer')
+        self.referrer_host = data_properties.get('$referrer_host')
+        self.bot_name = data_properties.get('$bot_name')
+        self.browser = data_properties.get('$browser')
+        self.browser_version = data_properties.get('$browser_version')
+        self.is_login_id = data_properties.get('$is_login_id')
+        self.screen_orientation = data_properties.get('$screen_orientation')
+        self.gps_latitude = data_properties.get('$latitude')
+        self.gps_longitude = data_properties.get('$longitude')
+        self.utm_content = data_properties.get('$utm_content')
+        self.utm_campaign = data_properties.get('$utm_campaign')
+        self.utm_medium = data_properties.get('$utm_medium')
+        self.utm_term = data_properties.get('$utm_term')
+        self.utm_source = data_properties.get('$utm_source')
+        self.latest_utm_content = data_properties.get('$latest_utm_content')
+        self.latest_utm_campaign = data_properties.get('$latest_utm_campaign')
+        self.latest_utm_medium = data_properties.get('$latest_utm_medium')
+        self.latest_utm_term = data_properties.get('$latest_utm_term')
+        self.latest_utm_source = data_properties.get('$latest_utm_source')
+        self.latest_referrer = data_properties.get('$latest_referrer')
+        self.latest_referrer_host = data_properties.get('$latest_referrer_host')
+        self.latest_search_keyword = data_properties.get('$latest_search_keyword')
+        self.latest_traffic_source_type = data_properties.get('$latest_traffic_source_type')
+        self.first_visit_time = data_properties.get('$first_visit_time')
+        self.first_referrer = data_properties.get('$first_referrer')
+        self.first_referrer_host = data_properties.get('$first_referrer_host')
+        self.first_browser_language = data_properties.get('$first_browser_language')
+        self.first_browser_charset = data_properties.get('$first_browser_charset')
+        self.first_search_keyword = data_properties.get('$first_search_keyword')
+        self.first_traffic_source_type = data_properties.get('$first_traffic_source_type')
+
     def to_project_model(self):
         """将request_data转换成project_model
         :return:
@@ -183,3 +276,158 @@ class RequestData(object):
         project_device_model.referrer = self.referrer
         project_device_model.remark = self.remark
         project_device_model.created_at = self.created_at
+
+    def update_project_device_model(self, project_device_model_db):
+        if self.ip_is_good == 1:
+            project_device_model_db.ip_city = self.ip_city
+
+        if self.ip_asn_is_good == 1:
+            project_device_model_db.ip_asn = self.ip_asn
+
+        if self.lib:
+            project_device_model_db.lib = self.lib
+
+        if self.device_id:
+            project_device_model_db.device_id = self.device_id
+
+        if self.ua_platform:
+            project_device_model_db.ua_platform = self.ua_platform
+
+        if self.ua_browser:
+            project_device_model_db.ua_browser = self.ua_browser
+
+        if self.ua_version:
+            project_device_model_db.ua_version = self.ua_version
+
+        if self.ua_language:
+            project_device_model_db.ua_language = self.ua_language
+
+        if self.manufacturer:
+            project_device_model_db.manufacturer = self.manufacturer
+
+        if self.model:
+            project_device_model_db.model = self.model
+
+        if self.os:
+            project_device_model_db.os = self.os
+
+        if self.os_version:
+            project_device_model_db.os_version = self.os_version
+
+        if self.screen_width:
+            project_device_model_db.screen_width = self.screen_width
+
+        if self.screen_height:
+            project_device_model_db.screen_height = self.screen_height
+
+        if self.network_type:
+            project_device_model_db.network_type = self.network_type
+
+        if self.user_agent:
+            project_device_model_db.user_agent = self.user_agent
+
+        if self.accept_language:
+            project_device_model_db.accept_language = self.accept_language
+
+        if self.ip:
+            project_device_model_db.ip = self.ip
+
+        if self.wifi or self.wifi is False:
+            project_device_model_db.wifi = self.wifi
+
+        if self.app_version:
+            project_device_model_db.app_version = self.app_version
+
+        if self.carrier:
+            project_device_model_db.carrier = self.carrier
+
+        if self.referrer:
+            project_device_model_db.referrer = self.referrer
+
+        if self.referrer_host:
+            project_device_model_db.referrer_host = self.referrer_host
+
+        if self.bot_name:
+            project_device_model_db.bot_name = self.bot_name
+
+        if self.browser:
+            project_device_model_db.browser = self.browser
+
+        if self.browser_version:
+            project_device_model_db.browser_version = self.browser_version
+
+        if self.is_login_id:
+            project_device_model_db.is_login_id = self.is_login_id
+
+        if self.screen_orientation:
+            project_device_model_db.screen_orientation = self.screen_orientation
+
+        if self.gps_latitude:
+            project_device_model_db.gps_latitude = self.gps_latitude
+
+        if self.gps_longitude:
+            project_device_model_db.gps_longitude = self.gps_longitude
+
+        if self.first_visit_time:
+            project_device_model_db.first_visit_time = self.first_visit_time
+
+        if self.first_referrer:
+            project_device_model_db.first_referrer = self.first_referrer
+
+        if self.first_referrer_host:
+            project_device_model_db.first_referrer_host = self.first_referrer_host
+
+        if self.first_browser_language:
+            project_device_model_db.first_browser_language = self.first_browser_language
+
+        if self.first_browser_charset:
+            project_device_model_db.first_browser_charset = self.first_browser_charset
+
+        if self.first_search_keyword:
+            project_device_model_db.first_search_keyword = self.first_search_keyword
+
+        if self.first_traffic_source_type:
+            project_device_model_db.first_traffic_source_type = self.first_traffic_source_type
+
+        if self.utm_content:
+            project_device_model_db.utm_content = self.utm_content
+
+        if self.utm_campaign:
+            project_device_model_db.utm_campaign = self.utm_campaign
+
+        if self.utm_medium:
+            project_device_model_db.utm_medium = self.utm_medium
+
+        if self.utm_term:
+            project_device_model_db.utm_term = self.utm_term
+
+        if self.utm_source:
+            project_device_model_db.utm_source = self.utm_source
+
+        if self.latest_utm_content:
+            project_device_model_db.latest_utm_content = self.latest_utm_content
+
+        if self.latest_utm_campaign:
+            project_device_model_db.latest_utm_campaign = self.latest_utm_campaign
+
+        if self.latest_utm_medium:
+            project_device_model_db.latest_utm_medium = self.latest_utm_medium
+
+        if self.latest_utm_term:
+            project_device_model_db.latest_utm_term = self.latest_utm_term
+
+        if self.latest_utm_source:
+            project_device_model_db.latest_utm_source = self.latest_utm_source
+
+        if self.latest_referrer:
+            project_device_model_db.latest_referrer = self.latest_referrer
+
+        if self.latest_referrer_host:
+            project_device_model_db.latest_referrer_host = self.latest_referrer_host
+
+        if self.latest_search_keyword:
+            project_device_model_db.latest_search_keyword = self.latest_search_keyword
+
+        if self.latest_traffic_source_type:
+            project_device_model_db.latest_traffic_source_type = self.latest_traffic_source_type
+

@@ -34,12 +34,18 @@ def get_geo_asn_reader():
 
 def get_address(ip='8.8.8.8'):
     """使用geo2接口，获取ip对应地址信息.
+    若获取失败，则返回相应空值{}，避免报错，丢失数据
     :param ip: ip
     :return: json对象，地址信息
     """
-    response = get_geo_city_reader().city(ip)
-    raw_json = json.dumps(response.raw, ensure_ascii=False)
-    return raw_json, 1
+    response = None
+    try:
+        response = get_geo_city_reader().city(ip)
+    except Exception as e:
+        current_app.logger.error(f'ip： {ip}获取地址失败，错误原因为: ', e)
+    raw_json = json.dumps(response.raw if response else {}, ensure_ascii=False)
+    ret_code = 1 if response else 0
+    return raw_json, ret_code
 
 
 def get_asn(ip='8.8.8.8'):
@@ -47,9 +53,14 @@ def get_asn(ip='8.8.8.8'):
         :param ip: ip
         :return: json对象，地址信息
     """
-    response = get_geo_asn_reader.asn(ip)
-    raw_json = json.dumps(response.raw, ensure_ascii=False)
-    return raw_json, 1
+    response = None
+    try:
+        response = get_geo_asn_reader.asn(ip)
+    except Exception as e:
+        current_app.logger.error(f'ip： {ip}获取地ip asn失败，错误原因为: ', e)
+    raw_json = json.dumps(response.raw if response else {}, ensure_ascii=False)
+    ret_code = 1 if response else 0
+    return raw_json, ret_code
 
 
 if __name__ == "__main__":

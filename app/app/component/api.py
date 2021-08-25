@@ -68,7 +68,7 @@ def insert_data(request_data, use_kafka=admin.use_kafka):
                 count = insert_event(request_data)
 
             if event not in ('cdn_mode', 'cdn_mode2') or access_control_cdn_mode_write == 'device':
-                insert_device(project=project, data_decode=data_decode, user_agent=User_Agent,accept_language=Accept_Language,ip=ip,ip_city=ip_city,ip_is_good=ip_is_good,ip_asn=ip_asn,ip_asn_is_good=ip_asn_is_good,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,created_at=created_at)
+                count = insert_device(request_data)
 
             properties_key = []
             for keys in data_decode['properties'].keys():
