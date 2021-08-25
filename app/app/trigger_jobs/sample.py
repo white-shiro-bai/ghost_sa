@@ -12,6 +12,7 @@ from app.component.db_op import select_tidb
 from app.configs.export import write_to_log
 import traceback
 
+
 def recall_baidu_bdvid(uid, project, newType=99, convertValue=0,token="your_token_here"):
     try:
         timenow = int(time.time())

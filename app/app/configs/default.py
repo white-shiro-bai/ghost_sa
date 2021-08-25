@@ -288,3 +288,52 @@ class DefaultConfig(object):
     USER_IP_FIRST = True
     # 后端上报埋点时传递ip用的key。
     USER_IP_KEY = '$ip'
+
+    # 是否使用Kafka
+    # True时，数据写入kafka, 反之，直接插入数据库
+    USE_KAFKA = False
+
+    # 开启登录控制查询，当状态为False时，统一返回通过状态
+    ACCESS_CONTROL_QUERY = True
+
+    # cdn_mode的数据进入后的处理方式。 可选值none、event、device
+    # 'none'为直接抛掉不写入数据库，但不影响接入控制工作，主要是减少数据库数据量。
+    # 'event'模式为只插入event表，不插入device表，这样会保留所有的cdn_mode的请求记录，没有update动作，所以性能不受影响。
+    # 'device'则跟普通埋点一样进库。
+    ACCESS_CONTROL_CDN_MODE_WRITE = 'event'
+    # 黑名单生效时间，
+    # 0为只有当前时间生效，
+    # 1-23小时数为向前封禁的时间，如2时，则除当前小时生效外，向前2小时内的黑名单也生效。最大不超过23
+    ACCESS_CONTROL_QUERY_HOUR = 1
+    # 单位byte。默认是100000000(1G)。控制模块缓存最大允许使用的内存，达量即写入access_control表
+    ACCESS_CONTROL_MAX_MEMORY = 100000000
+    # 查询内存使用量的间隔，默认是30秒。间隔越小，越精准，但是每次查询需要浪费1秒时间。间隔越大，越容易控制不住爆内存。该值续小于access_control_max_window，否则没意义。
+    ACCESS_CONTROL_MAX_MEMORY_GAP = 30
+    # 单位是秒。默认是300(5分钟)。如果一直没触发内存上限，则每10分钟写一次access_control表
+    ACCESS_CONTROL_MAX_WINDOW = 300
+    # 辅助key。
+    # 默认是coupon_id，即除了distinct_id,ip之外，另一个独立用来判断数量的key。该key也需要埋点，
+    # 如果为空，即''的时候，则不提取辅助key。
+    ACCESS_CONTROL_ADD_ON_KEY = 'coupon_id'
+    # 默认是500，分片时间内，所有埋点的触发阈值和。
+    ACCESS_CONTROL_SUM_COUNT = 500
+    # 默认是100，分片时间内，如果没有在properties表里查到进入接入控制清单的数量，也没在project_list表里查到该项目的缺省值，则使用全局缺省数量
+    ACCESS_CONTROL_EVENT_DEFAULT = 100
+    # 记录所有的查询结果，
+    # 如果该值为False，则只记录返回命中的记录（普通模式，记录命中的。CDN模式，记录不通过的）。
+    # 该值为True时，记录所有的查询结果。
+    # 不论True还是False。数据返回格式按照模式指定的返回，不会强制使用CDN模式。该记录通常用来处理用户投诉和核算节约费用，放行的记录没太大意义，还浪费资源。
+    ACCESS_CONTROL_FORCE_RESULT_RECORD = False
+    # 该记录值为True时，无论是否采用CDN模式的查询，都会在进一份CDN埋点进CDN事件。意义是无论什么接口进数据，都会对CDN查询造成影响，进一步限制CDN消费。
+    # 当该记录值为False时，只有CDN模式的请求，会被记录到埋点，其他的请求，埋点由请求端上报，以获得更正确更清晰的数据。\
+    ACCESS_CONTROL_FORCE_CDN_RECORD = False
+    # CDN模式是否查验distinct_id。
+    ACCESS_CONTROL_CDN_MODE_DISTINCT_ID_CHECK = True
+    # CDN模式是否查验distinct_id与token的匹配度。默认关。
+    ACCESS_CONTROL_CDN_MODE_DISTINCT_ID_TOKEN_CHECK = True
+    # CDN模式是否参考其他event作为封禁依据。当False时，CDN模式只核对event是cdn_mode的事件。
+    ACCESS_CONTROL_CDN_MODE_MEGA_MATCH = False
+    # ip触发进入黑名单的量是distinct_id的阈值的倍数
+    ACCESS_CONTROL_DISTINCT_ID_PER_IP = 4
+    # ip组触发进入黑名单的量是ip的阈值的倍数
+    ACCESS_CONTROL_IP_PER_IP_GROUP = 3

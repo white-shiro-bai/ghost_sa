@@ -4,6 +4,7 @@
 import sys
 
 from app.configs.code import ResponseCode
+from app.flaskr.request_data import RequestData
 from app.utils.response import res
 
 sys.path.append("./")
@@ -12,12 +13,10 @@ sys.setrecursionlimit(10000000)
 from flask import request, jsonify, Response, redirect, current_app
 import traceback
 import urllib.parse
-import base64
 import json
 import os
 from app.component.db_func import insert_event,get_long_url_from_short, insert_shortcut_history,check_long_url,insert_shortcut,show_shortcut,count_shortcut,show_check,insert_properties,insert_user_db,show_project,read_mobile_ad_list,count_mobile_ad_list,read_mobile_ad_src_list,check_mobile_ad_url,insert_mobile_ad_list,distinct_id_query,insert_shortcut_read,query_access_control
 from app.utils.geo import get_address,get_asn
-import gzip
 from app.component.api_tools import insert_device,encode_urlutm,insert_user,recall_dsp,return_dsp_utm,gen_token
 from app.configs.export import write_to_log
 from app.component.shorturl import get_suoim_short_url
@@ -41,67 +40,36 @@ with open(bitimage1, 'rb') as f:
     default_return_image = f.read()
 
 
-def insert_data(project, data_decode, User_Agent,Host,Connection,Pragma,Cache_Control,Accept,Accept_Encoding,Accept_Language,ip,ip_city,ip_asn,url,referrer,remark,ua_platform,ua_browser,ua_version,ua_language,ip_is_good,ip_asn_is_good,created_at=None,updated_at=None,use_kafka=admin.use_kafka):
+def insert_data(request_data, use_kafka=admin.use_kafka):
     """保存数据.
-    :param project:
-    :param data_decode:
-    :param User_Agent:
-    :param Host:
-    :param Connection:
-    :param Pragma:
-    :param Cache_Control:
-    :param Accept:
-    :param Accept_Encoding:
-    :param Accept_Language:
-    :param ip:
-    :param ip_city:
-    :param ip_asn:
-    :param url:
-    :param referrer:
-    :param remark:
-    :param ua_platform:
-    :param ua_browser:
-    :param ua_version:
-    :param ua_language:
-    :param ip_is_good:
-    :param ip_asn_is_good:
-    :param created_at:
-    :param updated_at:
-    :param use_kafka:
-    :return:
     """
     start_time = time.time()
-    jsondump = json.dumps(data_decode, ensure_ascii=False)
-    if '_track_id' in data_decode:
-        track_id = data_decode['_track_id']
-    else:
-        track_id = 0
-    distinct_id = data_decode['distinct_id']
-    if 'event' in data_decode:
-        event = data_decode['event']
-    else:
-        event = None
-    if remark :
-        remark = remark
-    else:
-        remark = ''
-    type_1 = data_decode['type'] if 'type' in data_decode else None
-    # lib = data_decode['lib']['$lib'] if '$lib' in data_decode['lib'] else None
-    lib = None
-    if 'lib' in data_decode:
-        if '$lib' in data_decode['lib']:
-            lib = data_decode['lib']['$lib']
-    if lib is None and 'properties' in data_decode:
-        if '$lib' in data_decode['properties']:
-            lib = data_decode['properties']['$lib']
-    # else:
-    #     lib = None
-    if use_kafka is False:
+
+    data_decode = request_data.data
+    json_data_str = json.dumps(data_decode, ensure_ascii=False)
+    track_id = data_decode.get('_track_id', 0)
+
+    distinct_id = data_decode.get('distinct_id', '')
+    event = data_decode.get('event')
+    # event类型
+    type_1 = data_decode.get('type')
+
+    lib = data_decode.get('lib', {}).get('$lib')
+    if not lib:
+        lib = data_decode.get('properties', {}).get('$lib')
+    request_data.set_common_properties(track_id=track_id, distinct_id=distinct_id, event=event)
+
+    access_control_cdn_mode_write = current_app.config['ACCESS_CONTROL_CDN_MODE_WRITE']
+    if not current_app.config['USE_KAFKA']:
+
         try:
-            if event != 'cdn_mode' or event != 'cdn_mode2' or admin.access_control_cdn_mode_write == 'event' or admin.access_control_cdn_mode_write == 'device' :
-                count = insert_event(table=project,alljson=jsondump,track_id=track_id,distinct_id=distinct_id,lib=lib,event=event,type_1=type_1,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,created_at=created_at)
-            if event != 'cdn_mode' or event != 'cdn_mode2' or admin.access_control_cdn_mode_write == 'device':
-                insert_device(project=project,data_decode=data_decode,user_agent=User_Agent,accept_language=Accept_Language,ip=ip,ip_city=ip_city,ip_is_good=ip_is_good,ip_asn=ip_asn,ip_asn_is_good=ip_asn_is_good,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,created_at=created_at)
+
+            if event not in ('cdn_mode', 'cdn_mode2') or access_control_cdn_mode_write in ('event', 'device'):
+                count = insert_event(request_data)
+
+            if event not in ('cdn_mode', 'cdn_mode2') or access_control_cdn_mode_write == 'device':
+                insert_device(project=project, data_decode=data_decode, user_agent=User_Agent,accept_language=Accept_Language,ip=ip,ip_city=ip_city,ip_is_good=ip_is_good,ip_asn=ip_asn,ip_asn_is_good=ip_asn_is_good,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,created_at=created_at)
+
             properties_key = []
             for keys in data_decode['properties'].keys():
                 properties_key.append(keys)
@@ -135,7 +103,7 @@ def insert_data(project, data_decode, User_Agent,Host,Connection,Pragma,Cache_Co
         except Exception:
             error = traceback.format_exc()
             write_to_log(filename='api',defname='insert_data',result=error)
-    elif use_kafka is True:
+    else:
         timenow = int(time.time())
         timenow13 = int(round(time.time() * 1000))
         msg = {"group":"event_track","timestamp":timenow13,"data":{"project":project,"data_decode":data_decode,"User_Agent":User_Agent,"Host":Host,"Connection":Connection,"Pragma":Pragma,"Cache_Control":Cache_Control,"Accept":Accept,"Accept_Encoding":Accept_Encoding,"Accept_Language":Accept_Language,"ip":ip,"ip_city":ip_city,"ip_asn":ip_asn,"url":url,"referrer":referrer,"remark":remark,"ua_platform":ua_platform,"ua_browser":ua_browser,"ua_version":ua_version,"ua_language":ua_language,"ip_is_good":ip_is_good,"ip_asn_is_good":ip_asn_is_good,"created_at":timenow,"updated_at":timenow}}
@@ -211,6 +179,8 @@ def get_data():
         return res(code=ResponseCode.SYSTEM_ERROR, msg='Referer参数不合法!')
 
     datas = get_post_datas()
+    request_data = RequestData(project=project, remark=remark)
+
     # ip透传
     # user_ip_key字段优先作为用户ip。当检测到埋点里有 user_ip字段时，优先使用。使后端的埋点ip显示为用户ip，而非服务器ip。
     for data in datas:
@@ -223,14 +193,13 @@ def get_data():
                     ip = user_ip
                     ip_city, ip_is_good = get_address(user_ip)
                     ip_asn, ip_asn_is_good = get_asn(user_ip)
+        request_data.data = data
+        request_data.set_connect_properties(connection, pragma, cache_control, accept, accept_encoding, accept_language=accept_language)
+        request_data.set_url_properties(host, url, referrer=referrer)
+        request_data.set_ua_properties(user_agent, ua_platform, ua_browser, ua_version)
+        request_data.set_ip_properties(ip, ip_city, ip_asn, ip_is_good, ip_asn_is_good)
 
-        insert_data(project=project, data_decode=data, User_Agent=user_agent_source, Host=host,
-                    Connection=connection, Pragma=pragma, Cache_Control=cache_control, Accept=accept,
-                    Accept_Encoding=accept_encoding, Accept_Language=accept_language, ip=ip, ip_city=ip_city,
-                    ip_asn=ip_asn,
-                    url=url, referrer=referrer, remark=remark, ua_platform=ua_platform, ua_browser=ua_browser,
-                    ua_version=ua_version, ua_language=ua_language, ip_is_good=ip_is_good,
-                    ip_asn_is_good=ip_asn_is_good)
+        insert_data(request_data)
     return Response(default_return_image, mimetype="image/gif")
 
 

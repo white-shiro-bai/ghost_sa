@@ -5,18 +5,16 @@ import sys
 sys.path.append("./")
 sys.setrecursionlimit(10000000)
 import time
-from app.component.db_func import insert_event
 import json
+import traceback
 from app.component.api_req import get_json_from_postjson
 from app.component.db_op import do_tidb_select
 from app.component.public_value import *
+from app.component.db_func import insert_event
 from app.scheduler_jobs.etl_model import insert_usergroup
-import traceback
+
 from app.configs.export import write_to_log
 from app.component.api_req import get_json_from_api
-
-
-
 
 
 def last_1500_email(args):
