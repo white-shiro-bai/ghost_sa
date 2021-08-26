@@ -2,19 +2,16 @@
 # author: unknowwhite@outlook.com
 # wechat: Ben_Xiaobai
 import logging
-import sys
 import os
+import sys
 import time
 
-from flask_cors import CORS
-from flask import Flask, Response, request, g
-from flask_login import login_manager
-from flask_wtf import csrf
+from flask import Flask, g
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
 
 from app.configs.code import ResponseCode
-from app.my_extensions import NonASCIIJsonEncoder
+from app.my_extensions import NonASCIIJsonEncoder, db, geo_city_reader, geo_asn_reader, kafka_producer
 from app.utils.response import res
 
 sys.path.append("..")
@@ -31,10 +28,10 @@ def create_app(config=None):
     # 尝试直接通过环境进行配置
     app.config.from_envvar("GHOST_SA_SETTINGS", silent=True)
 
+    # 配置扩展
+    configure_extensions(app)
     # 配置蓝图
     configure_blueprints(app)
-    # # 配置扩展
-    # configure_extensions(app)
     # # 配置应用程序上下文
     # configure_context_processors(app)
     # 配置路由转发之前回调函数
@@ -138,7 +135,16 @@ def configure_extensions(app):
     # plugin_manager.init_app(app)
 
     # Flask-SQLAlchemy
-    # db.init_app(app)
+    db.init_app(app)
+
+    # geo city
+    geo_city_reader.init_app(app)
+
+    # geo asn
+    geo_asn_reader.init_app(app)
+
+    # geo asn
+    kafka_producer.init_app(app)
 
     # Flask-Migrate
     # migrate.init_app(app, db)
@@ -275,27 +281,27 @@ def configure_teardown_handlers(app):
 
         :param app:
         """
-    @app.teardown_appcontext
-    def teardown_geo_city_reader(exception):
-        geo_city_reader = g.geo_city_reader
-        g.pop('geo_city_reader', None)
-        if geo_city_reader is not None:
-            geo_city_reader.close()
+    # @app.teardown_appcontext
+    # def teardown_geo_city_reader(exception):
+    #     geo_city_reader = g.geo_city_reader
+    #     g.pop('geo_city_reader', None)
+    #     if geo_city_reader is not None:
+    #         geo_city_reader.close()
+    #
+    # @app.teardown_appcontext
+    # def teardown_geo_asn_reader(exception):
+    #     geo_asn_reader = g.geo_asn_reader
+    #     g.pop('geo_asn_reader', None)
+    #     if geo_asn_reader is not None:
+    #         geo_asn_reader.close()
 
-    @app.teardown_appcontext
-    def teardown_geo_asn_reader(exception):
-        geo_asn_reader = g.geo_asn_reader
-        g.pop('geo_asn_reader', None)
-        if geo_asn_reader is not None:
-            geo_asn_reader.close()
-
-    @app.teardown_appcontext
-    def teardown_kafka_producer(exception):
-        kafka_producer = g.kafka_producer
-        g.pop('kafka_producer', None)
-        if kafka_producer is not None:
-            # 超时50s关闭
-            kafka_producer.close(timeout=50)
+    # @app.teardown_appcontext
+    # def teardown_kafka_producer(exception):
+    #     kafka_producer = g.kafka_producer
+    #     g.pop('kafka_producer', None)
+    #     if kafka_producer is not None:
+    #         # 超时50s关闭
+    #         kafka_producer.close(timeout=50)
 
 
 def configure_error_handlers(app):
@@ -352,15 +358,6 @@ def configure_error_handlers(app):
         if not app.config['DEBUG'] and isinstance(error.orig, OperationalError):
             return res(ResponseCode.FLASK_SQLALCHEMY_EXCEPT, u"连接数据库操作异常，请联系管理员!")
         return res(ResponseCode.FLASK_SQLALCHEMY_EXCEPT, error.message)
-
-    @app.errorhandler(AccessTokenCredentialsError)
-    def access_token_error(error):
-        """
-            xiaowei.song 2017-3-9
-
-            处理access token认证异常错误
-        """
-        return res(ResponseCode.TOKEN_CREDENTIALS_EXCEPT, error.message)
 
 
 def configure_logging(app):
@@ -428,4 +425,4 @@ def configure_logging(app):
 
 
 if __name__ == '__main__':
-    app.run(threaded=True, host='0.0.0.0', port=8000)  # 默认不填写的话，是5000端口；
+    pass

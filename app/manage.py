@@ -11,29 +11,21 @@
           and less confusing.
 
 """
-from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import print_function
 from __future__ import unicode_literals
 
-import sys, os
+import os
+import sys
 from configparser import ConfigParser
 
-from flask_migrate import upgrade
-from flask_script import (Manager, Shell, Server, prompt, prompt_pass,
-                          prompt_bool)
+from flask_migrate import upgrade, MigrateCommand
+from flask_script import (Manager, Server, prompt_bool)
 from sqlalchemy.exc import IntegrityError, OperationalError
 from werkzeug.utils import import_string
 
 from app.flask_main import create_app
-from app.my_extensions import db, plugin_manager
-
-PY2 = sys.version_info[0] == 2
-
-# 针对python2情况，设置默认编码为UTF-8
-if PY2:
-    reload(sys)
-    sys.setdefaultencoding('utf8')
-
+from app.my_extensions import db
 
 # 假如存在开发配置，则使用开发模式，否则默认模式配置
 try:
@@ -46,10 +38,10 @@ manager = Manager(app)
 
 # 运行本地服务
 manager.add_command("runserver", Server("localhost", port=5000))
-# manager.add_command("runserver", Server(app.config["HOST"], port=app.config["PORT"], passthrough_errors=True))
+manager.add_command("runserver", Server(app.config["HOST"], port=app.config["PORT"], passthrough_errors=True))
 
 # 迁移数据库命令
-# manager.add_command('db', MigrateCommand)
+manager.add_command('db', MigrateCommand)
 
 
 @manager.option('-s', '--system_environments', dest="system_environments", default=None)

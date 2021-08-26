@@ -17,12 +17,8 @@ Base = declarative_base()
 class ProjectModel(Base):
     __tablename__ = 'project'
 
-    __table_args__ = {
-        'mysql_engine': 'InnoDB',
-        'mysql_charset': 'utf8mb4'
-    }
-    track_id = db.Column(BigInteger)
-    distinct_id = db.Column(db.String(64))
+    track_id = db.Column(db.BigInteger(), primary_key=True)
+    distinct_id = db.Column(db.String(64), primary_key=True)
     lib = db.Column(db.String(255))
     event = db.Column(db.String(255))
     type_ = db.Column('type', db.String(255))
@@ -53,10 +49,6 @@ class ProjectModel(Base):
 class ProjectDeviceModel(Base):
     __tablename__ = 'project_device'
 
-    __table_args__ = {
-        'mysql_engine': 'InnoDB',
-        'mysql_charset': 'utf8mb4'
-    }
     distinct_id = db.Column(db.String(64), primary_key=True)
     lib = db.Column(db.String(255))
     device_id = db.Column(db.String(255))
@@ -93,18 +85,18 @@ class ProjectDeviceModel(Base):
     screen_orientation = db.Column(db.String(64))
     gps_latitude = db.Column(db.Numeric(11, 7))
     gps_longitude = db.Column(db.Numeric(11, 7))
-    first_visit_time = db.Column(db.db.DateTime)
+    first_visit_time = db.Column(db.DateTime)
     first_referrer = db.Column(db.String(2048))
     first_referrer_host = db.Column(db.String(512))
     first_browser_language = db.Column(db.String(128))
     first_browser_charset = db.Column(db.String(128))
     first_search_keyword = db.Column(db.String(768))
     first_traffic_source_type = db.Column(db.String(255))
-    utm_content = db.Column(db.String(768), key=True)
-    utm_campaign = db.Column(db.String(768), key=True)
-    utm_medium = db.Column(db.String(768), key=True)
-    utm_term = db.Column(db.String(768), key=True)
-    utm_source = db.Column(db.String(768), key=True)
+    utm_content = db.Column(db.String(768), index=True)
+    utm_campaign = db.Column(db.String(768), index=True)
+    utm_medium = db.Column(db.String(768), index=True)
+    utm_term = db.Column(db.String(768), index=True)
+    utm_source = db.Column(db.String(768), index=True)
     latest_utm_content = db.Column(db.String(768))
     latest_utm_campaign = db.Column(db.String(768))
     latest_utm_medium = db.Column(db.String(768))
@@ -114,21 +106,17 @@ class ProjectDeviceModel(Base):
     latest_referrer_host = db.Column(db.String(512))
     latest_search_keyword = db.Column(db.String(768))
     latest_traffic_source_type = db.Column(db.String(255))
-    created_at = db.Column(Integer, key=True)
+    created_at = db.Column(Integer, index=True)
     updated_at = db.Column(Integer)
 
 
 class ProjectUserModel(Base):
     __tablename__ = 'project_user'
 
-    __table_args__ = {
-        'mysql_engine': 'InnoDB',
-        'mysql_charset': 'utf8mb4'
-    }
-    distinct_id = db.Column(db.String(64), key=True, primary_key=True)
+    distinct_id = db.Column(db.String(64), index=True, primary_key=True)
     lib = db.Column(db.String(255), primary_key=True)
-    map_id = db.Column(db.String(200), key=True, primary_key=True)
-    original_id = db.Column(db.String(255), key=True, primary_key=True)
+    map_id = db.Column(db.String(200), index=True, primary_key=True)
+    original_id = db.Column(db.String(255), index=True, primary_key=True)
     user_id = db.Column(db.String(255))
     all_user_profile = db.Column(db.String(255))
     created_at = db.Column(Integer)
@@ -138,10 +126,6 @@ class ProjectUserModel(Base):
 class ProjectPropertiesModel(Base):
     __tablename__ = 'project_properties'
 
-    __table_args__ = {
-        'mysql_engine': 'InnoDB',
-        'mysql_charset': 'utf8mb4'
-    }
     lib = db.Column(db.String(255), primary_key=True)
     remark = db.Column(db.String(255), primary_key=True)
     event = db.Column(db.String(255), primary_key=True)
@@ -153,20 +137,4 @@ class ProjectPropertiesModel(Base):
     created_at = db.Column(Integer())
     updated_at = db.Column(Integer())
 
-
-class ProjectUserModel(Base):
-    __tablename__ = 'project_user'
-
-    __table_args__ = {
-        'mysql_engine': 'InnoDB',
-        'mysql_charset': 'utf8mb4'
-    }
-    distinct_id = db.Column(db.String(255), primary_key=True)
-    lib = db.Column(db.String(255), primary_key=True)
-    map_id = db.Column(db.String(255), primary_key=True)
-    original_id = db.Column(db.String(200), primary_key=True)
-    user_id = db.Column(db.String(255))
-    all_user_profile = db.Column(db.JSON())
-    created_at = db.Column(Integer())
-    updated_at = db.Column(Integer())
 

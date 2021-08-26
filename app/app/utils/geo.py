@@ -3,7 +3,7 @@
 # wechat: Ben_Xiaobai
 import sys
 
-from flask import current_app, g
+from flask import current_app, _app_ctx_stack
 
 sys.path.append("../geoip/")
 sys.setrecursionlimit(10000000)
@@ -12,24 +12,58 @@ import geoip2.database
 import json
 
 
-def get_geo_city_reader():
-    """全局注册geo_city_reader
-    :return:
-    """
-    if 'geo_city_reader' not in g:
-        g.geo_city_reader = geoip2.database.Reader(current_app.config['GEO_LITE2CITY_FILE'])
+class GeoCityReader(object):
+    def __init__(self, app=None):
+        self.app = app
+        if app is not None:
+            self.init_app(app)
 
-    return g.geo_city_reader
+    def init_app(self, app):
+        app.teardown_appcontext(self.teardown)
+
+    def create_reader(self):
+        return geoip2.database.Reader(current_app.config['GEO_LITE2CITY_FILE'])
+
+    def teardown(self, exception):
+        ctx = _app_ctx_stack.top
+        if hasattr(ctx, 'geo_city_reader'):
+            ctx.geo_city_reader.close()
+            current_app.logger.info('正常关闭geo_city_reader实例...')
+
+    @property
+    def reader(self):
+        ctx = _app_ctx_stack.top
+        if ctx is not None:
+            if not hasattr(ctx, 'geo_city_reader'):
+                ctx.geo_city_reader = self.create_reader()
+            return ctx.geo_city_reader
 
 
-def get_geo_asn_reader():
-    """全局注册geo_city_reader
-    :return:
-    """
-    if 'geo_asn_reader' not in g:
-        g.geo_asn_reader = geoip2.database.Reader(current_app.config['GEO_LITE2ASN_FILE'])
+class GeoAsnReader(object):
+    def __init__(self, app=None):
+        self.app = app
+        if app is not None:
+            self.init_app(app)
 
-    return g.geo_asn_reader
+    def init_app(self, app):
+        app.teardown_appcontext(self.teardown)
+
+    def create_reader(self):
+        return geoip2.database.Reader(current_app.config['GEO_LITE2ASN_FILE'])
+
+    def teardown(self, exception):
+        ctx = _app_ctx_stack.top
+        if hasattr(ctx, 'geo_asn_reader'):
+            ctx.geo_asn_reader.close()
+            current_app.logger.info('正常关闭geo_asn_reader实例...')
+
+    @property
+    def reader(self):
+        ctx = _app_ctx_stack.top
+        if ctx is not None:
+            if not hasattr(ctx, 'geo_asn_reader'):
+                ctx.geo_asn_reader = self.create_reader()
+            return ctx.geo_asn_reader
 
 
 def get_address(ip='8.8.8.8'):
@@ -39,8 +73,9 @@ def get_address(ip='8.8.8.8'):
     :return: json对象，地址信息
     """
     response = None
+    from app.my_extensions import geo_city_reader
     try:
-        response = get_geo_city_reader().city(ip)
+        response = geo_city_reader.reader.city(ip)
     except Exception as e:
         current_app.logger.error(f'ip： {ip}获取地址失败，错误原因为: ', e)
     raw_json = json.dumps(response.raw if response else {}, ensure_ascii=False)
@@ -54,8 +89,9 @@ def get_asn(ip='8.8.8.8'):
         :return: json对象，地址信息
     """
     response = None
+    from app.my_extensions import geo_asn_reader
     try:
-        response = get_geo_asn_reader.asn(ip)
+        response = geo_asn_reader.reader.asn(ip)
     except Exception as e:
         current_app.logger.error(f'ip： {ip}获取地ip asn失败，错误原因为: ', e)
     raw_json = json.dumps(response.raw if response else {}, ensure_ascii=False)

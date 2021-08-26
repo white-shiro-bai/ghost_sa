@@ -7,17 +7,39 @@ from flask import g, current_app
 
 sys.path.append("./")
 sys.setrecursionlimit(10000000)
+from flask import _app_ctx_stack
 from kafka import KafkaProducer, KafkaConsumer
 import json
 from app.configs import kafka
 from app.configs import admin
 
 
-def get_kafka_producer():
-    if 'kafka_producer' not in g:
-        g.kafka_producer = KafkaProducer(bootstrap_servers=current_app.config['BOOTSTRAP_SERVERS'])
+class CreateKafkaProducer(object):
+    def __init__(self, app=None):
+        self.app = app
+        if app is not None:
+            self.init_app(app)
 
-    return g.kafka_producer
+    def init_app(self, app):
+        app.teardown_appcontext(self.teardown)
+
+    def create_producer(self):
+        return KafkaProducer(bootstrap_servers=current_app.config['BOOTSTRAP_SERVERS'])
+
+    def teardown(self, exception):
+        ctx = _app_ctx_stack.top
+        if hasattr(ctx, 'kafka_producer'):
+            # 超时50s关闭
+            ctx.kafka_producer.close(timeout=50)
+            current_app.logger.info('正常关闭kafka生产者实例...')
+
+    @property
+    def producer(self):
+        ctx = _app_ctx_stack.top
+        if ctx is not None:
+            if not hasattr(ctx, 'kafka_producer'):
+                ctx.kafka_producer = self.create_producer()
+            return ctx.kafka_producer
 
 
 def insert_message_to_kafka(key, msg):
@@ -25,10 +47,12 @@ def insert_message_to_kafka(key, msg):
         key = key.encode()
     else:
         key = None
-    get_kafka_producer().send(topic=kafka.kafka_topic, key=key, value=json.dumps(msg).encode())
+    from app.my_extensions import kafka_producer
+    kafka_producer.producer.send(topic=kafka.kafka_topic, key=key, value=json.dumps(msg).encode())
 
 
-kafka_offset_reset = 'earliest' #latest,earliest,none 首次拉取kafka订阅的模式
+#latest,earliest,none 首次拉取kafka订阅的模式
+kafka_offset_reset = 'earliest'
 
 
 def get_message_from_kafka():

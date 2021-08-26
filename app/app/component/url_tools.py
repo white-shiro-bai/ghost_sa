@@ -4,9 +4,6 @@
 import base64
 import gzip
 
-from app.component.api import insert_data
-from app.utils.geo import get_address, get_asn
-
 try:
     import simplejson as json
 except ImportError as _:

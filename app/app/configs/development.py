@@ -6,9 +6,6 @@
     development configuration.
     :copyright: (c) 2016 by the HDDATA Team.
 """
-from datetime import timedelta
-
-from celery.schedules import crontab
 
 from app.configs.default import DefaultConfig
 

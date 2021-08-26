@@ -6,11 +6,14 @@
 from logging.handlers import SMTPHandler
 
 from flask import json
-from flask_sqlalchemy import (SQLAlchemy, SignallingSession, SessionBase)
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_plugins import PluginManager
-from flask_wtf.csrf import CsrfProtect
+from flask_sqlalchemy import (SQLAlchemy)
+from flask_wtf.csrf import CSRFProtect
+
+from app.component.kafka_op import CreateKafkaProducer
+from app.utils.geo import GeoCityReader, GeoAsnReader
 
 """
     xiaowei.song 2016-7-13
@@ -20,42 +23,8 @@ from flask_wtf.csrf import CsrfProtect
     ref: https://gist.github.com/alexmic/7857543
 """
 
-
-class _SignallingSession(SignallingSession):
-    """A subclass of `SignallingSession` that allows for `binds` to be specified
-    in the `options` keyword arguments.
-    """
-
-    def __init__(self, db_, autocommit=False, autoflush=True, **options):
-        self.app = db_.get_app()
-        self._model_changes = {}
-        self.emit_modification_signals = self.app.config['SQLALCHEMY_TRACK_MODIFICATIONS']
-
-        bind = options.pop('bind', None)
-        if bind is None:
-            bind = db_.engine
-
-        binds = options.pop('binds', None)
-        if binds is None:
-            binds = db_.get_binds(self.app)
-
-        SessionBase.__init__(self,
-                             autocommit=autocommit,
-                             autoflush=autoflush,
-                             bind=bind,
-                             binds=binds,
-                             **options)
-
-
-class _SQLAlchemy(SQLAlchemy):
-    """A subclass of `SQLAlchemy` that uses `_SignallingSession`."""
-
-    def create_session(self, options):
-        return _SignallingSession(self, **options)
-
-
 # Database
-db = _SQLAlchemy()
+db = SQLAlchemy()
 
 # Login
 login_manager = LoginManager()
@@ -122,7 +91,7 @@ migrate = Migrate()
 plugin_manager = PluginManager()
 
 # CSRF
-csrf = CsrfProtect()
+csrf = CSRFProtect()
 
 
 #
@@ -140,3 +109,13 @@ class NonASCIIJsonEncoder(json.JSONEncoder):
     def __init__(self, **kwargs):
         kwargs['ensure_ascii'] = False
         super(NonASCIIJsonEncoder, self).__init__(**kwargs)
+
+
+# geo_city_reader
+geo_city_reader = GeoCityReader()
+
+# geo_asn_reader
+geo_asn_reader = GeoAsnReader()
+
+# kafka_producer
+kafka_producer = CreateKafkaProducer()
