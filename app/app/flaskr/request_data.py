@@ -3,7 +3,10 @@
 """
     鬼策接收数据模型
 """
-from app.flaskr.models import ProjectModel, ProjectDeviceModel
+import json
+import time
+
+from app.flaskr.models import ProjectModel, ProjectDeviceModel, ProjectPropertiesModel, ProjectUserModel
 
 
 class RequestData(object):
@@ -35,8 +38,6 @@ class RequestData(object):
         self.ua_language = ""
         self.ip_is_good = 0
         self.ip_asn_is_good = 0
-        self.created_at = ""
-        self.updated_at = ""
 
         self.track_id = ""
         self.distinct_id = ""
@@ -86,6 +87,19 @@ class RequestData(object):
         self.first_browser_charset = ""
         self.first_search_keyword = ""
         self.first_traffic_source_type = ""
+
+        self.map_id = ''
+        self.original_id = ''
+        self.user_id = ''
+        self.all_user_profile = ''
+
+        created_at = int(time.time())
+        dt = time.strftime("%Y-%m-%d", created_at)
+        hour = int(time.strftime("%H", created_at))
+        self.created_at = created_at
+        self.updated_at = created_at
+        self.dt = dt
+        self.hour = hour
 
     def set_ua_properties(self, user_agent, ua_platform, ua_browser, ua_version):
         """设置ua属性.
@@ -209,6 +223,17 @@ class RequestData(object):
         self.first_search_keyword = data_properties.get('$first_search_keyword')
         self.first_traffic_source_type = data_properties.get('$first_traffic_source_type')
 
+        # 用户个人信息使用
+        self.map_id = self.data.get('map_id', '')
+        self.original_id = self.data.get('original_id', '')
+        if 'userId' in data_properties:
+            self.user_id = data_properties.get('userId')
+        elif 'user_id' in data_properties:
+            self.user_id = data_properties.get('user_id')
+        elif 'uid' in data_properties:
+            self.user_id = data_properties.get('uid')
+        self.all_user_profile = json.dumps(data_properties) if self.type_ == 'profile_set' else ''
+
     def to_project_model(self):
         """将request_data转换成project_model
         :return:
@@ -242,6 +267,8 @@ class RequestData(object):
         project_model.referrer = self.referrer
         project_model.remark = self.remark
         project_model.created_at = self.created_at
+        project_model.dt = self.hr
+        project_model.hour = self.hour
 
     def to_project_device_model(self):
         """将request_data转换成project_device
@@ -276,6 +303,37 @@ class RequestData(object):
         project_device_model.referrer = self.referrer
         project_device_model.remark = self.remark
         project_device_model.created_at = self.created_at
+        project_device_model.dt = self.dt
+        project_device_model.hour = self.hour
+
+    def to_project_properties_model(self):
+        """将request_data转换成project_properties
+        :return:
+        """
+        project_properties_model = ProjectPropertiesModel()
+        project_properties_model.lib = self.lib
+        project_properties_model.event = self.event
+        project_properties_model.remark = self.remark
+        data_properties = self.data.get('properties')
+        project_properties_model.properties = data_properties.keys()
+        project_properties_model.properties_len = len(data_properties.keys())
+        project_properties_model.total_count = 1
+        project_properties_model.created_at = self.created_at
+        project_properties_model.updated_at = self.created_at
+
+    def to_project_user_model(self):
+        """将request_data转换成project_user
+        :return:
+        """
+        project_user_model = ProjectUserModel()
+        project_user_model.distinct_id = self.distinct_id
+        project_user_model.lib = self.lib
+        project_user_model.map_id = self.map_id
+        project_user_model.original_id = self.original_id
+        project_user_model.user_id = self.user_id
+        project_user_model.all_user_profile = self.all_user_profile
+        project_user_model.created_at = self.created_at
+        project_user_model.updated_at = self.created_at
 
     def update_project_device_model(self, project_device_model_db):
         if self.ip_is_good == 1:
@@ -430,4 +488,56 @@ class RequestData(object):
 
         if self.latest_traffic_source_type:
             project_device_model_db.latest_traffic_source_type = self.latest_traffic_source_type
+
+        project_device_model_db.dt = self.dt
+        project_device_model_db.hour = self.hour
+        project_device_model_db.updated_at = self.updated_at
+
+    def update_project_properties_model(self, project_properties_model_db):
+        if project_properties_model_db.properties_len < len(self.data.keys()):
+            project_properties_model_db.properties_len = len(self.data.keys())
+            project_properties_model_db.properties = self.data.keys()
+
+        project_properties_model_db.total_count += 1
+        project_properties_model_db.lastinsert_at = self.updated_at
+
+    def to_kafka_msg(self):
+        kafka_msg = {
+            'group': 'event_track',
+            'timestamp': self.created_at,
+            'data': {
+                'project': self.project,
+                'data_decode': self.data,
+                'User_Agent': self.user_agent,
+                'Host': self.host,
+                'Connection': self.connection,
+                'Cache_Control': self.cache_control,
+                'Accept': self.accept,
+                'Accept_Encoding': self.accept_encoding,
+                'Accept_Language': self.accept_language,
+                'ip': self.ip,
+                'ip_city': self.ip_city,
+                'ip_asn': self.ip_asn,
+                'url': self.url,
+                'referrer': self.referrer,
+                'remark': self.remark,
+                'ua_platform': self.ua_platform,
+                'ua_browser': self.ua_browser,
+                'ua_version': self.ua_version,
+                'ua_language': self.ua_language,
+                'ip_is_good': self.ip_is_good,
+                'ip_asn_is_goods': self.ip_asn_is_good,
+                'created_at': self.created_at,
+                'updated_at': self.updated_at,
+            }
+        }
+        return kafka_msg
+
+
+
+
+
+
+
+
 

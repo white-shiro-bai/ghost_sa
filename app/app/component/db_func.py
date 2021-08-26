@@ -5,7 +5,7 @@ import sys
 
 from flask import current_app
 
-from app.flaskr.models import ProjectModel, ProjectDeviceModel
+from app.flaskr.models import ProjectModel, ProjectDeviceModel, ProjectPropertiesModel, ProjectUserModel
 from app.my_extensions import db
 
 sys.path.append("..")
@@ -16,25 +16,12 @@ from app.component.db_op import do_tidb_exe,do_tidb_select
 from app.component.public_value import get_display_day
 from app.configs.export import write_to_log
 from app.configs import admin
-import traceback
 
 
-def insert_event(request_data, created_at=None):
-    if not created_at:
-        time_now = int(time.time())
-        dt = time.strftime("%Y-%m-%d", time.localtime())
-        hour = int(time.strftime("%H", time.localtime()))
-    else:
-        time_now = created_at
-        dt = time.strftime("%Y-%m-%d", time.localtime(created_at))
-        hour = int(time.strftime("%H", time.localtime(created_at)))
-
-    request_data.created_at = time_now
+def insert_event(request_data):
     table = request_data.project
     ProjectModel.__table__.name = f'{table}'
     project_model = request_data.to_project_model()
-    project_model.dt = dt
-    project_model.hour = hour
 
     db.session.add(project_model)
     # 事务
@@ -43,22 +30,13 @@ def insert_event(request_data, created_at=None):
     return 1
 
 
-def insert_device(request_data, created_at=None, updated_at=None):
+def insert_or_update_device(request_data):
     request_data.set_other_properties()
-
     count = insert_device_db(request_data)
     current_app.logger.info(f'插入或跟新device={count}条')
 
 
 def insert_device_db(request_data, created_at=None, updated_at=None):
-    if not created_at:
-        time_now = int(time.time())
-        dt = time.strftime("%Y-%m-%d", time.localtime())
-        hour = int(time.strftime("%H", time.localtime()))
-    else:
-        time_now = created_at
-        dt = time.strftime("%Y-%m-%d", time.localtime(created_at))
-        hour = int(time.strftime("%H", time.localtime(created_at)))
 
     table = request_data.project
     distinct_id = request_data.distinct_id
@@ -66,17 +44,11 @@ def insert_device_db(request_data, created_at=None, updated_at=None):
     project_device_model_db = ProjectDeviceModel.query.filter_by(distinct_id=distinct_id).first()
     if project_device_model_db is None:
         project_device_model_db = request_data.to_project_device_model()
-        project_device_model_db.dt = dt
-        project_device_model_db.hour = hour
         db.session.add(project_device_model_db)
     else:   # 更新非空字段信息
         request_data.update_project_device_model(project_device_model_db)
-        project_device_model_db.dt = dt
-        project_device_model_db.hour = hour
-        project_device_model_db.updated_at = time_now
 
     db.session.commit()
-
     return 1
 
 
@@ -90,19 +62,49 @@ def insert_user_db(project,distinct_id,lib,map_id,original_id,user_id,all_user_p
         date = time.strftime("%Y-%m-%d", time.localtime(created_at))
         hour = int(time.strftime("%H", time.localtime(created_at)))
     sql = """set @@tidb_disable_txn_auto_retry = 0;set @@tidb_retry_limit = 10;insert HIGH_PRIORITY into `{table}_user` (`distinct_id`,`lib`,`map_id`,`original_id`,`user_id`,`all_user_profile`,`created_at`,`updated_at`) values (%(distinct_id)s,%(lib)s,%(map_id)s,%(original_id)s,%(user_id)s,%(all_user_profile)s,%(created_at)s,%(updated_at)s) ON DUPLICATE KEY UPDATE `updated_at`={updated_at}{update_params}""".format(table=project,update_params=update_params,updated_at=timenow)#.replace("'None'","Null").replace("None","Null")
-    key={'distinct_id':distinct_id,'lib':lib,'map_id':map_id,'original_id':original_id,'user_id':user_id,'all_user_profile':all_user_profile,'created_at':timenow,'updated_at':timenow}
+    key = {'distinct_id':distinct_id,'lib':lib,'map_id':map_id,'original_id':original_id,'user_id':user_id,'all_user_profile':all_user_profile,'created_at':timenow,'updated_at':timenow}
     result = do_tidb_exe(sql=sql, args=key)
     return result[1]
 
 
-def insert_properties(project,lib,remark,event,properties,properties_len,created_at=None,updated_at=None):
-    if created_at is None:
-        created_at = int(time.time())
-    if updated_at is None:
-        updated_at = int(time.time())
-    sql = """set @@tidb_disable_txn_auto_retry = 0;set @@tidb_retry_limit = 10;insert HIGH_PRIORITY into `{table}_properties` (`lib`,`remark`,`event`,`properties`,`properties_len`,`created_at`,`updated_at`,`total_count`,`lastinsert_at`) values ( %(lib)s,%(remark)s,%(event)s,%(properties)s,%(properties_len)s,%(created_at)s,%(updated_at)s,1,%(updated_at)s) ON DUPLICATE KEY UPDATE `properties`=if(properties_len<%(properties_len)s,%(properties)s,properties),`properties_len`=if(properties_len<%(properties_len)s,%(properties_len)s,properties_len),updated_at=if(properties_len<%(properties_len)s,%(updated_at)s,updated_at),total_count=total_count+1,lastinsert_at=%(updated_at)s;""".format(table=project)
-    key = {'lib':lib,'remark':remark,'event':event,'properties':properties,'properties_len':properties_len,'created_at':created_at,'updated_at':updated_at}
-    result = do_tidb_exe(sql=sql, args=key)
+def insert_properties(request_data):
+    table = request_data.project
+    lib = request_data.lib
+    remark = request_data.remark
+    event = request_data.event
+
+    ProjectPropertiesModel.__table__.name = f'{table}_properties'
+    project_properties_model_db = ProjectPropertiesModel.query.filter_by(event=event, lib=lib, remark=remark).first()
+    if project_properties_model_db is None:
+        project_properties_model_db = request_data.to_project_device_model()
+        db.session.add(project_properties_model_db)
+    else:   # 更新非空字段信息
+        request_data.update_project_properties_model(project_properties_model_db)
+
+    db.session.commit()
+    current_app.logger.info(f'插入或更新事件属性数据成功， 数据为: {project_properties_model_db}')
+    return 1
+
+
+# def insert_user(project,data_decode,created_at=None):
+def insert_user(request_data):
+    table = request_data.project
+    distinct_id = request_data.distinct_id
+    lib = request_data.lib
+    map_id = request_data.map_id
+    original_id = request_data.original_id
+
+    ProjectUserModel.__table__.name = f'{table}_user'
+    project_user_model_db = ProjectUserModel.query.filter_by(distinct_id=distinct_id, lib=lib, map_id=map_id, original_id=original_id).first()
+    if project_user_model_db is None:
+        project_user_model_db = request_data.to_project_user_model()
+        db.session.add(project_user_model_db)
+    else:  # 更新非空字段信息
+        request_data.update_project_properties_model(project_user_model_db)
+
+    db.session.commit()
+    current_app.logger.info(f'插入或更新用户属性数据成功， 数据为: {project_user_model_db}')
+    return 1
 
 
 def get_long_url_from_short(short_url):
@@ -118,6 +120,7 @@ def get_long_url_from_short(short_url):
             return '','expired'
     else:
         return '','fail'
+
 
 def check_long_url(long_url):
     timenow = int(time.time())

@@ -265,11 +265,6 @@ class DefaultConfig(object):
     # 设置用户操作日志开关
     SERVICE_LOG_ENABLED = False
 
-    # access token配置
-    CLIENT_NAME = 'test'
-    CLIENT_ID = '395b6cd1-64db-4de4-973b-a968288b3204'
-    CLIENT_SECRET = '45a113ac-c7f2-30b0-90a5-a399ab912716'
-
     # 向外发送回调请求时的UA标识
     WHO_AM_I = 'ghost_sa'
 
@@ -337,3 +332,16 @@ class DefaultConfig(object):
     ACCESS_CONTROL_DISTINCT_ID_PER_IP = 4
     # ip组触发进入黑名单的量是ip的阈值的倍数
     ACCESS_CONTROL_IP_PER_IP_GROUP = 3
+
+    USE_PROPERTIES = True  # True时，会插入properties表，这个表不是必须的，只是方便提取数据时快速找到埋点里包含的变量。
+
+    # Kafka服务器的地址
+    BOOTSTRAP_SERVERS = ['172.18.5.17:9092', '172.18.5.15:9092', '172.18.5.16:9092']
+
+    # Kafka群组地址，同一群组共享一个Offset，不会重复，也不会漏。
+    CLIENT_GROUP_ID = 'your_group_id_here'
+    # Kafka的Topic
+    KAFKA_TOPIC = 'your_topic_here'
+    CLIENT_ID = 'get_message_from_kafka'
+    # latest,earliest,none
+    KAFKA_OFFSET_RESET = 'latest'

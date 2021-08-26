@@ -20,7 +20,19 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b6346c84-2a36-4f2a-b4da-9be6806931d8" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/manage.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/component/api.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/component/api.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/component/api_tools.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/component/api_tools.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/component/db_func.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/component/db_func.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/component/kafka_op.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/component/kafka_op.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/configs/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/configs/admin.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/configs/default.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/configs/default.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/configs/kafka.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/configs/kafka.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/flask_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/flask_main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/flaskr/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/flaskr/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/flaskr/request_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/flaskr/request_data.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/flaskr/sa.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/flaskr/sa.py" afterDir="false" />
     </list>
     <list id="a9b1d2d1-d349-4bc3-a37e-8d0b9ba7c59d" name="Revert &quot;'发送kafka捕获异常'&quot;" comment="Revert &quot;'发送kafka捕获异常'&quot;&#10;&#10;This reverts commit 67db3a72" />
     <option name="SHOW_DIALOG" value="false" />
@@ -62,6 +74,7 @@
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="E:\workspace\ghost_sa\app" />
       <recent name="E:\data-workspace\ghost_sa\app\app" />
       <recent name="E:\data-workspace\ghost_sa\app\app\utils" />
       <recent name="E:\data-workspace\ghost_sa\app\app\configs" />
@@ -70,7 +83,28 @@
       <recent name="E:\workspace\ghost_sa\app\app\utils" />
     </key>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Python.manage">
+    <configuration name="manage" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="app" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/manage.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="scratch" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="app" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -94,6 +128,7 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.manage" />
         <item itemvalue="Python.scratch" />
       </list>
     </recent_temporary>
@@ -161,6 +196,16 @@
     <option name="localTasksCounter" value="8" />
     <servers />
   </component>
+  <component name="Vcs.Log.History.Properties">
+    <option name="COLUMN_ID_ORDER">
+      <list>
+        <option value="Default.Root" />
+        <option value="Default.Author" />
+        <option value="Default.Date" />
+        <option value="Default.Subject" />
+      </list>
+    </option>
+  </component>
   <component name="Vcs.Log.Tabs.Properties">
     <option name="TAB_STATES">
       <map>
@@ -178,19 +223,5 @@
     <MESSAGE value="#Updates#开始改造鬼策平台，优化鬼策平台" />
     <MESSAGE value="#Updates#开始优化解析数据api模块" />
     <option name="LAST_COMMIT_MESSAGE" value="#Updates#开始优化解析数据api模块" />
-  </component>
-  <component name="WindowStateProjectService">
-    <state x="2478" y="258" key="CommitChangelistDialog2" timestamp="1629729102269">
-      <screen x="1920" y="171" width="1920" height="1040" />
-    </state>
-    <state x="2478" y="258" key="CommitChangelistDialog2/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629729102269" />
-    <state width="498" height="446" key="SwitcherDM" timestamp="1629727227694">
-      <screen x="1920" y="171" width="1920" height="1040" />
-    </state>
-    <state width="498" height="446" key="SwitcherDM/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629727227694" />
-    <state x="2472" y="424" key="Vcs.Push.Dialog.v2" timestamp="1629729105926">
-      <screen x="1920" y="171" width="1920" height="1040" />
-    </state>
-    <state x="2472" y="424" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.171.1920.1040@1920.171.1920.1040" timestamp="1629729105926" />
   </component>
 </project>

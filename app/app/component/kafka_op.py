@@ -2,6 +2,9 @@
 # author: unknowwhite@outlook.com
 # wechat: Ben_Xiaobai
 import sys
+
+from flask import g, current_app
+
 sys.path.append("./")
 sys.setrecursionlimit(10000000)
 from kafka import KafkaProducer, KafkaConsumer
@@ -10,8 +13,11 @@ from app.configs import kafka
 from app.configs import admin
 
 
-if admin.use_kafka is True:
-    producer = KafkaProducer(bootstrap_servers=kafka.bootstrap_servers)
+def get_kafka_producer():
+    if 'kafka_producer' not in g:
+        g.kafka_producer = KafkaProducer(bootstrap_servers=current_app.config['BOOTSTRAP_SERVERS'])
+
+    return g.kafka_producer
 
 
 def insert_message_to_kafka(key, msg):
@@ -19,7 +25,7 @@ def insert_message_to_kafka(key, msg):
         key = key.encode()
     else:
         key = None
-    producer.send(topic=kafka.kafka_topic, key=key, value=json.dumps(msg).encode())
+    get_kafka_producer().send(topic=kafka.kafka_topic, key=key, value=json.dumps(msg).encode())
 
 
 kafka_offset_reset = 'earliest' #latest,earliest,none 首次拉取kafka订阅的模式

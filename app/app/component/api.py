@@ -15,9 +15,12 @@ import traceback
 import urllib.parse
 import json
 import os
-from app.component.db_func import insert_event,get_long_url_from_short, insert_shortcut_history,check_long_url,insert_shortcut,show_shortcut,count_shortcut,show_check,insert_properties,insert_user_db,show_project,read_mobile_ad_list,count_mobile_ad_list,read_mobile_ad_src_list,check_mobile_ad_url,insert_mobile_ad_list,distinct_id_query,insert_shortcut_read,query_access_control
+from app.component.db_func import insert_event, get_long_url_from_short, insert_shortcut_history, check_long_url, \
+    insert_shortcut, show_shortcut, count_shortcut, show_check, insert_properties, insert_user_db, show_project, \
+    read_mobile_ad_list, count_mobile_ad_list, read_mobile_ad_src_list, check_mobile_ad_url, insert_mobile_ad_list, \
+    distinct_id_query, insert_shortcut_read, query_access_control, insert_or_update_device
 from app.utils.geo import get_address,get_asn
-from app.component.api_tools import insert_device,encode_urlutm,insert_user,recall_dsp,return_dsp_utm,gen_token
+from app.component.api_tools import encode_urlutm,insert_user,recall_dsp,return_dsp_utm,gen_token
 from app.configs.export import write_to_log
 from app.component.shorturl import get_suoim_short_url
 from app.configs import admin
@@ -50,7 +53,7 @@ def insert_data(request_data, use_kafka=admin.use_kafka):
     track_id = data_decode.get('_track_id', 0)
 
     distinct_id = data_decode.get('distinct_id', '')
-    event = data_decode.get('event')
+    event = data_decode.get('event', '')
     # event类型
     type_1 = data_decode.get('type')
 
@@ -61,54 +64,49 @@ def insert_data(request_data, use_kafka=admin.use_kafka):
 
     access_control_cdn_mode_write = current_app.config['ACCESS_CONTROL_CDN_MODE_WRITE']
     if not current_app.config['USE_KAFKA']:
+        if event not in ('cdn_mode', 'cdn_mode2') or access_control_cdn_mode_write in ('event', 'device'):
+            count = insert_event(request_data)
 
-        try:
+        if event not in ('cdn_mode', 'cdn_mode2') or access_control_cdn_mode_write == 'device':
+            count = insert_or_update_device(request_data)
 
-            if event not in ('cdn_mode', 'cdn_mode2') or access_control_cdn_mode_write in ('event', 'device'):
-                count = insert_event(request_data)
+        user_properties = current_app.config['USE_PROPERTIES']
+        if event not in ('', 'cdn_mode', 'cdn_mode2') and user_properties:
+            insert_properties(request_data)
 
-            if event not in ('cdn_mode', 'cdn_mode2') or access_control_cdn_mode_write == 'device':
-                count = insert_device(request_data)
+        if type_1 in ('profile_set', 'track_signup', 'profile_set_once'):
+            insert_user(request_data)
 
-            properties_key = []
-            for keys in data_decode['properties'].keys():
-                properties_key.append(keys)
-            if event and admin.use_properties is True and event != 'cdn_mode' and event != 'cdn_mode2':
-                insert_properties(project=project,lib=lib,remark=remark,event=event,properties=json.dumps(properties_key),properties_len=len(data_decode['properties'].keys()),created_at=created_at,updated_at=updated_at)
-            if type_1 == 'profile_set' or type_1 == 'track_signup' or type_1 =='profile_set_once':
-                insert_user(project=project,data_decode=data_decode,created_at=created_at)
-            if event == admin.aso_dsp_callback_event:
-                ids = []
-                if "anonymous_id" in data_decode and data_decode["anonymous_id"] not in ids:
-                    ids.append(data_decode["anonymous_id"])
-                if "$device_id" in data_decode["properties"] and data_decode["properties"]["$device_id"] not in ids:
-                    ids.append(data_decode["properties"]["$device_id"])
-                if "imei" in data_decode["properties"] and data_decode["properties"]["imei"] not in ids:
-                    ids.append(data_decode["properties"]["imei"])
-                if "idfa" in data_decode["properties"] and data_decode["properties"]["idfa"] not in ids:
-                    ids.append(data_decode["properties"]["idfa"])
-                for did in ids:
-                    insert_device_count = return_dsp_utm(project=project,distinct_id=distinct_id,device_id=did,created_at=created_at)
-                    print('更新地址来源',insert_device_count)
-                if admin.aso_dsp_callback == True:
-                    if data_decode['properties']['$is_first_day'] is True or admin.aso_dsp_callback_history is True:
-                        for did in ids:
-                            dsp_count = recall_dsp(project=project,device_id=did,created_at=created_at,ids=ids)
-                            print('回调DSP',dsp_count)
-            if admin.independent_listener == False:
-                tr = trigger(project=project,data_decode=data_decode)
-                tr.play_all()
-            if admin.access_control_commit_mode =='none_kafka':
-                ac_none_kafka.traffic(project=project,event=event,ip_commit=ip,distinct_id_commit=distinct_id,add_on_key_commit=data_decode['properties'][admin.access_control_add_on_key] if admin.access_control_add_on_key in data_decode['properties'] else None)
-        except Exception:
-            error = traceback.format_exc()
-            write_to_log(filename='api',defname='insert_data',result=error)
+        # TODO 改造后续代码
+        # if event == admin.aso_dsp_callback_event:
+        #     ids = []
+        #     if "anonymous_id" in data_decode and data_decode["anonymous_id"] not in ids:
+        #         ids.append(data_decode["anonymous_id"])
+        #     if "$device_id" in data_decode["properties"] and data_decode["properties"]["$device_id"] not in ids:
+        #         ids.append(data_decode["properties"]["$device_id"])
+        #     if "imei" in data_decode["properties"] and data_decode["properties"]["imei"] not in ids:
+        #         ids.append(data_decode["properties"]["imei"])
+        #     if "idfa" in data_decode["properties"] and data_decode["properties"]["idfa"] not in ids:
+        #         ids.append(data_decode["properties"]["idfa"])
+        #     for did in ids:
+        #         insert_device_count = return_dsp_utm(project=project,distinct_id=distinct_id,device_id=did,created_at=created_at)
+        #         print('更新地址来源',insert_device_count)
+        #     if admin.aso_dsp_callback == True:
+        #         if data_decode['properties']['$is_first_day'] is True or admin.aso_dsp_callback_history is True:
+        #             for did in ids:
+        #                 dsp_count = recall_dsp(project=project,device_id=did,created_at=created_at,ids=ids)
+        #                 print('回调DSP',dsp_count)
+        # if admin.independent_listener == False:
+        #     tr = trigger(project=project, data_decode=data_decode)
+        #     tr.play_all()
+        # if admin.access_control_commit_mode =='none_kafka':
+        #     ac_none_kafka.traffic(project=project,event=event,ip_commit=ip,distinct_id_commit=distinct_id,add_on_key_commit=data_decode['properties'][admin.access_control_add_on_key] if admin.access_control_add_on_key in data_decode['properties'] else None)
     else:
-        timenow = int(time.time())
-        timenow13 = int(round(time.time() * 1000))
-        msg = {"group":"event_track","timestamp":timenow13,"data":{"project":project,"data_decode":data_decode,"User_Agent":User_Agent,"Host":Host,"Connection":Connection,"Pragma":Pragma,"Cache_Control":Cache_Control,"Accept":Accept,"Accept_Encoding":Accept_Encoding,"Accept_Language":Accept_Language,"ip":ip,"ip_city":ip_city,"ip_asn":ip_asn,"url":url,"referrer":referrer,"remark":remark,"ua_platform":ua_platform,"ua_browser":ua_browser,"ua_version":ua_version,"ua_language":ua_language,"ip_is_good":ip_is_good,"ip_asn_is_good":ip_asn_is_good,"created_at":timenow,"updated_at":timenow}}
-        insert_message_to_kafka(key=distinct_id ,msg=msg)
-    print(time.time()-start_time)
+        msg = request_data.to_kafka_msg()
+        insert_message_to_kafka(key=distinct_id, msg=msg)
+
+    cost_millisecond_time = time.time() - start_time
+    current_app.logger.info(f'耗时{cost_millisecond_time}毫秒')
 
 
 def get_data():
@@ -211,6 +209,7 @@ def get_datas():
         write_to_log(filename='api',defname='get_datas',result=error)
         return error
 
+
 def get_long(short_url):
     time1 = int(time.time()*1000)
     long_url,status = get_long_url_from_short(short_url=short_url)
@@ -236,6 +235,7 @@ def get_long(short_url):
         return '您查询的地址已过期'
     elif status == 'fail':
         return '您查询的解析不存在'
+
 
 def shortit():
     if 'org_url' in request.form:
@@ -279,6 +279,7 @@ def shortit():
     else:
         returnjson = {'result':'error','error':'参数不全'}
         return jsonify(returnjson)
+
 
 def show_short_cut_list():
     page = int(request.args.get('page')) if 'page' in request.args else 1
@@ -573,6 +574,7 @@ def check_exist_distinct_id():
             write_to_log(filename='api',defname='check_exist_distinct_id',result=error)
     else:
         return jsonify('参数不正确')
+
 
 def show_project_list():
     start_time = time.time()

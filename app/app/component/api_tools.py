@@ -58,8 +58,9 @@ def insert_user(project,data_decode,created_at=None):
         user_id = None
     all_user_profile = json.dumps(data_decode['properties']) if data_decode['type'] == 'profile_set' else None 
     update_content = []
+    # .format(user_id=user_id))
     if user_id:
-        update_content.append("user_id = %(user_id)s")#.format(user_id=user_id))
+        update_content.append("user_id = %(user_id)s")
     if all_user_profile:
         update_content.append("all_user_profile = %(all_user_profile)s")#.format(all_user_profile=all_user_profile))
     update_params = ''
@@ -90,6 +91,7 @@ def encode_urlutm(utm_source,utm_medium,utm_campaign,utm_content,utm_term):
         utm_list.append('utm_term='+str(urllib.parse.quote(utm_term)))
     url_add_on = '&'.join(utm_list).replace('%23','#')
     return url_add_on
+
 
 def recall_dsp(project,device_id,created_at,ids):
     history_count = find_recall_history(project=project,device_id=device_id,created_at=created_at)

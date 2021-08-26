@@ -152,3 +152,21 @@ class ProjectPropertiesModel(Base):
     access_control_threshold = db.Column(Integer())
     created_at = db.Column(Integer())
     updated_at = db.Column(Integer())
+
+
+class ProjectUserModel(Base):
+    __tablename__ = 'project_user'
+
+    __table_args__ = {
+        'mysql_engine': 'InnoDB',
+        'mysql_charset': 'utf8mb4'
+    }
+    distinct_id = db.Column(db.String(255), primary_key=True)
+    lib = db.Column(db.String(255), primary_key=True)
+    map_id = db.Column(db.String(255), primary_key=True)
+    original_id = db.Column(db.String(200), primary_key=True)
+    user_id = db.Column(db.String(255))
+    all_user_profile = db.Column(db.JSON())
+    created_at = db.Column(Integer())
+    updated_at = db.Column(Integer())
+
