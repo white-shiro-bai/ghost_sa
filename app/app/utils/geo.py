@@ -77,7 +77,7 @@ def get_address(ip='8.8.8.8'):
     try:
         response = geo_city_reader.reader.city(ip)
     except Exception as e:
-        current_app.logger.error(f'ip： {ip}获取地址失败，错误原因为: ', e)
+        current_app.logger.error(f'ip： {ip}获取地址失败，错误原因为: {e}')
     raw_json = json.dumps(response.raw if response else {}, ensure_ascii=False)
     ret_code = 1 if response else 0
     return raw_json, ret_code
@@ -93,7 +93,7 @@ def get_asn(ip='8.8.8.8'):
     try:
         response = geo_asn_reader.reader.asn(ip)
     except Exception as e:
-        current_app.logger.error(f'ip： {ip}获取地ip asn失败，错误原因为: ', e)
+        current_app.logger.error(f'ip： {ip}获取地ip asn失败，错误原因为: {e}')
     raw_json = json.dumps(response.raw if response else {}, ensure_ascii=False)
     ret_code = 1 if response else 0
     return raw_json, ret_code

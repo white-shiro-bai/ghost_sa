@@ -32,7 +32,7 @@ def get_post_datas():
         request_data = request.form.get('data')
         request_datas = request.form.get('data_list')
 
-    if hasattr(request, 'json'):
+    if hasattr(request, 'json') and request.json:
         json_data = request.json
         request_data = json_data.get('data')
         request_datas = json_data.get('data_list')
@@ -40,7 +40,8 @@ def get_post_datas():
     request_source_data = request_data if request_data else request_datas
     de64 = base64.b64decode(urllib.parse.unquote(request_source_data).encode('utf-8'))
     try:
-        request_target_data = json.loads(gzip.decompress(de64))
+        # request_target_data = json.loads(gzip.decompress(de64))
+        request_target_data = json.loads(de64)
     except Exception as e:
         current_app.logger.error(f'解码失败，原始数据为{request_source_data}, 使用json.loads(gzip.decompress(de64))解码失败，异常为：', e)
         raise e

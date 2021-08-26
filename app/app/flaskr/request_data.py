@@ -93,9 +93,11 @@ class RequestData(object):
         self.user_id = ''
         self.all_user_profile = ''
 
-        created_at = int(time.time())
-        dt = time.strftime("%Y-%m-%d", created_at)
-        hour = int(time.strftime("%H", created_at))
+        ct = time.time()
+        local_time = time.localtime(ct)
+        created_at = int(ct)
+        dt = time.strftime("%Y-%m-%d", local_time)
+        hour = int(time.strftime("%H", local_time))
         self.created_at = created_at
         self.updated_at = created_at
         self.dt = dt
@@ -267,7 +269,7 @@ class RequestData(object):
         project_model.referrer = self.referrer
         project_model.remark = self.remark
         project_model.created_at = self.created_at
-        project_model.dt = self.hr
+        project_model.dt = self.dt
         project_model.hour = self.hour
 
     def to_project_device_model(self):

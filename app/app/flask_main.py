@@ -6,9 +6,11 @@ import os
 import sys
 import time
 
+from MySQLdb.converters import NoneType
 from flask import Flask, g
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
+from sqlalchemy.orm.exc import UnmappedInstanceError
 
 from app.configs.code import ResponseCode
 from app.my_extensions import NonASCIIJsonEncoder, db, geo_city_reader, geo_asn_reader, kafka_producer
@@ -353,11 +355,11 @@ def configure_error_handlers(app):
 
             处理sqlqlchemy异常错误
         """
-        from _mysql_exceptions import OperationalError
-
+        from pymysql import OperationalError
         if not app.config['DEBUG'] and isinstance(error.orig, OperationalError):
             return res(ResponseCode.FLASK_SQLALCHEMY_EXCEPT, u"连接数据库操作异常，请联系管理员!")
-        return res(ResponseCode.FLASK_SQLALCHEMY_EXCEPT, error.message)
+        error_msg = error.args[0] if isinstance(error, UnmappedInstanceError) else error.msg
+        return res(ResponseCode.FLASK_SQLALCHEMY_EXCEPT, error_msg)
 
 
 def configure_logging(app):

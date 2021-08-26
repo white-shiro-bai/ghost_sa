@@ -55,12 +55,12 @@ def insert_data(request_data, use_kafka=admin.use_kafka):
     distinct_id = data_decode.get('distinct_id', '')
     event = data_decode.get('event', '')
     # event类型
-    type_1 = data_decode.get('type')
+    type_ = data_decode.get('type')
 
     lib = data_decode.get('lib', {}).get('$lib')
     if not lib:
         lib = data_decode.get('properties', {}).get('$lib')
-    request_data.set_common_properties(track_id=track_id, distinct_id=distinct_id, event=event)
+    request_data.set_common_properties(track_id=track_id, distinct_id=distinct_id, event=event, lib=lib, type_=type_)
 
     access_control_cdn_mode_write = current_app.config['ACCESS_CONTROL_CDN_MODE_WRITE']
     if not current_app.config['USE_KAFKA']:
@@ -74,7 +74,7 @@ def insert_data(request_data, use_kafka=admin.use_kafka):
         if event not in ('', 'cdn_mode', 'cdn_mode2') and user_properties:
             insert_properties(request_data)
 
-        if type_1 in ('profile_set', 'track_signup', 'profile_set_once'):
+        if type_ in ('profile_set', 'track_signup', 'profile_set_once'):
             insert_user(request_data)
 
         # TODO 改造后续代码

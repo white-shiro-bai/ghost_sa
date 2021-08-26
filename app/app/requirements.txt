@@ -11,3 +11,5 @@ flask-migrate==2.0.0
 flask-plugins==1.6.1
 flask-wtf==0.15.1
 flask-script==2.0.6
+mysqlclient==2.0.3
+Flask-MySQLdb==0.2.0

@@ -13,8 +13,8 @@ from app.utils.response import res
 sa_bp = Blueprint('sa', __name__)
 
 
+@sa_bp.route('/sa.gif', methods=('GET', 'POST'))
 @sa_bp.route('/sa', methods=('GET', 'POST'))
-@sa_bp.route('/sa.git', methods=('GET', 'POST'))
 def register():
     return get_data()
 
