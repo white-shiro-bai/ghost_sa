@@ -41,6 +41,8 @@ def res(code=ResponseCode.SUCCEED, msg=u"成功", level=None, data=None):
     # 兼容ghost_sa 返回html页面
     if current_app.config['IS_OPEN_SEARCH_CHILDREN'] and code == ResponseCode.URL_NOT_FOUND:
         return render_template(f'{code}.html'), code
+
+    current_app.logger.info(f'返回结果为: {result}')
     return jsonify(result)
 
 

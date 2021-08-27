@@ -17,7 +17,7 @@ class DevelopmentConfig(DefaultConfig):
     TESTING = False
 
     # 开发环境数据库配置
-    SQLALCHEMY_DATABASE_URI = 'mysql://developer:123456@10.237.43.115:3306/travelclouddev?charset=utf8'
+    SQLALCHEMY_DATABASE_URI = 'mysql://cg_mall:cg_mall%40123@172.18.3.106:3306/ghost_test?charset=utf8'
 
     # This will print all SQL statements
     SQLALCHEMY_ECHO = True

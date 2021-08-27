@@ -37,8 +37,8 @@ app = create_app(Config)
 manager = Manager(app)
 
 # 运行本地服务
-manager.add_command("runserver", Server("localhost", port=5000))
-manager.add_command("runserver", Server(app.config["HOST"], port=app.config["PORT"], passthrough_errors=True))
+# manager.add_command("runserver", Server("localhost", port=5000))
+manager.add_command("runserver", Server(app.config["HOST"], port=app.config["PORT"], use_debugger=app.config['DEBUG'], passthrough_errors=True))
 
 # 迁移数据库命令
 manager.add_command('db', MigrateCommand)

@@ -4,17 +4,14 @@
     xiaowei.song 2016-11-06
     模型类文件
 """
-from sqlalchemy import MetaData, Integer, BigInteger, Column, String, Date, Text, Numeric, DateTime
+
+from sqlalchemy import Integer, BigInteger
 from sqlalchemy.dialects.mysql import JSON
-from sqlalchemy.ext.declarative import declarative_base
 
 from app.my_extensions import db
 
-metadata = MetaData()
-Base = declarative_base()
 
-
-class ProjectModel(Base):
+class ProjectModel(db.Model):
     __tablename__ = 'project'
 
     track_id = db.Column(db.BigInteger(), primary_key=True)
@@ -22,7 +19,7 @@ class ProjectModel(Base):
     lib = db.Column(db.String(255))
     event = db.Column(db.String(255))
     type_ = db.Column('type', db.String(255))
-    all_json = db.Column(JSON)
+    all_json = db.Column(db.JSON())
     host = db.Column(db.String(255))
     user_agent = db.Column(db.String(2048))
     ua_platform = db.Column(db.String(1024))
@@ -36,17 +33,17 @@ class ProjectModel(Base):
     accept_encoding = db.Column(db.String(255))
     accept_language = db.Column(db.String(255))
     ip = db.Column(db.String(512))
-    ip_city = db.Column(JSON)
-    ip_asn = db.Column(JSON)
-    url = db.Column(db.Text)
+    ip_city = db.Column(db.JSON())
+    ip_asn = db.Column(db.JSON())
+    url = db.Column(db.Text())
     referrer = db.Column(db.String(2048))
     remark = db.Column(db.String(255))
-    created_at = db.Column(Integer)
-    dt = db.Column('date', db.Date)
-    hour = db.Column(Integer)
+    created_at = db.Column(db.Integer())
+    date_ = db.Column('date', db.Date)
+    hour = db.Column(db.Integer())
 
 
-class ProjectDeviceModel(Base):
+class ProjectDeviceModel(db.Model):
     __tablename__ = 'project_device'
 
     distinct_id = db.Column(db.String(64), primary_key=True)
@@ -110,7 +107,7 @@ class ProjectDeviceModel(Base):
     updated_at = db.Column(Integer)
 
 
-class ProjectUserModel(Base):
+class ProjectUserModel(db.Model):
     __tablename__ = 'project_user'
 
     distinct_id = db.Column(db.String(64), index=True, primary_key=True)
@@ -123,7 +120,7 @@ class ProjectUserModel(Base):
     updated_at = db.Column(Integer)
 
 
-class ProjectPropertiesModel(Base):
+class ProjectPropertiesModel(db.Model):
     __tablename__ = 'project_properties'
 
     lib = db.Column(db.String(255), primary_key=True)
@@ -136,5 +133,3 @@ class ProjectPropertiesModel(Base):
     access_control_threshold = db.Column(Integer())
     created_at = db.Column(Integer())
     updated_at = db.Column(Integer())
-
-

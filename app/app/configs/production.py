@@ -15,7 +15,7 @@ class ProductionConfig(DefaultConfig):
     DEBUG = False
     TESTING = False
 
-    SQLALCHEMY_DATABASE_URI = 'mysql://tosc:w8Jr3RGy@localhost/tosc?charset=utf8'
+    SQLALCHEMY_DATABASE_URI = 'mysql://analyze:&jZt48Qa3aNDKQ3s@172.18.3.126/analyze?charset=utf8mb4'
 
     # 不输出SQL语句
     SQLALCHEMY_ECHO = False
@@ -69,3 +69,6 @@ class ProductionConfig(DefaultConfig):
 
     # 设置用户操作日志开关
     SERVICE_LOG_ENABLED = False
+
+    # 设置使用kafka，数据不写入数据库
+    USE_KAFKA = True

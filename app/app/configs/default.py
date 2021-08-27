@@ -294,7 +294,7 @@ class DefaultConfig(object):
     # cdn_mode的数据进入后的处理方式。 可选值none、event、device
     # 'none'为直接抛掉不写入数据库，但不影响接入控制工作，主要是减少数据库数据量。
     # 'event'模式为只插入event表，不插入device表，这样会保留所有的cdn_mode的请求记录，没有update动作，所以性能不受影响。
-    # 'device'则跟普通埋点一样进库。
+    # 'device' 则跟普通埋点一样进库。
     ACCESS_CONTROL_CDN_MODE_WRITE = 'event'
     # 黑名单生效时间，
     # 0为只有当前时间生效，
@@ -333,7 +333,8 @@ class DefaultConfig(object):
     # ip组触发进入黑名单的量是ip的阈值的倍数
     ACCESS_CONTROL_IP_PER_IP_GROUP = 3
 
-    USE_PROPERTIES = True  # True时，会插入properties表，这个表不是必须的，只是方便提取数据时快速找到埋点里包含的变量。
+    USE_PROPERTIES = False  # True时，会插入properties表，这个表不是必须的，只是方便提取数据时快速找到埋点里包含的变量。
+    USE_USER = False  # True时，会插入properties表，这个表不是必须的，只是方便提取数据时快速找到埋点里包含的变量。
 
     # Kafka服务器的地址
     BOOTSTRAP_SERVERS = ['172.18.5.17:9092', '172.18.5.15:9092', '172.18.5.16:9092']
@@ -341,7 +342,7 @@ class DefaultConfig(object):
     # Kafka群组地址，同一群组共享一个Offset，不会重复，也不会漏。
     CLIENT_GROUP_ID = 'your_group_id_here'
     # Kafka的Topic
-    KAFKA_TOPIC = 'your_topic_here'
+    KAFKA_TOPIC = 'events-tracking_test_cero'
     CLIENT_ID = 'get_message_from_kafka'
     # latest,earliest,none
     KAFKA_OFFSET_RESET = 'latest'

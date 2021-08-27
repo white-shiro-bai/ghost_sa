@@ -6,6 +6,7 @@
 from logging.handlers import SMTPHandler
 
 from flask import json
+from flask_cors import CORS
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_plugins import PluginManager
@@ -93,6 +94,8 @@ plugin_manager = PluginManager()
 # CSRF
 csrf = CSRFProtect()
 
+# cors
+cors_ = CORS()
 
 #
 # # Celery
@@ -111,11 +114,11 @@ class NonASCIIJsonEncoder(json.JSONEncoder):
         super(NonASCIIJsonEncoder, self).__init__(**kwargs)
 
 
-# geo_city_reader
-geo_city_reader = GeoCityReader()
-
-# geo_asn_reader
-geo_asn_reader = GeoAsnReader()
-
-# kafka_producer
-kafka_producer = CreateKafkaProducer()
+# # geo_city_reader
+# geo_city_reader = GeoCityReader()
+#
+# # geo_asn_reader
+# geo_asn_reader = GeoAsnReader()
+#
+# # kafka_producer
+# kafka_producer = CreateKafkaProducer()

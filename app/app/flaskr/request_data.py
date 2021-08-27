@@ -269,8 +269,9 @@ class RequestData(object):
         project_model.referrer = self.referrer
         project_model.remark = self.remark
         project_model.created_at = self.created_at
-        project_model.dt = self.dt
+        project_model.date_ = self.dt
         project_model.hour = self.hour
+        return project_model
 
     def to_project_device_model(self):
         """将request_data转换成project_device
@@ -307,6 +308,7 @@ class RequestData(object):
         project_device_model.created_at = self.created_at
         project_device_model.dt = self.dt
         project_device_model.hour = self.hour
+        return project_device_model
 
     def to_project_properties_model(self):
         """将request_data转换成project_properties
@@ -322,6 +324,7 @@ class RequestData(object):
         project_properties_model.total_count = 1
         project_properties_model.created_at = self.created_at
         project_properties_model.updated_at = self.created_at
+        return project_properties_model
 
     def to_project_user_model(self):
         """将request_data转换成project_user
@@ -336,6 +339,7 @@ class RequestData(object):
         project_user_model.all_user_profile = self.all_user_profile
         project_user_model.created_at = self.created_at
         project_user_model.updated_at = self.created_at
+        return project_user_model
 
     def update_project_device_model(self, project_device_model_db):
         if self.ip_is_good == 1:
@@ -491,7 +495,7 @@ class RequestData(object):
         if self.latest_traffic_source_type:
             project_device_model_db.latest_traffic_source_type = self.latest_traffic_source_type
 
-        project_device_model_db.dt = self.dt
+        project_device_model_db.date_ = self.dt
         project_device_model_db.hour = self.hour
         project_device_model_db.updated_at = self.updated_at
 

@@ -23,8 +23,9 @@ class CreateKafkaProducer(object):
     def init_app(self, app):
         app.teardown_appcontext(self.teardown)
 
-    def create_producer(self):
-        return KafkaProducer(bootstrap_servers=current_app.config['BOOTSTRAP_SERVERS'])
+    def create_producer(self, app):
+        app.logger.info('创建kafka producer...')
+        return KafkaProducer(bootstrap_servers=app.config['BOOTSTRAP_SERVERS'])
 
     def teardown(self, exception):
         ctx = _app_ctx_stack.top
@@ -47,8 +48,8 @@ def insert_message_to_kafka(key, msg):
         key = key.encode()
     else:
         key = None
-    from app.my_extensions import kafka_producer
-    kafka_producer.producer.send(topic=kafka.kafka_topic, key=key, value=json.dumps(msg).encode())
+    kafka_topic = current_app.config['KAFKA_TOPIC']
+    current_app.kafka_producer.send(topic=kafka_topic, key=key, value=json.dumps(msg).encode())
 
 
 #latest,earliest,none 首次拉取kafka订阅的模式

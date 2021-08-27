@@ -21,8 +21,9 @@ class GeoCityReader(object):
     def init_app(self, app):
         app.teardown_appcontext(self.teardown)
 
-    def create_reader(self):
-        return geoip2.database.Reader(current_app.config['GEO_LITE2CITY_FILE'])
+    def create_reader(self, app):
+        app.logger.info('创建geo life city reader...')
+        return geoip2.database.Reader(app.config['GEO_LITE2CITY_FILE'])
 
     def teardown(self, exception):
         ctx = _app_ctx_stack.top
@@ -48,8 +49,9 @@ class GeoAsnReader(object):
     def init_app(self, app):
         app.teardown_appcontext(self.teardown)
 
-    def create_reader(self):
-        return geoip2.database.Reader(current_app.config['GEO_LITE2ASN_FILE'])
+    def create_reader(self, app):
+        app.logger.info('创建geo life asn reader...')
+        return geoip2.database.Reader(app.config['GEO_LITE2ASN_FILE'])
 
     def teardown(self, exception):
         ctx = _app_ctx_stack.top
@@ -73,9 +75,8 @@ def get_address(ip='8.8.8.8'):
     :return: json对象，地址信息
     """
     response = None
-    from app.my_extensions import geo_city_reader
     try:
-        response = geo_city_reader.reader.city(ip)
+        response = current_app.geo_city_reader.city(ip)
     except Exception as e:
         current_app.logger.error(f'ip： {ip}获取地址失败，错误原因为: {e}')
     raw_json = json.dumps(response.raw if response else {}, ensure_ascii=False)
@@ -89,9 +90,8 @@ def get_asn(ip='8.8.8.8'):
         :return: json对象，地址信息
     """
     response = None
-    from app.my_extensions import geo_asn_reader
     try:
-        response = geo_asn_reader.reader.asn(ip)
+        response = current_app.geo_asn_reader.asn(ip)
     except Exception as e:
         current_app.logger.error(f'ip： {ip}获取地ip asn失败，错误原因为: {e}')
     raw_json = json.dumps(response.raw if response else {}, ensure_ascii=False)

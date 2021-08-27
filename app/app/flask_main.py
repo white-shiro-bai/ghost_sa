@@ -10,10 +10,13 @@ from MySQLdb.converters import NoneType
 from flask import Flask, g
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
+from sqlalchemy.exc import ProgrammingError
 from sqlalchemy.orm.exc import UnmappedInstanceError
 
+from app.component.kafka_op import CreateKafkaProducer
 from app.configs.code import ResponseCode
-from app.my_extensions import NonASCIIJsonEncoder, db, geo_city_reader, geo_asn_reader, kafka_producer
+from app.my_extensions import NonASCIIJsonEncoder, db, cors_
+from app.utils.geo import GeoCityReader, GeoAsnReader
 from app.utils.response import res
 
 sys.path.append("..")
@@ -132,6 +135,7 @@ def configure_extensions(app):
 
     # Flask-WTF CSRF
     # csrf.init_app(app)
+    cors_.init_app(app)
 
     # Flask-Plugins
     # plugin_manager.init_app(app)
@@ -139,14 +143,20 @@ def configure_extensions(app):
     # Flask-SQLAlchemy
     db.init_app(app)
 
-    # geo city
-    geo_city_reader.init_app(app)
+    app.geo_city_reader = GeoCityReader().create_reader(app)
 
-    # geo asn
-    geo_asn_reader.init_app(app)
+    app.geo_asn_reader = GeoAsnReader().create_reader(app)
 
-    # geo asn
-    kafka_producer.init_app(app)
+    app.kafka_producer = CreateKafkaProducer().create_producer(app)
+
+    # # geo city
+    # geo_city_reader.init_app(app)
+    #
+    # # geo asn
+    # geo_asn_reader.init_app(app)
+    #
+    # # geo asn
+    # kafka_producer.init_app(app)
 
     # Flask-Migrate
     # migrate.init_app(app, db)
@@ -358,7 +368,7 @@ def configure_error_handlers(app):
         from pymysql import OperationalError
         if not app.config['DEBUG'] and isinstance(error.orig, OperationalError):
             return res(ResponseCode.FLASK_SQLALCHEMY_EXCEPT, u"连接数据库操作异常，请联系管理员!")
-        error_msg = error.args[0] if isinstance(error, UnmappedInstanceError) else error.msg
+        error_msg = error.args[0] if isinstance(error, (UnmappedInstanceError, ProgrammingError)) else error.msg
         return res(ResponseCode.FLASK_SQLALCHEMY_EXCEPT, error_msg)
 
 

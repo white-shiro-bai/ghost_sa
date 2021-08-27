@@ -3,6 +3,7 @@
 # wechat: Ben_Xiaobai
 import sys
 
+from app.component.kafka_op import insert_message_to_kafka
 from app.configs.code import ResponseCode
 from app.flaskr.request_data import RequestData
 from app.utils.response import res
@@ -20,21 +21,15 @@ from app.component.db_func import insert_event, get_long_url_from_short, insert_
     read_mobile_ad_list, count_mobile_ad_list, read_mobile_ad_src_list, check_mobile_ad_url, insert_mobile_ad_list, \
     distinct_id_query, insert_shortcut_read, query_access_control, insert_or_update_device
 from app.utils.geo import get_address,get_asn
-from app.component.api_tools import encode_urlutm,insert_user,recall_dsp,return_dsp_utm,gen_token
+from app.component.api_tools import encode_urlutm,insert_user, gen_token
 from app.configs.export import write_to_log
 from app.component.shorturl import get_suoim_short_url
 from app.configs import admin
 import time
-if admin.use_kafka is True:
-    from app.component.kafka_op import insert_message_to_kafka
 import re
-from app.trigger import trigger
 from app.component.qrcode import gen_qrcode
 from app.component.url_tools import get_url_params, get_post_datas
 import hashlib
-if admin.access_control_commit_mode =='none_kafka':
-    from app.component.access_control import access_control
-    ac_none_kafka = access_control()
 
 
 default_return_image = None
@@ -67,14 +62,15 @@ def insert_data(request_data, use_kafka=admin.use_kafka):
         if event not in ('cdn_mode', 'cdn_mode2') or access_control_cdn_mode_write in ('event', 'device'):
             count = insert_event(request_data)
 
-        if event not in ('cdn_mode', 'cdn_mode2') or access_control_cdn_mode_write == 'device':
+        if event not in ('cdn_mode', 'cdn_mode2') and access_control_cdn_mode_write == 'device':
             count = insert_or_update_device(request_data)
 
-        user_properties = current_app.config['USE_PROPERTIES']
-        if event not in ('', 'cdn_mode', 'cdn_mode2') and user_properties:
+        use_properties = current_app.config['USE_PROPERTIES']
+        if event not in ('', 'cdn_mode', 'cdn_mode2') and use_properties:
             insert_properties(request_data)
 
-        if type_ in ('profile_set', 'track_signup', 'profile_set_once'):
+        use_user = current_app.config['USE_USER']
+        if type_ in ('profile_set', 'track_signup', 'profile_set_once') and use_user:
             insert_user(request_data)
 
         # TODO 改造后续代码

@@ -20,19 +20,25 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b6346c84-2a36-4f2a-b4da-9be6806931d8" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/manage.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wsgi.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/component/api.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/component/api.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/component/api_tools.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/component/api_tools.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/component/db_func.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/component/db_func.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/component/kafka_op.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/component/kafka_op.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/configs/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/configs/admin.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/component/url_tools.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/component/url_tools.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/configs/default.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/configs/default.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/configs/kafka.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/configs/kafka.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/configs/development.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/configs/development.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/configs/production.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/configs/production.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/flask_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/flask_main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/flaskr/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/flaskr/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/flaskr/request_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/flaskr/request_data.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/flaskr/sa.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/flaskr/sa.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/my_extensions.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/my_extensions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/app/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/utils/geo.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/utils/geo.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/utils/response.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/utils/response.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/manage.py" beforeDir="false" afterPath="$PROJECT_DIR$/manage.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/uwsgi.ini" beforeDir="false" afterPath="$PROJECT_DIR$/uwsgi.ini" afterDir="false" />
     </list>
     <list id="a9b1d2d1-d349-4bc3-a37e-8d0b9ba7c59d" name="Revert &quot;'发送kafka捕获异常'&quot;" comment="Revert &quot;'发送kafka捕获异常'&quot;&#10;&#10;This reverts commit 67db3a72" />
     <option name="SHOW_DIALOG" value="false" />
@@ -83,13 +89,16 @@
       <recent name="E:\workspace\ghost_sa\app\app\utils" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.manage">
+  <component name="RunManager" selected="Python.wsgi">
     <configuration name="manage" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="app" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="system_environments" value="development" />
+        <env name="Environment" value="development" />
+        <env name="FLASK_ENV" value="development" />
       </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
@@ -97,7 +106,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/manage.py" />
-      <option name="PARAMETERS" value="" />
+      <option name="PARAMETERS" value="runserver" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -126,8 +135,35 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="wsgi" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="app" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/wsgi.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="Python.manage" />
+      <item itemvalue="Python.scratch" />
+      <item itemvalue="Python.wsgi" />
+    </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.wsgi" />
         <item itemvalue="Python.manage" />
         <item itemvalue="Python.scratch" />
       </list>
@@ -223,5 +259,16 @@
     <MESSAGE value="#Updates#开始改造鬼策平台，优化鬼策平台" />
     <MESSAGE value="#Updates#开始优化解析数据api模块" />
     <option name="LAST_COMMIT_MESSAGE" value="#Updates#开始优化解析数据api模块" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <default-breakpoints>
+        <breakpoint type="python-exception">
+          <properties notifyOnTerminate="true" exception="BaseException">
+            <option name="notifyOnTerminate" value="true" />
+          </properties>
+        </breakpoint>
+      </default-breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

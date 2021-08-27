@@ -7,6 +7,7 @@ from flask import current_app
 
 from app.flaskr.models import ProjectModel, ProjectDeviceModel, ProjectPropertiesModel, ProjectUserModel
 from app.my_extensions import db
+from app.utils.database import model_to_dict
 
 sys.path.append("..")
 sys.path.append("./")
@@ -26,14 +27,14 @@ def insert_event(request_data):
     db.session.add(project_model)
     # 事务
     db.session.commit()
-    current_app.logger.info(f'插入事件数据成功， 数据为: {project_model}')
+    current_app.logger.info(f'插入事件数据成功， 数据为: {model_to_dict(project_model)}')
     return 1
 
 
 def insert_or_update_device(request_data):
     request_data.set_other_properties()
     count = insert_device_db(request_data)
-    current_app.logger.info(f'插入或跟新device={count}条')
+    current_app.logger.info(f'插入或更新device={count}条')
 
 
 def insert_device_db(request_data, created_at=None, updated_at=None):
