@@ -49,10 +49,12 @@ def insert_message_to_kafka(key, msg):
     else:
         key = None
     kafka_topic = current_app.config['KAFKA_TOPIC']
+    current_app.logger.info(f'即将往topic={kafka_topic}发送消息...')
     current_app.kafka_producer.send(topic=kafka_topic, key=key, value=json.dumps(msg).encode())
+    current_app.logger.info(f'往topic={kafka_topic}发送消息完成')
 
 
-#latest,earliest,none 首次拉取kafka订阅的模式
+# latest,earliest,none 首次拉取kafka订阅的模式
 kafka_offset_reset = 'earliest'
 
 
