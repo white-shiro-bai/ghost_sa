@@ -39,7 +39,7 @@ class CreateKafkaProducer(object):
         ctx = _app_ctx_stack.top
         if ctx is not None:
             if not hasattr(ctx, 'kafka_producer'):
-                ctx.kafka_producer = self.create_producer()
+                ctx.kafka_producer = self.create_producer(current_app)
             return ctx.kafka_producer
 
 
@@ -50,6 +50,9 @@ def insert_message_to_kafka(key, msg):
         key = None
     kafka_topic = current_app.config['KAFKA_TOPIC']
     current_app.logger.info(f'即将往topic={kafka_topic}发送消息...')
+    # 回补kafka_producer，避免断开连接
+    if not hasattr('kafka_producer', current_app) or not current_app.kafka_producer:
+        current_app.kafka_producer = CreateKafkaProducer().create_producer(current_app)
     current_app.kafka_producer.send(topic=kafka_topic, key=key, value=json.dumps(msg).encode())
     current_app.logger.info(f'往topic={kafka_topic}发送消息完成')
 
