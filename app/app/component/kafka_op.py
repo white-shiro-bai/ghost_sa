@@ -49,7 +49,7 @@ def insert_message_to_kafka(key, msg):
     else:
         key = None
     kafka_topic = current_app.config['KAFKA_TOPIC']
-    current_app.logger.debug(f'即将往broker={current_app.config["BOOTSTRAP_SERVERS"]}, topic={kafka_topic}发送消息...')
+    current_app.logger.info(f'即将往broker={current_app.config["BOOTSTRAP_SERVERS"]}, topic={kafka_topic}发送消息...')
     # 回补kafka_producer，避免断开连接
     if not hasattr(current_app, 'kafka_producer') or not current_app.kafka_producer:
         current_app.kafka_producer = CreateKafkaProducer().create_producer(current_app)
