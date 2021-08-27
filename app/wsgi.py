@@ -12,6 +12,7 @@ from app.flask_main import create_app
 ini_config = ConfigParser()
 ini_config.read_file(open('uwsgi.ini'))
 system_environments = ini_config.get("uwsgi", "system_environments")
+print(f'获取环境变量配置成功, 环境为{system_environments}')
 if system_environments == "development":
     from app.configs.development import DevelopmentConfig as Config
 elif system_environments == "production":
