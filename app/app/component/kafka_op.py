@@ -24,7 +24,7 @@ class CreateKafkaProducer(object):
         app.teardown_appcontext(self.teardown)
 
     def create_producer(self, app):
-        app.logger.info('创建kafka producer...')
+        app.logger.info(f'创建kafka producer, bootstrap_server地址为{app.config["BOOTSTRAP_SERVERS"]}...')
         return KafkaProducer(bootstrap_servers=app.config['BOOTSTRAP_SERVERS'])
 
     def teardown(self, exception):
