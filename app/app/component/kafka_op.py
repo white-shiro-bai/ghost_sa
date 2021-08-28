@@ -47,9 +47,10 @@ def insert_message_to_kafka(msg, key=None):
     if isinstance(key, str):
         key = key.encode()
     kafka_topic = current_app.config['KAFKA_TOPIC']
-    current_app.logger.info(f'即将往broker={current_app.config["BOOTSTRAP_SERVERS"]}, topic={kafka_topic}发送消息...')
-    # 回补kafka_producer，避免断开连接
-    if not hasattr(current_app, 'kafka_producer') or not current_app.kafka_producer:
+    current_app.logger.debug(f'即将往broker={current_app.config["BOOTSTRAP_SERVERS"]}, topic={kafka_topic}发送消息...')
+    # 初始化及重连kafka_producer，避免断开连接
+    if not hasattr(current_app, 'kafka_producer') or not current_app.kafka_producer or \
+            not current_app.kafka_producer.bootstrap_connected():
         current_app.kafka_producer = CreateKafkaProducer().create_producer(current_app)
     future = current_app.kafka_producer.send(topic=kafka_topic, key=key, value=json.dumps(msg).encode())
     result = future.get(timeout=10)
