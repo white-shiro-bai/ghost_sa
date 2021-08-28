@@ -48,7 +48,7 @@ def get_post_datas():
         request_datas = params.get('datas')
 
     request_source_data = request_data if request_data else request_datas
-    current_app.logger.info(f'请求数据为{request_source_data}')
+    current_app.logger.debug(f'请求数据为{request_source_data}')
     de64 = base64.b64decode(urllib.parse.unquote(request_source_data).encode('utf-8'))
     try:
 
