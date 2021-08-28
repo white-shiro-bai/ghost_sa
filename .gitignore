@@ -1,3 +1,7 @@
+app/.idea
+app/.idea/workspace.xml
+app/.idea/*.xml
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -127,3 +131,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+app/.idea/app.iml
+app/.idea/app.iml
+app/.idea/misc.xml
+app/.idea/workspace.xml
