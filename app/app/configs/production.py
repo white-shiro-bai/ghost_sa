@@ -74,4 +74,4 @@ class ProductionConfig(DefaultConfig):
     USE_KAFKA = True
 
     # 生产环境，日志输出到ELK
-    LOG2ELK = True
+    LOG2ELK = False
