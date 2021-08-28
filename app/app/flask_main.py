@@ -147,7 +147,7 @@ def configure_extensions(app):
 
     app.geo_asn_reader = GeoAsnReader().create_reader(app)
 
-    app.kafka_producer = CreateKafkaProducer().create_producer(app)
+    # app.kafka_producer = CreateKafkaProducer().create_producer(app)
 
     # # geo city
     # geo_city_reader.init_app(app)
