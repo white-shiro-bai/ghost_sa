@@ -72,3 +72,6 @@ class ProductionConfig(DefaultConfig):
 
     # 设置使用kafka，数据不写入数据库
     USE_KAFKA = True
+
+    # 生产环境，日志输出到ELK
+    LOG2ELK = True

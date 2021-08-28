@@ -81,6 +81,9 @@ class DefaultConfig(object):
     ERROR_FORMATTER = "%(asctime)s %(levelname)s %(pathname)s %(funcName)s lineNo=%(lineno)s processId=6%(process)d " \
                       "thread=%(thread)d  %(message)s"
 
+    LOGSTASH_FORMATTER = "%(asctime)s %(levelname)s %(pathname)s %(funcName)s lineNo=%(lineno)s processId=6%(process)d " \
+                         "thread=%(thread)d  %(message)s"
+
     # Default Database
     # SQLALCHEMY_DATABASE_URI = 'sqlite:///' + _basedir + '/' + \
     #                           'flaskbb.sqlite'
@@ -346,3 +349,8 @@ class DefaultConfig(object):
     CLIENT_ID = 'get_message_from_kafka'
     # latest,earliest,none
     KAFKA_OFFSET_RESET = 'latest'
+
+    # 日志是否输出到ELK
+    LOG2ELK = True
+    ELK_HOST = '172.18.3.110'
+    ELK_PORT = 23037

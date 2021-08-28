@@ -6,14 +6,15 @@ import os
 import sys
 import time
 
-from MySQLdb.converters import NoneType
-from flask import Flask, g
+import logstash
+from flask import Flask
+from logstash_async.formatter import LogstashFormatter
+from logstash_async.handler import AsynchronousLogstashHandler
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import ProgrammingError
 from sqlalchemy.orm.exc import UnmappedInstanceError
 
-from app.component.kafka_op import CreateKafkaProducer
 from app.configs.code import ResponseCode
 from app.my_extensions import NonASCIIJsonEncoder, db, cors_
 from app.utils.geo import GeoCityReader, GeoAsnReader
@@ -51,6 +52,7 @@ def create_app(config=None):
     configure_logging(app)
 
     return app
+
 
 # # 项目管理
 # app.add_url_rule('/show_project_list', view_func=show_project_list, methods=['POST'])  # 查询已有项目信息
@@ -382,12 +384,26 @@ def configure_logging(app):
     debug_formatter = logging.Formatter(app.config['DEBUG_FORMATTER'])
     info_formatter = logging.Formatter(app.config['INFO_FORMATTER'])
     error_formatter = logging.Formatter(app.config['ERROR_FORMATTER'])
+    logstash_formatter = LogstashFormatter(
+        message_type='python-logstash',
+        extra_prefix='sa',
+        extra=dict(application='chinagoods-bigdata-ghost_sa', environment='production', logstash_prefix='chinagoods-bigdata-ghost_sa'),
+        ensure_ascii=False,
+        metadata={"beat": "chinagoods-bigdata-ghost_sa"})
 
     # 控制台文件中输出相应的日志信息
     stream_handler = logging.StreamHandler()
     stream_handler.setLevel(logging.DEBUG)
     stream_handler.setFormatter(debug_formatter)
     app.logger.addHandler(stream_handler)
+
+    if app.config['LOG2ELK']:
+        stashHandler = AsynchronousLogstashHandler(host=app.config.get('ELK_HOST'), port=app.config.get('ELK_PORT'),
+                                                   database_path='logstash.db')
+        # stashHandler = logstash.LogstashHandler(host=app.config.get('ELK_HOST'), port=app.config.get('ELK_PORT'), version=1)
+        stashHandler.setLevel(logging.INFO)
+        stashHandler.setFormatter(logstash_formatter)
+        app.logger.addHandler(stashHandler)
 
     import platform
     if "Linux" == platform.system():

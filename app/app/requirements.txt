@@ -16,3 +16,5 @@ Flask-MySQLdb==0.2.0
 flask-cors==3.0.10
 typing-extensions==3.6.5
 geoip2==4.1.0
+# python3-logstash==0.4.80
+python-logstash-async==2.3.0
