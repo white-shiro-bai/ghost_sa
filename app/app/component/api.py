@@ -99,7 +99,7 @@ def insert_data(request_data, use_kafka=admin.use_kafka):
         #     ac_none_kafka.traffic(project=project,event=event,ip_commit=ip,distinct_id_commit=distinct_id,add_on_key_commit=data_decode['properties'][admin.access_control_add_on_key] if admin.access_control_add_on_key in data_decode['properties'] else None)
     else:
         msg = request_data.to_kafka_msg()
-        insert_message_to_kafka(key=distinct_id, msg=msg)
+        insert_message_to_kafka(msg=msg, key=distinct_id)
 
     cost_millisecond_time = time.time() - start_time
     current_app.logger.info(f'耗时{cost_millisecond_time}毫秒')
@@ -224,7 +224,7 @@ def get_long(short_url):
         insert_shortcut_history(short_url=short_url,result=status,cost_time=time2,ip=ip,user_agent=User_Agent,accept_language=Accept_Language,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,created_at=time1/1000)
     elif admin.use_kafka is True:
         msg = {"group":"shortcut_history","data":{"short_url":short_url,"status":status,"time2":time2,"ip":ip,"user_agent":User_Agent,"accept_language":Accept_Language,"ua_platform":ua_platform,"ua_browser":ua_browser,"ua_version":ua_version,"ua_language":ua_language,"created_at":time1/1000}}
-        insert_message_to_kafka(key=ip, msg=msg)
+        insert_message_to_kafka(msg=msg, key=ip)
     if status == 'success':
         return redirect(long_url)
     elif status == 'expired':
@@ -471,7 +471,7 @@ def insert_installation_track(project, data_decode, User_Agent, Host, Connection
         print(time.time()-start_time)
     elif use_kafka is True:
         msg = {"group":"installation_track","timestamp":timenow13,"data":{"project":project,"data_decode":data_decode,"User_Agent":User_Agent,"Host":Host,"Connection":Connection,"Pragma":Pragma,"Cache_Control":Cache_Control,"Accept":Accept,"Accept_Encoding":Accept_Encoding,"Accept_Language":Accept_Language,"ip":ip,"ip_city":ip_city,"ip_asn":ip_asn,"url":url,"referrer":referrer,"remark":remark,"ua_platform":ua_platform,"ua_browser":ua_browser,"ua_version":ua_version,"ua_language":ua_language,"ip_is_good":ip_is_good,"ip_asn_is_good":ip_asn_is_good,"created_at":created_at if created_at else start_time,"updated_at":created_at if created_at else start_time}}
-        insert_message_to_kafka(key=distinct_id, msg=msg)
+        insert_message_to_kafka(msg=msg, key=distinct_id)
         print(time.time()-start_time)
 
 
@@ -755,7 +755,7 @@ def shortcut_read(short_url):
         insert_shortcut_read(short_url=short_url,ip=ip,user_agent=User_Agent,accept_language=Accept_Language,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,referrer=referrer,created_at=time1)
     elif admin.use_kafka is True:
         msg = {"group":"shortcut_read","data":{"short_url":short_url,"ip":ip,"user_agent":User_Agent,"accept_language":Accept_Language,"ua_platform":ua_platform,"ua_browser":ua_browser,"ua_version":ua_version,"ua_language":ua_language,"referrer":referrer,"created_at":time1}}
-        insert_message_to_kafka(key=ip, msg=msg)
+        insert_message_to_kafka(msg=msg, key=ip)
     return Response(default_return_image, mimetype="image/gif")
 
 def show_qrcode(short_url):

@@ -43,11 +43,9 @@ class CreateKafkaProducer(object):
             return ctx.kafka_producer
 
 
-def insert_message_to_kafka(key, msg):
+def insert_message_to_kafka(msg, key=None):
     if isinstance(key, str):
         key = key.encode()
-    else:
-        key = None
     kafka_topic = current_app.config['KAFKA_TOPIC']
     current_app.logger.info(f'即将往broker={current_app.config["BOOTSTRAP_SERVERS"]}, topic={kafka_topic}发送消息...')
     # 回补kafka_producer，避免断开连接
@@ -73,4 +71,4 @@ def get_message_from_kafka_independent_listener():
 
 
 if __name__ == "__main__":
-    insert_message_to_kafka(key='123231231', msg={'msg': 'test'})
+    insert_message_to_kafka(msg={'msg': 'test'}, key='123231231')
