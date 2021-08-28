@@ -351,6 +351,6 @@ class DefaultConfig(object):
     KAFKA_OFFSET_RESET = 'latest'
 
     # 日志是否输出到ELK
-    LOG2ELK = True
+    LOG2ELK = False
     ELK_HOST = '172.18.3.110'
     ELK_PORT = 23037

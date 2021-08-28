@@ -6,10 +6,10 @@ import os
 import sys
 import time
 
-import logstash
 from flask import Flask
-from logstash_async.formatter import LogstashFormatter
+from logstash_async.formatter import LogstashFormatter, FlaskLogstashFormatter
 from logstash_async.handler import AsynchronousLogstashHandler
+from logstash_async.transport import HttpTransport
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import ProgrammingError
@@ -384,13 +384,20 @@ def configure_logging(app):
     debug_formatter = logging.Formatter(app.config['DEBUG_FORMATTER'])
     info_formatter = logging.Formatter(app.config['INFO_FORMATTER'])
     error_formatter = logging.Formatter(app.config['ERROR_FORMATTER'])
-    logstash_formatter = LogstashFormatter(
+    from logstash_async.constants import constants
+    if 'index' not in constants.FORMATTER_LOGSTASH_MESSAGE_FIELD_LIST:
+        constants.FORMATTER_LOGSTASH_MESSAGE_FIELD_LIST.append('index')
+    logstash_formatter = FlaskLogstashFormatter(
         message_type='python-logstash',
         extra_prefix='sa',
-        extra=dict(application='chinagoods-bigdata-ghost_sa', environment='production', logstash_prefix='chinagoods-bigdata-ghost_sa'),
+        extra=dict(application='chinagoods-bigdata-ghost_sa',
+                   environment='production',
+                   logstash_prefix='chinagoods-bigdata-ghost_sa'),
         ensure_ascii=False,
         metadata={"beat": "chinagoods-bigdata-ghost_sa"})
 
+
+    # constants.FORMATTER_LOGSTASH_MESSAGE_FIELD_LIST =
     # 控制台文件中输出相应的日志信息
     stream_handler = logging.StreamHandler()
     stream_handler.setLevel(logging.DEBUG)
@@ -398,8 +405,16 @@ def configure_logging(app):
     app.logger.addHandler(stream_handler)
 
     if app.config['LOG2ELK']:
-        stashHandler = AsynchronousLogstashHandler(host=app.config.get('ELK_HOST'), port=app.config.get('ELK_PORT'),
-                                                   database_path='logstash.db')
+        transport = HttpTransport(host=app.config.get('ELK_HOST'),
+                                  port=app.config.get('ELK_PORT'),
+                                  timeout=5.0,
+                                  ssl_enable=False,
+                                  _use_logging=True)
+        stashHandler = AsynchronousLogstashHandler(host=app.config.get('ELK_HOST'),
+                                                   port=app.config.get('ELK_PORT'),
+                                                   database_path='logstash.db',
+                                                   transport=transport
+                                                )
         # stashHandler = logstash.LogstashHandler(host=app.config.get('ELK_HOST'), port=app.config.get('ELK_PORT'), version=1)
         stashHandler.setLevel(logging.INFO)
         stashHandler.setFormatter(logstash_formatter)

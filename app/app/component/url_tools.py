@@ -39,7 +39,16 @@ def get_post_datas():
         gzip_flag = json_data.get('gzip', 0)
         request_datas = json_data.get('data_list')
 
+    # 处理信标
+    if 'text/plain' in request.headers.get('CONTENT-TYPE', ''):
+        play_load = request.data
+        play_load_str = play_load.decode('utf-8')
+        params = dict(urllib.parse.parse_qsl(play_load_str))
+        request_data = params.get('data')
+        request_datas = params.get('datas')
+
     request_source_data = request_data if request_data else request_datas
+    current_app.logger.info(f'请求数据为{request_source_data}')
     de64 = base64.b64decode(urllib.parse.unquote(request_source_data).encode('utf-8'))
     try:
 

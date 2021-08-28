@@ -20,7 +20,7 @@ class DevelopmentConfig(DefaultConfig):
     SQLALCHEMY_DATABASE_URI = 'mysql://cg_mall:cg_mall%40123@172.18.3.106:3306/ghost_test?charset=utf8'
 
     # This will print all SQL statements
-    SQLALCHEMY_ECHO = True
+    SQLALCHEMY_ECHO = False
 
     WTF_CSRF_ENABLED = False
 
