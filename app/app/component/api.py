@@ -159,7 +159,9 @@ def get_data():
     ext = request.args.get('ext')
     url = request.url
     try:
+        url_source = url
         url = urllib.parse.unquote(url)
+        current_app.logger.info('解析url， 解析前url为{url_source}, 解析后为{url}')
     except Exception as e:
         current_app.logger.error(f'解析url错误，url为: {url}, 错误为: {e}')
 
