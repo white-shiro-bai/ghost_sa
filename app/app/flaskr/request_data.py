@@ -95,7 +95,8 @@ class RequestData(object):
 
         ct = time.time()
         local_time = time.localtime(ct)
-        created_at = int(ct)
+        # 获取13位时间戳
+        created_at = round(time.time() * 1000)
         dt = time.strftime("%Y-%m-%d", local_time)
         hour = int(time.strftime("%H", local_time))
         self.created_at = created_at

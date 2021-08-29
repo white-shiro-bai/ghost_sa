@@ -354,3 +354,7 @@ class DefaultConfig(object):
     LOG2ELK = False
     ELK_HOST = '172.18.3.110'
     ELK_PORT = 23037
+
+    # 默认情况下Flask使用ascii编码来序列化对象。如果这个值被设置为False ， Flask不会将其编码为ASCII，并且按原样输出，返回它的unicode字符串。
+    # 比如jsonfiy会自动地采用utf-8来编码它然后才进行传输。
+    JSON_AS_ASCII = False
