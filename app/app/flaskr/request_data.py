@@ -104,18 +104,20 @@ class RequestData(object):
         self.dt = dt
         self.hour = hour
 
-    def set_ua_properties(self, user_agent, ua_platform, ua_browser, ua_version):
+    def set_ua_properties(self, user_agent, ua_platform, ua_browser, ua_version, ua_language):
         """设置ua属性.
         :param user_agent:
         :param ua_platform:
         :param ua_browser:
         :param ua_version:
+        :param ua_language:
         :return:
         """
         self.user_agent = user_agent
         self.ua_platform = ua_platform
         self.ua_browser = ua_browser
         self.ua_version = ua_version
+        self.ua_language = ua_language
 
     def set_connect_properties(self, connection, pragma, cache_control, accept, accept_encoding, accept_language):
         """设置连接属性.

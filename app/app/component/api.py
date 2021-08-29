@@ -200,7 +200,7 @@ def get_data():
         request_data.data = data
         request_data.set_connect_properties(connection, pragma, cache_control, accept, accept_encoding, accept_language=accept_language)
         request_data.set_url_properties(host, url, referrer=referrer)
-        request_data.set_ua_properties(user_agent, ua_platform, ua_browser, ua_version)
+        request_data.set_ua_properties(user_agent, ua_platform, ua_browser, ua_version, ua_language)
         request_data.set_ip_properties(ip, ip_city, ip_asn, ip_is_good, ip_asn_is_good)
 
         insert_data(request_data)
