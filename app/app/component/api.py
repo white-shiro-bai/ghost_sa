@@ -160,9 +160,7 @@ def get_data():
     url = request.url
     try:
         url_source = url
-        url = urllib.parse.unquote(url)
         # url unicode转换为中文
-        url = url.encode('utf-8').decode()
         current_app.logger.debug(f'解析url， 解析前url为{url_source}, 解析后为{url}')
     except Exception as e:
         current_app.logger.error(f'解析url错误，url为: {url}, 错误为: {e}')

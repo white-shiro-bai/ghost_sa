@@ -52,8 +52,8 @@ def insert_message_to_kafka(msg, key=None):
     # TODO 验证如何重连机制not current_app.kafka_producer.bootstrap_connected()
     if not hasattr(current_app, 'kafka_producer') or not current_app.kafka_producer:
         current_app.kafka_producer = CreateKafkaProducer().create_producer(current_app)
-    # 将unicode编码格式数据，转换为中文编码
-    msg_str = json.dumps(msg, ensure_ascii=False).encode('utf-8').decode('utf-8')
+    # TODO 将unicode编码格式数据，转换为中文编码
+    msg_str = json.dumps(msg, ensure_ascii=False)
     future = current_app.kafka_producer.send(topic=kafka_topic, key=key, value=msg_str.encode())
     result = future.get(timeout=10)
     current_app.logger.debug(f'往topic={kafka_topic}发送消息完成, 结果为{result}')
