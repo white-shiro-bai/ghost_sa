@@ -115,13 +115,13 @@ def get_data():
 
     # eg: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100
     # Safari/537.36
-    user_agent_source = request.headers.get('User-Agent', '')
-    if len(user_agent_source) > 2048:
+    user_agent = request.headers.get('User-Agent', '')
+    if len(user_agent) > 2048:
         return res(code=ResponseCode.SYSTEM_ERROR, msg='User-Agent参数不合法!')
 
     # 若是爬虫，则将remark置成爬虫标识
-    user_agent = user_agent_source.lower()
-    if user_agent and any([pt in user_agent for pt in ['spider', 'googlebot', 'adsbot-google']]):
+    user_agent_lower = user_agent.lower()
+    if user_agent_lower and any([pt in user_agent_lower for pt in ['spider', 'googlebot', 'adsbot-google']]):
         remark = 'spider'
 
     # eg: 10.16.5.241:5000
