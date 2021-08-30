@@ -285,11 +285,12 @@ class NewDynamicModel(object):
       :param codes:
       :return:
       """
-        # f_path = os.path.join(current_app.root_path, 'flaskr', '_tmp', '%s.py' % module_name)
-        # fp = open(f_path, 'w')
-        # for i in codes:
-        #     fp.write(i)
-        # fp.close()
+        f_path = os.path.join(current_app.root_path, 'flaskr', '_tmp', '%s.py' % module_name)
+        if not os.path.exists(f_path):
+            fp = open(f_path, 'w')
+            for i in codes:
+                fp.write(i)
+            fp.close()
 
         return import_module(f'app.flaskr._tmp.{module_name}')
 
