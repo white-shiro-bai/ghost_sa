@@ -56,7 +56,7 @@ def get_post_datas():
         play_load_str = play_load.decode('utf-8')
         params = dict(urllib.parse.parse_qsl(play_load_str))
         request_data = params.get('data')
-        request_datas = params.get('datas')
+        request_datas = params.get('data_list')
 
         if not gzip_flag:
             gzip_flag = params.get('gzip', 0)
