@@ -20,8 +20,6 @@ from app.configs import admin
 
 
 def insert_event(request_data):
-    table = request_data.project
-    ProjectModel.__table__.name = f'{table}'
     project_model = request_data.to_project_model()
 
     db.session.add(project_model)
@@ -39,9 +37,7 @@ def insert_or_update_device(request_data):
 
 def insert_device_db(request_data, created_at=None, updated_at=None):
 
-    table = request_data.project
     distinct_id = request_data.distinct_id
-    ProjectDeviceModel.__table__.name = f'{table}_device'
     project_device_model_db = ProjectDeviceModel.query.filter_by(distinct_id=distinct_id).first()
     if project_device_model_db is None:
         project_device_model_db = request_data.to_project_device_model()

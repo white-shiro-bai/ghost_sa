@@ -6,7 +6,11 @@
     例如 CRUD mixin
 """
 import datetime
+import inspect
+import os
+import re
 from contextlib import contextmanager
+from importlib import import_module
 
 from flask import current_app
 from sqlalchemy.orm import class_mapper, sessionmaker
@@ -201,3 +205,115 @@ def new_session():
         s.rollback()
         current_app.logger.error("Transaction and session {} {}!".format(s, e))
     current_app.logger.info("Transaction and session {} finished!".format(s))
+
+
+class NewDynamicModel(object):
+    """
+     动态产生模型和表的对应关系模型
+     :param base_cls: 基类模型，虚类，如TemplateModel
+     :param tb_name: 数据库中对应的表名， 如tb_test_2017
+     :return: Model class
+     eg:
+     '''
+     class TemplateModel(db.Model):
+      __abstract__ = True
+      id = db.Column(db.Integer(), autoincrement=True, primary_key=True)
+      name = db.Column(db.VARCHAR(32), nullable=False)
+
+
+
+     Test_2017 = NewDynamicModel(TemplateModel, 'tb_test_2017')
+     print Test_2017.query.all()
+     '''
+    """
+
+    @staticmethod
+    def get_import_codes(model_):
+        """
+          获取基类的import依赖
+          :param model_:
+          :return:
+          """
+        module = inspect.getmodule(model_)
+        all_code_lines = inspect.getsourcelines(module)
+        import_codes = ['# -*-coding:utf-8\n']
+        for i in all_code_lines[0]:
+            match = re.search(r'[from]*[\w|\s]*import [\w|\s]*', i)
+            if match:
+                import_codes.append(i)
+        import_codes.extend(['\n', '\n'])
+
+        return import_codes
+
+    @staticmethod
+    def get_codes(model_, new_model_name, tb_name):
+        """
+      获取基类的实现代码
+      :param model_:
+      :param new_model_name:
+      :param tb_name:
+      :return:
+      """
+        codes = inspect.getsourcelines(model_)[0]
+        result = []
+        has_alias_tb_name = False
+        result.append(codes[0].replace(model_.__name__, new_model_name))
+        for line in codes[1:]:
+            match = re.search(r'\s+__tablename__\s+=\s+\'(?P<name>\w+)\'', line)
+            abstract = re.search(r'(?P<indent>\s+)__abstract__\s+=\s+', line)
+            if abstract:
+                del line
+                continue
+
+            if match:
+                name = match.groupdict()['name']
+                line = line.replace(name, tb_name)
+                has_alias_tb_name = True
+
+            result.append(line)
+
+        if not has_alias_tb_name:
+            result.append("%s__tablename__ = '%s'\n" % (' ', tb_name))
+
+        return result
+
+    @staticmethod
+    def create_new_module(module_name, codes):
+        """
+      创建新表映射类的module文件
+      :param module_name:
+      :param codes:
+      :return:
+      """
+        # f_path = os.path.join(current_app.root_path, 'flaskr', '_tmp', '%s.py' % module_name)
+        # fp = open(f_path, 'w')
+        # for i in codes:
+        #     fp.write(i)
+        # fp.close()
+
+        return import_module(f'app.flaskr._tmp.{module_name}')
+
+    _instance = dict()
+
+    def __new__(cls, base_cls, tb_name):
+        new_cls_name = "%s_To_%s" % (
+            base_cls.__name__, ''.join(map(lambda x: x.capitalize(), tb_name.split('_'))))
+
+        current_app.logger.info(f'新实例类名为: {new_cls_name}')
+
+        if tb_name not in db.engine.table_names():
+            current_app.logger.error(f'表{tb_name}不存在，请先创建该表')
+            raise Exception(f'表{tb_name}不存在，请先创建该表')
+
+        current_app.logger.info(f'实例列表: {cls._instance}')
+        if new_cls_name not in cls._instance:
+            import_codes = cls.get_import_codes(base_cls)
+            class_codes = cls.get_codes(base_cls, new_cls_name, tb_name)
+            import_codes.extend(class_codes)
+            new_module_name = new_cls_name.lower()
+            new_module = cls.create_new_module(new_module_name, import_codes)
+            model_cls = getattr(new_module, new_cls_name)
+
+            cls._instance[new_cls_name] = model_cls
+
+        return cls._instance[new_cls_name]()

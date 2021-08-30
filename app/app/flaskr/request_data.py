@@ -7,6 +7,7 @@ import json
 import time
 
 from app.flaskr.models import ProjectModel, ProjectDeviceModel, ProjectPropertiesModel, ProjectUserModel
+from app.utils.database import NewDynamicModel
 
 
 class RequestData(object):
@@ -243,9 +244,10 @@ class RequestData(object):
         """将request_data转换成project_model
         :return:
         """
-        project_model = ProjectModel()
+        project_model = NewDynamicModel(ProjectModel, f'{self.project}')
+        # from app.flaskr._tmp.projectmodel_to_chinagoods import ProjectModel_To_Chinagoods
+        # project_model = ProjectModel_To_Chinagoods()
         # 动态变更表名
-        project_model.__tablename__ = f'{self.project}'
         project_model.track_id = self.track_id
         project_model.distinct_id = self.distinct_id
         project_model.lib = self.lib
@@ -282,9 +284,7 @@ class RequestData(object):
         """将request_data转换成project_device
         :return:
         """
-        project_device_model = ProjectDeviceModel()
-        # 动态变更表名
-        project_device_model.__tablename__ = f'{self.project}_device'
+        project_device_model = NewDynamicModel(ProjectDeviceModel, f'{self.project}_device')
         project_device_model.track_id = self.track_id
         project_device_model.distinct_id = self.distinct_id
         project_device_model.lib = self.lib
@@ -321,9 +321,7 @@ class RequestData(object):
         """将request_data转换成project_properties
         :return:
         """
-        project_properties_model = ProjectPropertiesModel()
-        # 动态变更表名
-        project_properties_model.__tablename__ = f'{self.project}_properties'
+        project_properties_model = NewDynamicModel(ProjectPropertiesModel, f'{self.project}_properties')
         project_properties_model.lib = self.lib
         project_properties_model.event = self.event
         project_properties_model.remark = self.remark
@@ -339,9 +337,7 @@ class RequestData(object):
         """将request_data转换成project_user
         :return:
         """
-        project_user_model = ProjectUserModel()
-        # 动态变更表名
-        project_user_model.__tablename__ = f'{self.project}_user'
+        project_user_model = NewDynamicModel(ProjectUserModel, f'{self.project}_user')
         project_user_model.distinct_id = self.distinct_id
         project_user_model.lib = self.lib
         project_user_model.map_id = self.map_id

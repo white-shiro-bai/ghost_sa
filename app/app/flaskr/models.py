@@ -5,16 +5,17 @@
     模型类文件
 """
 
-from sqlalchemy import Integer, BigInteger
+from sqlalchemy import Integer
 from sqlalchemy.dialects.mysql import JSON
 
 from app.my_extensions import db
 
 
 class ProjectModel(db.Model):
+    __abstract__ = True
     __tablename__ = 'project'
 
-    track_id = db.Column(db.BigInteger(), primary_key=True)
+    track_id = db.Column(db.BigInteger, primary_key=True)
     distinct_id = db.Column(db.String(64), primary_key=True)
     lib = db.Column(db.String(255))
     event = db.Column(db.String(255))
@@ -38,12 +39,13 @@ class ProjectModel(db.Model):
     url = db.Column(db.Text())
     referrer = db.Column(db.String(2048))
     remark = db.Column(db.String(255))
-    created_at = db.Column(db.Integer())
+    created_at = db.Column(db.BigInteger)
     date_ = db.Column('date', db.Date)
-    hour = db.Column(db.Integer())
+    hour = db.Column(db.Integer)
 
 
 class ProjectDeviceModel(db.Model):
+    __abstract__ = True
     __tablename__ = 'project_device'
 
     distinct_id = db.Column(db.String(64), primary_key=True)
@@ -53,8 +55,8 @@ class ProjectDeviceModel(db.Model):
     model = db.Column(db.String(200))
     os = db.Column(db.String(200))
     os_version = db.Column(db.String(200))
-    screen_width = db.Column(Integer)
-    screen_height = db.Column(Integer)
+    screen_width = db.Column(db.Integer)
+    screen_height = db.Column(db.Integer)
     network_type = db.Column(db.String(32))
     user_agent = db.Column(db.String(2048))
     ua_platform = db.Column(db.String(200))
@@ -103,11 +105,12 @@ class ProjectDeviceModel(db.Model):
     latest_referrer_host = db.Column(db.String(512))
     latest_search_keyword = db.Column(db.String(768))
     latest_traffic_source_type = db.Column(db.String(255))
-    created_at = db.Column(Integer, index=True)
-    updated_at = db.Column(Integer)
+    created_at = db.Column(db.BigInteger, index=True)
+    updated_at = db.Column(db.BigInteger)
 
 
 class ProjectUserModel(db.Model):
+    __abstract__ = True
     __tablename__ = 'project_user'
 
     distinct_id = db.Column(db.String(64), index=True, primary_key=True)
@@ -116,20 +119,21 @@ class ProjectUserModel(db.Model):
     original_id = db.Column(db.String(255), index=True, primary_key=True)
     user_id = db.Column(db.String(255))
     all_user_profile = db.Column(db.String(255))
-    created_at = db.Column(Integer)
-    updated_at = db.Column(Integer)
+    created_at = db.Column(db.BigInteger)
+    updated_at = db.Column(db.BigInteger)
 
 
 class ProjectPropertiesModel(db.Model):
+    __abstract__ = True
     __tablename__ = 'project_properties'
 
     lib = db.Column(db.String(255), primary_key=True)
     remark = db.Column(db.String(255), primary_key=True)
     event = db.Column(db.String(255), primary_key=True)
     properties = db.Column(JSON())
-    properties_len = db.Column(Integer())
-    lastinsert_at = db.Column(Integer())
-    total_count = db.Column(BigInteger())
-    access_control_threshold = db.Column(Integer())
-    created_at = db.Column(Integer())
-    updated_at = db.Column(Integer())
+    properties_len = db.Column(db.Integer)
+    lastinsert_at = db.Column(db.Integer)
+    total_count = db.Column(db.BigInteger)
+    access_control_threshold = db.Column(db.Integer)
+    created_at = db.Column(db.BigInteger)
+    updated_at = db.Column(db.BigInteger)
