@@ -1,6 +1,20 @@
 pymysql==1.0.2
 kafka-python==2.0.2
-Pillow==8.1.2
+Pillow==8.2.0
 qrcode==6.1
+flask==1.1.0
 flask-cors==3.0.10
+guppy3==3.1.0
+flask-sqlalchemy==2.5.1
+flask-login==0.5.0
+flask-migrate==2.0.0
+flask-plugins==1.6.1
+flask-wtf==0.15.1
+flask-script==2.0.6
+mysqlclient==2.0.3
+Flask-MySQLdb==0.2.0
+flask-cors==3.0.10
+typing-extensions==3.6.5
 geoip2==4.1.0
+# python3-logstash==0.4.80
+python-logstash-async==2.3.0

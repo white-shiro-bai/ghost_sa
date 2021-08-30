@@ -1,7 +1,7 @@
 FROM tiangolo/uwsgi-nginx-flask:python3.8-2020-12-19
 
 COPY ./app/app/requirements.txt /tmp/
-RUN pip install -r /tmp/requirements.txt
+RUN pip install -r /tmp/requirements.txt -i https://pypi.doubanio.com/simple
 
 RUN echo 172.18.5.10    bigdata-master-01.chinagoods.te bigdata-master-01 >> /etc/hosts && \
     echo 172.18.5.14    bigdata-util-gateway-01.chinagoods.te bigdata-util-gateway-01 >> /etc/hosts && \

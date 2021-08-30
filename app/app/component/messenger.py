@@ -8,31 +8,40 @@ import json
 from app.configs.export import write_to_log
 from app.component.e_mail import send_email
 from app.component.we_chat import post_wechat_notification
-from app.component.db_func import insert_event,update_noti,select_noti_auto,select_scheduler_enable_project,update_noti_group,insert_noti_group,insert_noti,select_noti_temple,update_noti_temple
+from app.component.db_func import insert_event, update_noti,select_noti_auto,select_scheduler_enable_project,update_noti_group,insert_noti_group,insert_noti,select_noti_temple,update_noti_temple
 import traceback
 import time
+from app.configs import admin
+from app.component.recall_blacklist import blacklist_commit,blacklist_query
 
 
 class send:
-    def __init__(self, data):
+    def __init__(self, data, project):
         self.data = data
+        self.project = project
         self.noti_id = data[0]
         self.noti_group_id = data[1]
         self.noti_type = data[2]
         self.noti_content = json.loads(data[3])
+        self.distinct_id = data[4]
+
 
     def sample(self):
         if self.data:
             pass
 
     def via_email(self):
-        default_mail_from = self.noti_content['mail_from'] if 'mail_from' in self.noti_content and self.noti_content['mail_from'] and self.noti_content['mail_from'] != '' else 'accounts-noreply@notify.tvcbook.com'#默认发送邮箱
+        default_mail_from = self.noti_content['mail_from'] if 'mail_from' in self.noti_content and self.noti_content['mail_from'] and self.noti_content['mail_from'] != '' else 'test@youremail.com'#默认发送邮箱
         result = send_email(to_addr=self.noti_content['mail_to'],from_addr=default_mail_from,subject=self.noti_content['subject'],html=self.noti_content['content'])
         return result
     def sms(self):
         pass
         return 2
     def wechat_official_account(self):
+        # content = json.loads(self.noti_content)
+        # print(content['data'])
+        # content['data'] = json.loads(content['data'])
+        # print(content)
         result = post_wechat_notification(data=json.loads(self.noti_content['content']))
         return result
     def wechat_subscriptions(self):
@@ -44,7 +53,7 @@ class send:
     def pm(self):
         pass
 
-    def play_all(self):
+    def sent_all(self):
         try:
             print(self.noti_type)
             if self.noti_type == 23:
@@ -58,11 +67,36 @@ class send:
             write_to_log(filename='messenger',defname='play_all',result=error)
             return 'failed,please check logs'
 
+    def commit_all(self):
+        if admin.recall_blacklist_commit is False:
+            return self.sent_all()
+        elif admin.recall_blacklist_commit is True:
+            result = self.sent_all()
+            if result == 'success':
+                return result
+            elif result !='success':
+                commit = blacklist_commit(data={'project':self.project,'type':self.noti_type,'key':self.noti_content['key'],'reason_id':35,'status':40,'owner':'messenger.py','comment':result,'distinct_id':self.distinct_id})
+                commit.add_by_wrong_address()
+                return result
+
+    def play_all(self):
+        if admin.recall_blacklist_query is True and 'key' in self.noti_content:
+            checker = blacklist_query(data={'project':self.project,'type':self.noti_type,'owner':'messenger.py','key':self.noti_content['key'],'level':self.noti_content['level'] if 'level' in self.noti_content else None,'limit':1})
+            blacklist_status =  checker.check_messenger()
+            if blacklist_status['result_code'] == 44:
+                return self.commit_all()
+            else:
+                return blacklist_status['result_desc']
+        elif admin.recall_blacklist_query is True and 'key' not in self.noti_content:
+            return '开启了黑名单校验但content未包含key'
+        else:
+            return self.commit_all()
+
 
 def send_manual(project,noti):
     import platform
     # print(noti)
-    v = send(data=noti)
+    v = send(data=noti,project=project)
     send_result = v.play_all()
     timenow=int(time.time())
     if send_result :
@@ -110,8 +144,9 @@ def send_auto_noti():
         elif missTime < project_count:
             miss = 1
 
+
 def create_non_usergroup_noti(args):
-    #手动创建不在用户分群里的模板消息
+    #手动创建不在用户分群里的消息
     start_time = int(time.time())
     if 'data' in args and args['data'] and args['data'] !='' and 'project' in args and args['project'] !='':
         owner = args['owner'] if 'owner' in args else 'undefined'
@@ -126,7 +161,7 @@ def create_non_usergroup_noti(args):
         inserted = 0
         for noti in args['data']:
             if 'send_tracker' in noti and 'distinct_id' in noti['send_tracker'] and noti['send_tracker']['distinct_id'] != '':
-                insert_result = insert_noti(project=args['project'],type_1=medium_id,created_at=int(time.time()),updated_at=int(time.time()),distinct_id=noti['send_tracker']['distinct_id'],content=noti,send_at=noti['send_at'] if 'send_at' in noti else send_at,plan_id=None,list_id=None,data_id=None,temple_id=result_temple[0][0][0],noti_group_id=result_group[2],priority=13,status=8,owner=owner,recall_result=None)
+                insert_result = insert_noti(project=args['project'],type_1=medium_id,created_at=int(time.time()),updated_at=int(time.time()),distinct_id=noti['send_tracker']['distinct_id'],content=noti,send_at=noti['send_at'] if 'send_at' in noti else send_at,plan_id=None,list_id=None,data_id=None,temple_id=result_temple[0][0][0],noti_group_id=result_group[2],priority=13,status=8,owner=owner,recall_result=None,key=noti['key'] if 'key' in noti else None,level=noti['level'] if 'level' in noti else None)
                 inserted = inserted+insert_result[1]
         if 'temple_id' in args and args['temple_id'] != '':
             update_noti_temple(project=args['project'],temple_id=args['temple_id'],apply_times=1,lastest_apply_time=int(time.time()),lastest_apply_list = 0)
@@ -135,8 +170,9 @@ def create_non_usergroup_noti(args):
     else:
         return {'result':'failed','error':'no_distinct_id_or_miss_data'}
 
+
 def create_non_usergroup_non_temple_noti(args):
-    #手动创建不在用户分群的非模板消息，不适用模板的消息
+    #手动创建不在用户分群，也不适用模板的消息
     start_time = int(time.time())
     if 'data' in args and args['data'] and args['data'] !='' and 'project' in args and args['project'] !='' and 'medium_id' in args:
         owner = args['owner'] if 'owner' in args else 'undefined'
@@ -144,14 +180,12 @@ def create_non_usergroup_non_temple_noti(args):
         result_group = insert_noti_group(project=args['project'],plan_id=None,list_id=None,data_id=None,temple_id=None,owner=owner,send_at=send_at,sent=0,total=len(args['data']),priority=13,status=8)
         inserted = 0
         for item in args['data']:
-            insert_result = insert_noti(project=args['project'],type_1=args['medium_id'],created_at=int(time.time()),updated_at=int(time.time()),distinct_id=item['distinct_id'],content=item,send_at=item['send_at'] if 'send_at' in item else send_at,plan_id=None,list_id=None,data_id=None,temple_id=None,noti_group_id=result_group[2],priority=13,status=8,owner=owner,recall_result=None)
+            insert_result = insert_noti(project=args['project'],type_1=args['medium_id'],created_at=int(time.time()),updated_at=int(time.time()),distinct_id=item['distinct_id'],content=item,send_at=item['send_at'] if 'send_at' in item else send_at,plan_id=None,list_id=None,data_id=None,temple_id=None,noti_group_id=result_group[2],priority=13,status=8,owner=owner,recall_result=None,key=item['key'] if 'key' in item else None,level=item['level'] if 'level' in item else None)
             inserted = inserted+insert_result[1]
         update_noti_group(project=args['project'],noti_group_id=result_group[2])
         return {'result':'success','inserted':inserted,'timecost':int(time.time())-start_time}
     else:
         return {'result':'failed','error':'no_distinct_id_or_miss_data'}
-
-
 
 
 if __name__ == "__main__":
