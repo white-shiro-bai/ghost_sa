@@ -158,13 +158,6 @@ def get_data():
 
     ext = request.args.get('ext')
     url = request.url
-    try:
-        url_source = url
-        # url unicode转换为中文
-        current_app.logger.debug(f'解析url， 解析前url为{url_source}, 解析后为{url}')
-    except Exception as e:
-        current_app.logger.error(f'解析url错误，url为: {url}, 错误为: {e}')
-
     # 获取SLB真实地址
     ip = request.headers.get('X-Forwarded-For')
     if not ip:
@@ -175,13 +168,6 @@ def get_data():
     ip_asn, ip_asn_is_good = get_asn(ip)
     #: zh-CN,zh;q=0.9
     referrer = request.headers.get('Referer', '')
-    try:
-        referrer = urllib.parse.unquote(referrer)
-    except Exception as e:
-        current_app.logger.error(f'解析referrer错误，referrer为: {referrer}, 错误为: {e}')
-    if len(referrer) > 2047:
-        return res(code=ResponseCode.SYSTEM_ERROR, msg='Referer参数不合法!')
-
     datas = get_post_datas()
     request_data = RequestData(project=project, remark=remark)
 
