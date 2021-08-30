@@ -38,3 +38,6 @@ class TestingConfig(DefaultConfig):
 
     # 设置用户操作日志开关
     SERVICE_LOG_ENABLED = True
+
+    # Kafka的Topic
+    KAFKA_TOPIC = 'events-tracking_test_cero'

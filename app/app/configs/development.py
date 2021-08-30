@@ -24,3 +24,6 @@ class DevelopmentConfig(DefaultConfig):
 
     WTF_CSRF_ENABLED = False
 
+    # Kafka的Topic
+    KAFKA_TOPIC = 'events-tracking_test_cero'
+

@@ -75,3 +75,6 @@ class ProductionConfig(DefaultConfig):
 
     # 生产环境，日志输出到ELK
     LOG2ELK = False
+
+    # Kafka的Topic
+    KAFKA_TOPIC = 'events-tracking'
