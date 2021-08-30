@@ -4,12 +4,10 @@
 import sys
 
 from flask import current_app, _app_ctx_stack
+from geoip2 import database as geoip2database
 
 sys.path.append("../geoip/")
 sys.setrecursionlimit(10000000)
-
-import geoip2.database
-import json
 
 
 class GeoCityReader(object):
@@ -23,7 +21,7 @@ class GeoCityReader(object):
 
     def create_reader(self, app):
         app.logger.info('创建geo life city reader...')
-        return geoip2.database.Reader(app.config['GEO_LITE2CITY_FILE'])
+        return geoip2database.Reader(app.config['GEO_LITE2CITY_FILE'])
 
     def teardown(self, exception):
         ctx = _app_ctx_stack.top
@@ -51,7 +49,7 @@ class GeoAsnReader(object):
 
     def create_reader(self, app):
         app.logger.info('创建geo life asn reader...')
-        return geoip2.database.Reader(app.config['GEO_LITE2ASN_FILE'])
+        return geoip2database.Reader(app.config['GEO_LITE2ASN_FILE'])
 
     def teardown(self, exception):
         ctx = _app_ctx_stack.top
