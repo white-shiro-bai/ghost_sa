@@ -25,8 +25,8 @@ def get_post_datas():
         获取参数信息，JSON 》 FORM 》 ARGS的顺序
     :return:
     """
-    gzip_flag = 0
     request_data = request.args.get('data')
+    gzip_flag = request.args.get('gzip', 0)
     request_datas = None
 
     if request.method == 'POST' and hasattr(request, 'form'):
@@ -64,7 +64,7 @@ def get_post_datas():
             de64 = gzip.decompress(de64)
         request_target_data = json.loads(de64)
     except Exception as e:
-        current_app.logger.error(f'请求参数为{request.url}, args: {request.args}, form: {request.form}, body: {request.data}, json: {request.json}')
+        current_app.logger.debug(f'请求参数为{request.url}, args: {request.args}, form: {request.form}, body: {request.data}, json: {request.json}')
         current_app.logger.error(f'解码失败，原始数据为{de64}, 使用json.loads(de64)解码失败，开始异常为：{e}')
         try:
             request_target_data = json.loads(gzip.decompress(de64))
