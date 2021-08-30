@@ -164,8 +164,10 @@ def get_data():
         # 服务器直接暴露
         ip = request.remote_addr
 
-    ip_city, ip_is_good = get_address(ip)
-    ip_asn, ip_asn_is_good = get_asn(ip)
+    # 只获取第一条IP为ip_city信息，其它忽略
+    first_ip = ip.split(', ')[0]
+    ip_city, ip_is_good = get_address(first_ip)
+    ip_asn, ip_asn_is_good = get_asn(first_ip)
     #: zh-CN,zh;q=0.9
     referrer = request.headers.get('Referer', '')
     datas = get_post_datas()
