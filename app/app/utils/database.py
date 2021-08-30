@@ -300,8 +300,6 @@ class NewDynamicModel(object):
         new_cls_name = "%s_To_%s" % (
             base_cls.__name__, ''.join(map(lambda x: x.capitalize(), tb_name.split('_'))))
 
-        current_app.logger.info(f'新实例类名为: {new_cls_name}')
-
         if tb_name not in db.engine.table_names():
             current_app.logger.error(f'表{tb_name}不存在，请先创建该表')
             raise Exception(f'表{tb_name}不存在，请先创建该表')
