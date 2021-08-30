@@ -243,6 +243,9 @@ class RequestData(object):
         """将request_data转换成project_model
         :return:
         """
+        # 动态变更表名
+        table = self.project
+        ProjectModel.__table__.name = f'{table}'
         project_model = ProjectModel()
         project_model.track_id = self.track_id
         project_model.distinct_id = self.distinct_id
@@ -280,6 +283,9 @@ class RequestData(object):
         """将request_data转换成project_device
         :return:
         """
+        # 动态变更表名
+        table = self.project
+        ProjectDeviceModel.__table__.name = f'{table}_device'
         project_device_model = ProjectDeviceModel()
         project_device_model.track_id = self.track_id
         project_device_model.distinct_id = self.distinct_id
@@ -317,6 +323,9 @@ class RequestData(object):
         """将request_data转换成project_properties
         :return:
         """
+        # 动态变更表名
+        table = self.project
+        ProjectPropertiesModel.__table__.name = f'{table}_properties'
         project_properties_model = ProjectPropertiesModel()
         project_properties_model.lib = self.lib
         project_properties_model.event = self.event
@@ -333,6 +342,9 @@ class RequestData(object):
         """将request_data转换成project_user
         :return:
         """
+        # 动态变更表名
+        table = self.project
+        ProjectUserModel.__table__.name = f'{table}_user'
         project_user_model = ProjectUserModel()
         project_user_model.distinct_id = self.distinct_id
         project_user_model.lib = self.lib
