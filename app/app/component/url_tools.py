@@ -35,8 +35,15 @@ def get_post_datas():
         if not gzip_flag:
             gzip_flag = request.form.get('gzip', 0)
 
-    if hasattr(request, 'json') and request.json:
-        json_data = request.json
+    # 兼容content-type为application/json，但是数据内容为datas=xxx&crc=xxx
+    json_data = None
+    try:
+        if hasattr(request, 'json'):
+            json_data = request.json
+    except Exception as e:
+        current_app.logger.error(f'解析json格式错误， content_type: application/json，但是获取json异常， 错误为{e}')
+
+    if json_data:
         request_data = json_data.get('data')
         request_datas = json_data.get('data_list')
 
@@ -53,6 +60,14 @@ def get_post_datas():
 
         if not gzip_flag:
             gzip_flag = params.get('gzip', 0)
+
+    # 处理异常数据，content_type: application/json，但是数据内容为datas=xxx&crc=xxx
+    if not request_data and not request_datas:
+        play_load = request.data
+        play_load_str = play_load.decode('utf-8')
+        params = dict(urllib.parse.parse_qsl(play_load_str))
+        request_data = params.get('data')
+        request_datas = params.get('datas') or params.get('data_list')
 
     request_source_data = request_data if request_data else request_datas
     current_app.logger.debug(f'请求数据为{request_source_data}')
