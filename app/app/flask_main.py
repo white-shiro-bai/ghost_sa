@@ -378,6 +378,18 @@ def configure_logging(app):
 
     :param app:
     """
+
+    def custom_time_formatter(*args):
+        """定制化时间格式方法
+        """
+        from pytz import timezone, utc
+        from datetime import datetime
+        utc_dt = utc.localize(datetime.utcnow())
+        my_tz = timezone("Asia/Shanghai")
+        converted = utc_dt.astimezone(my_tz)
+        return converted.timetuple()
+
+    logging.Formatter.converter = custom_time_formatter
     # 根据时间分割日志文件
     logs_folder = os.path.join(app.root_path, os.pardir, "logs")
     logging.getLogger(app.config["LOGGER_NAME"])
