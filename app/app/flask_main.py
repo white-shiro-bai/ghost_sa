@@ -7,7 +7,7 @@ import sys
 import time
 
 from flask import Flask
-from logstash_async.formatter import LogstashFormatter, FlaskLogstashFormatter
+from logstash_async.formatter import FlaskLogstashFormatter
 from logstash_async.handler import AsynchronousLogstashHandler
 from logstash_async.transport import HttpTransport
 from sqlalchemy import event
@@ -122,7 +122,7 @@ def configure_blueprints(app):
     :param app: app
     """
     # 注册sa模块
-    from app.flaskr.sa import sa_bp
+    from app.flaskr.sa.view import sa_bp
     app.register_blueprint(sa_bp)
 
 

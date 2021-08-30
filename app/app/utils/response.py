@@ -1,11 +1,18 @@
 # -*- coding: utf-8 -*-
 """自定义通用返回数据格式"""
+import os
+
 from flask import render_template, current_app
 from flask.json import jsonify
 
 from app.configs.code import ResponseCode
 
 from app.utils.database import CRUDMixin, model_to_dict
+
+default_return_img = None
+bit_img_file_path = os.path.join('app', 'resources', 'image', '43byte.gif')
+with open(bit_img_file_path, 'rb') as f:
+    default_return_img = f.read()
 
 
 def translate2succeed(msg):

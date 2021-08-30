@@ -2,10 +2,13 @@
 # author: unknowwhite@outlook.com
 # wechat: Ben_Xiaobai
 import sys
+
+from app.flaskr.sa.dao import insert_event, insert_properties, insert_device_db
+
 sys.path.append("..")
 sys.path.append("./")
 # sys.setrecursionlimt(10000000)
-from app.component.db_func import insert_device_db,insert_user_db,find_recall_url,insert_event,find_recall_history,insert_properties,check_utm
+from app.component.db_func import insert_user_db,find_recall_url,find_recall_history,check_utm
 from app.component.api_req import get_json_from_api
 from app.configs import admin
 import urllib.parse
