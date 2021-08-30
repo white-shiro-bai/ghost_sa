@@ -345,7 +345,7 @@ class DefaultConfig(object):
     # Kafka群组地址，同一群组共享一个Offset，不会重复，也不会漏。
     CLIENT_GROUP_ID = 'your_group_id_here'
     # Kafka的Topic
-    KAFKA_TOPIC = 'events-tracking_test_cero'
+    KAFKA_TOPIC = 'events-tracking'
     CLIENT_ID = 'get_message_from_kafka'
     # latest,earliest,none
     KAFKA_OFFSET_RESET = 'latest'
