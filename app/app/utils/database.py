@@ -304,7 +304,7 @@ class NewDynamicModel(object):
             current_app.logger.error(f'表{tb_name}不存在，请先创建该表')
             raise Exception(f'表{tb_name}不存在，请先创建该表')
 
-        current_app.logger.info(f'实例列表: {cls._instance}')
+        current_app.logger.debug(f'实例列表: {cls._instance}')
         if new_cls_name not in cls._instance:
             import_codes = cls.get_import_codes(base_cls)
             class_codes = cls.get_codes(base_cls, new_cls_name, tb_name)

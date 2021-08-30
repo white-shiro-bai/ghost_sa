@@ -25,14 +25,14 @@ def insert_event(request_data):
     db.session.add(project_model)
     # 事务
     db.session.commit()
-    current_app.logger.info(f'插入事件数据成功， 数据为: {model_to_dict(project_model)}')
+    current_app.logger.debug(f'插入事件数据成功， 数据为: {model_to_dict(project_model)}')
     return 1
 
 
 def insert_or_update_device(request_data):
     request_data.set_other_properties()
     count = insert_device_db(request_data)
-    current_app.logger.info(f'插入或更新device={count}条')
+    current_app.logger.debug(f'插入或更新device={count}条')
 
 
 def insert_device_db(request_data, created_at=None, updated_at=None):
@@ -79,7 +79,7 @@ def insert_properties(request_data):
         request_data.update_project_properties_model(project_properties_model_db)
 
     db.session.commit()
-    current_app.logger.info(f'插入或更新事件属性数据成功， 数据为: {project_properties_model_db}')
+    current_app.logger.debug(f'插入或更新事件属性数据成功， 数据为: {model_to_dict(project_properties_model_db)}')
     return 1
 
 
@@ -100,7 +100,7 @@ def insert_user(request_data):
         request_data.update_project_properties_model(project_user_model_db)
 
     db.session.commit()
-    current_app.logger.info(f'插入或更新用户属性数据成功， 数据为: {project_user_model_db}')
+    current_app.logger.debug(f'插入或更新用户属性数据成功， 数据为: {model_to_dict(project_user_model_db)}')
     return 1
 
 

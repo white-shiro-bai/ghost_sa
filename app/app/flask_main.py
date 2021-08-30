@@ -408,7 +408,6 @@ def configure_logging(app):
         ensure_ascii=False,
         metadata={"beat": "chinagoods-bigdata-ghost_sa"})
 
-
     # constants.FORMATTER_LOGSTASH_MESSAGE_FIELD_LIST =
     # 控制台文件中输出相应的日志信息
     stream_handler = logging.StreamHandler()
