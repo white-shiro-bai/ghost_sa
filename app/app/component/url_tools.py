@@ -57,11 +57,11 @@ def get_post_datas():
             de64 = gzip.decompress(de64)
         request_target_data = json.loads(de64)
     except Exception as e:
-        current_app.logger.error(f'解码失败，原始数据为{request_source_data}, 使用json.loads(de64)解码失败，开始异常为：{e}')
+        current_app.logger.error(f'解码失败，原始数据为{de64}, 使用json.loads(de64)解码失败，开始异常为：{e}')
         try:
             request_target_data = json.loads(gzip.decompress(de64))
         except Exception as e:
-            current_app.logger.error(f'第二次尝试解码失败，原始数据为{request_source_data}, 使用json.loads(gzip.decompress(de64))解码失败，开始异常为：{e}')
+            current_app.logger.error(f'第二次尝试解码失败，原始数据为{de64}, 使用json.loads(gzip.decompress(de64))解码失败，开始异常为：{e}')
         raise e
 
     # 结果封装成列表
