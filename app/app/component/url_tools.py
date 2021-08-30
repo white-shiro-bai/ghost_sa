@@ -35,7 +35,7 @@ def get_post_datas():
         if not gzip_flag:
             gzip_flag = request.form.get('gzip', 0)
 
-    # 兼容content-type为application/json，但是数据内容为datas=xxx&crc=xxx
+    # 兼容content-type为application/json，但是数据内容为datas=xxx&crc=xxx，避免报错，抛出bad request
     json_data = None
     try:
         if hasattr(request, 'json'):
