@@ -75,10 +75,12 @@ def get_address(ip='8.8.8.8'):
     :return: json对象，地址信息
     """
     response = None
+    # 只获取第一条IP为ip_city信息，其它忽略
+    first_ip = ip.split(', ')[0]
     try:
-        response = current_app.geo_city_reader.city(ip)
+        response = current_app.geo_city_reader.city(first_ip)
     except Exception as e:
-        current_app.logger.error(f'ip： {ip}获取地址失败，错误原因为: {e}')
+        current_app.logger.error(f'ip： {first_ip}获取地址失败，错误原因为: {e}')
     raw_json = response.raw if response else {}
     ret_code = 1 if response else 0
     return raw_json, ret_code
