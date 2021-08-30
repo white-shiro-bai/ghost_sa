@@ -127,3 +127,4 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+/flaskr/_tmp/projectmodel_to_chinagoods.py

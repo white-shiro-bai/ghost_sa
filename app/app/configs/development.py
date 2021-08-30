@@ -25,7 +25,7 @@ class DevelopmentConfig(DefaultConfig):
     WTF_CSRF_ENABLED = False
 
     # 开启kafka接收数据
-    USE_KAFKA = True
+    USE_KAFKA = False
     # Kafka的Topic
     KAFKA_TOPIC = 'events-tracking_test_cero'
 
