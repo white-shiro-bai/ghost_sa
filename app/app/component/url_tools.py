@@ -32,12 +32,16 @@ def get_post_datas():
     if request.method == 'POST' and hasattr(request, 'form'):
         request_data = request.form.get('data')
         request_datas = request.form.get('data_list')
+        if not gzip_flag:
+            gzip_flag = request.form.get('gzip', 0)
 
     if hasattr(request, 'json') and request.json:
         json_data = request.json
         request_data = json_data.get('data')
-        gzip_flag = json_data.get('gzip', 0)
         request_datas = json_data.get('data_list')
+
+        if not gzip_flag:
+            gzip_flag = json_data.get('gzip', 0)
 
     # 处理信标
     if 'text/plain' in request.headers.get('CONTENT-TYPE', ''):
@@ -46,6 +50,9 @@ def get_post_datas():
         params = dict(urllib.parse.parse_qsl(play_load_str))
         request_data = params.get('data')
         request_datas = params.get('datas')
+
+        if not gzip_flag:
+            gzip_flag = params.get('gzip', 0)
 
     request_source_data = request_data if request_data else request_datas
     current_app.logger.debug(f'请求数据为{request_source_data}')
