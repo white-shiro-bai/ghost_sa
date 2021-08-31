@@ -6,11 +6,11 @@ sys.path.append("./")
 sys.setrecursionlimit(10000000)
 from app.component.api import insert_data,insert_installation_track,insert_shortcut_history,insert_shortcut_read
 import json
-from app.component.kafka_op import get_message_from_kafka
+from app.utils.kafka_op import get_message_from_kafka
 import traceback
 # import multiprocessing
 from app.configs.export import write_to_log
-from concurrent.futures import ThreadPoolExecutor,ProcessPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 from app.configs import admin
 if admin.access_control_commit_mode == 'kafka_consumer':
     from app.component.access_control import access_control

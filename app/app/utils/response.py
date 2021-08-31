@@ -1,11 +1,18 @@
 # -*- coding: utf-8 -*-
 """自定义通用返回数据格式"""
+import os
+
 from flask import render_template, current_app
 from flask.json import jsonify
 
 from app.configs.code import ResponseCode
 
 from app.utils.database import CRUDMixin, model_to_dict
+
+default_return_img = None
+bit_img_file_path = os.path.join('app', 'resources', 'image', '43byte.gif')
+with open(bit_img_file_path, 'rb') as f:
+    default_return_img = f.read()
 
 
 def translate2succeed(msg):
@@ -42,7 +49,7 @@ def res(code=ResponseCode.SUCCEED, msg=u"成功", level=None, data=None):
     if current_app.config['IS_OPEN_SEARCH_CHILDREN'] and code == ResponseCode.URL_NOT_FOUND:
         return render_template(f'{code}.html'), code
 
-    current_app.logger.info(f'返回结果为: {result}')
+    current_app.logger.debug(f'返回结果为: {result}')
     return jsonify(result)
 
 

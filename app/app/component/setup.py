@@ -19,8 +19,8 @@ def update_table_history(project_name):
     `original_id` varchar(255) NOT NULL,
     `user_id` varchar(255) DEFAULT NULL,
     `all_user_profile` json DEFAULT NULL,
-    `created_at` int(11) DEFAULT NULL,
-    `updated_at` int(11) DEFAULT NULL,
+    `created_at` int(13) DEFAULT NULL,
+    `updated_at` int(13) DEFAULT NULL,
     PRIMARY KEY (`distinct_id`,`lib`,`map_id`,`original_id`),
     KEY `distinct_id` (`distinct_id`),
     KEY `map_id` (`map_id`),
@@ -41,7 +41,7 @@ def create_project(project_name,expired=None):
     #创建新项目，project_name是项目名，expired是过期时间，字串输入 2019-01-01 格式
     create_project_list = """CREATE TABLE IF NOT EXISTS `project_list` (
     `project_name` varchar(255) DEFAULT NULL COMMENT '项目名称',
-    `created_at` int(11) DEFAULT NULL COMMENT '创建时间',
+    `created_at` int(13) DEFAULT NULL COMMENT '创建时间',
     `expired_at` int(11) DEFAULT NULL COMMENT '过期时间',
     `event_count` bigint(20) DEFAULT NULL COMMENT '事件量',
     `device_count` bigint(20) DEFAULT NULL COMMENT '设备数',
@@ -56,7 +56,7 @@ def create_project(project_name,expired=None):
     `short_url` varchar(255) DEFAULT NULL COMMENT '短链地址',
     `long_url` varchar(768) DEFAULT NULL COMMENT '长链地址',
     `expired_at` int(11) DEFAULT NULL COMMENT '过期时间',
-    `created_at` int(11) DEFAULT NULL COMMENT '创建时间',
+    `created_at` int(13) DEFAULT NULL COMMENT '创建时间',
     `src` varchar(10) DEFAULT NULL COMMENT '使用的第三方创建源',
     `src_short_url` varchar(255) DEFAULT NULL COMMENT '创建源返回的短地址',
     `submitter` varchar(255) DEFAULT NULL COMMENT '由谁提交',
@@ -73,7 +73,7 @@ def create_project(project_name,expired=None):
     `result` varchar(255) DEFAULT NULL COMMENT '解析的结果',
     `cost_time` int(11) DEFAULT NULL COMMENT '耗费时间',
     `ip` varchar(255) DEFAULT NULL,
-    `created_at` int(11) DEFAULT NULL COMMENT '解析时间',
+    `created_at` int(13) DEFAULT NULL COMMENT '解析时间',
     `user_agent` text DEFAULT NULL,
     `accept_language` text DEFAULT NULL,
     `ua_platform` varchar(255) DEFAULT NULL,
@@ -89,8 +89,8 @@ def create_project(project_name,expired=None):
     `src` varchar(255) NOT NULL COMMENT '创建源名称',
     `src_name` varchar(255) DEFAULT NULL COMMENT '创建源的中文名字',
     `src_args` varchar(1024) DEFAULT NULL COMMENT '创建源自带参数',
-    `created_at` int(11) DEFAULT NULL COMMENT '创建时间',
-    `updated_at` int(11) DEFAULT NULL COMMENT '维护时间',
+    `created_at` int(13) DEFAULT NULL COMMENT '创建时间',
+    `updated_at` int(13) DEFAULT NULL COMMENT '维护时间',
     `utm_source` varchar(255) DEFAULT NULL COMMENT '预制的utm_source',
     `utm_medium` varchar(255) DEFAULT NULL COMMENT '预制的utm_medium',
     `utm_campaign` varchar(255) DEFAULT NULL COMMENT '预制的utm_campaign',
@@ -102,7 +102,7 @@ def create_project(project_name,expired=None):
     `project` varchar(255) DEFAULT NULL COMMENT '项目名',
     `url` varchar(768) NOT NULL COMMENT '监测地址',
     `expired_at` int(11) DEFAULT NULL COMMENT '过期时间',
-    `created_at` int(11) DEFAULT NULL COMMENT '创建时间',
+    `created_at` int(13) DEFAULT NULL COMMENT '创建时间',
     `src` varchar(255) DEFAULT NULL COMMENT '使用的检测原id',
     `src_url` varchar(1024) DEFAULT NULL COMMENT '使用的检测模板',
     `submitter` varchar(255) DEFAULT NULL COMMENT '由谁提交',
@@ -116,7 +116,7 @@ def create_project(project_name,expired=None):
     created_shortcut_read="""CREATE TABLE if not EXISTS `shortcut_read` (
     `short_url` varchar(255) NOT NULL COMMENT '短链地址',
     `ip` varchar(20) DEFAULT NULL COMMENT 'ip',
-    `created_at` int(11) DEFAULT NULL COMMENT '时间',
+    `created_at` int(13) DEFAULT NULL COMMENT '时间',
     `user_agent` text DEFAULT NULL COMMENT 'ua',
     `accept_language` text DEFAULT NULL COMMENT '语言',
     `ua_platform` varchar(255) DEFAULT NULL COMMENT '平台',
@@ -136,8 +136,8 @@ def create_project(project_name,expired=None):
     `owner` varchar(255) DEFAULT NULL COMMENT '第一次操作所属人',
     `latest_owner` varchar(255) DEFAULT NULL COMMENT '最后一次操作所属人',
     `status` int(11) DEFAULT NULL COMMENT '状态',
-    `created_at` int(11) DEFAULT NULL COMMENT '创建时间',
-    `updated_at` int(11) DEFAULT NULL COMMENT '更新时间',
+    `created_at` int(13) DEFAULT NULL COMMENT '创建时间',
+    `updated_at` int(13) DEFAULT NULL COMMENT '更新时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `anti_copy` (`key`,`type_id`,`project`),
     KEY `check_blacklist` (`status`,`key`,`type_id`,`project`)
@@ -147,7 +147,7 @@ def create_project(project_name,expired=None):
     `checker` varchar(255) DEFAULT NULL COMMENT '查询者的名字',
     `result_status_id` int(11) DEFAULT NULL COMMENT '返回的status_code里pid是39的状态',
     `result_reason_id` int(11) DEFAULT NULL COMMENT '返回的status_code里pid是30的理由',
-    `created_at` int(11) DEFAULT NULL COMMENT '创建时间',
+    `created_at` int(13) DEFAULT NULL COMMENT '创建时间',
     KEY `rbid` (`rbid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;"""
     blacklist_sql_3="""CREATE TABLE IF NOT EXISTS `recall_blacklist_reason` (
@@ -221,7 +221,7 @@ def create_project(project_name,expired=None):
     `url` text DEFAULT NULL,
     `referrer` varchar(2048) DEFAULT NULL,
     `remark` varchar(255) DEFAULT NULL,
-    `created_at` int(11) DEFAULT NULL,
+    `created_at` int(13) DEFAULT NULL,
     `date` date DEFAULT NULL,
     `hour` int(2) DEFAULT NULL,
     KEY `date` (`date`),
@@ -284,8 +284,8 @@ def create_project(project_name,expired=None):
     `latest_referrer_host` varchar(512) DEFAULT NULL,
     `latest_search_keyword` varchar(768) DEFAULT NULL,
     `latest_traffic_source_type` varchar(255) DEFAULT NULL,
-    `created_at` int(11) DEFAULT NULL,
-    `updated_at` int(11) DEFAULT NULL,
+    `created_at` int(13) DEFAULT NULL,
+    `updated_at` int(13) DEFAULT NULL,
     PRIMARY KEY (`distinct_id`),
     KEY `utm_campaign` (`utm_campaign`),
     KEY `utm_source` (`utm_source`),
@@ -301,8 +301,8 @@ def create_project(project_name,expired=None):
     `original_id` varchar(200) NOT NULL,
     `user_id` varchar(255) DEFAULT NULL,
     `all_user_profile` json DEFAULT NULL,
-    `created_at` int(11) DEFAULT NULL,
-    `updated_at` int(11) DEFAULT NULL,
+    `created_at` int(13) DEFAULT NULL,
+    `updated_at` int(13) DEFAULT NULL,
     PRIMARY KEY (`distinct_id`,`lib`,`map_id`,`original_id`),
     KEY `distinct_id` (`distinct_id`),
     KEY `map_id` (`map_id`),
@@ -351,8 +351,8 @@ def create_project(project_name,expired=None):
         `data` json DEFAULT NULL COMMENT '其他附带的参数',
         `priority` int(4) DEFAULT NULL COMMENT '优先级',
         `status` int(4) DEFAULT NULL COMMENT '状态',
-        `created_at` int(11) DEFAULT NULL COMMENT '创建时间',
-        `updated_at` int(11) DEFAULT NULL COMMENT '更新时间',
+        `created_at` int(13) DEFAULT NULL COMMENT '创建时间',
+        `updated_at` int(13) DEFAULT NULL COMMENT '更新时间',
         PRIMARY KEY (`id`),
         UNIQUE KEY `ind_task` (`project`,`group_id`,`datetime`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin AUTO_INCREMENT=1;"""
@@ -365,8 +365,8 @@ def create_project(project_name,expired=None):
     `data_key` varchar(255) DEFAULT NULL COMMENT '数据的唯一识别id',
     `data_json` json DEFAULT NULL COMMENT '数据包',
     `enable` int(11) DEFAULT NULL COMMENT '生效策略。参考status_code，p_id=7',
-    `created_at` int(11) DEFAULT NULL,
-    `updated_at` int(11) DEFAULT NULL,
+    `created_at` int(13) DEFAULT NULL,
+    `updated_at` int(13) DEFAULT NULL,
     PRIMARY KEY (`id`),
     KEY `group_list_id` (`group_list_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin AUTO_INCREMENT=1;""".format(project_name=project_name)
@@ -382,8 +382,8 @@ def create_project(project_name,expired=None):
     `status` int(4) DEFAULT NULL COMMENT '分群状态。参考status_code,p_id=1',
     `complete_at` int(11) DEFAULT NULL COMMENT '分群完成时间',
     `apply_temple_times` int(2) DEFAULT 0 COMMENT '被套用模板的次数',
-    `created_at` int(11) DEFAULT NULL COMMENT '条目创建时间',
-    `updated_at` int(11) DEFAULT NULL COMMENT '条目更新时间',
+    `created_at` int(13) DEFAULT NULL COMMENT '条目创建时间',
+    `updated_at` int(13) DEFAULT NULL COMMENT '条目更新时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `unique_key` (`group_id`,`group_list_index`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin AUTO_INCREMENT=1;""".format(project_name=project_name)
@@ -401,8 +401,8 @@ def create_project(project_name,expired=None):
     `enable_policy` int(11) DEFAULT NULL COMMENT '生效策略。参考status_code，p_id=7',
     `latest_apply_temple_id` int(11) DEFAULT NULL COMMENT '最后一次执行的模板类型',
     `latest_apply_temple_time` int(11) DEFAULT NULL COMMENT '最后一次执行的模型时间',
-    `created_at` int(11) DEFAULT NULL COMMENT '创建时间',
-    `updated_at` int(11) DEFAULT NULL COMMENT '更新时间',
+    `created_at` int(13) DEFAULT NULL COMMENT '创建时间',
+    `updated_at` int(13) DEFAULT NULL COMMENT '更新时间',
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin AUTO_INCREMENT=1;""".format(project_name=project_name) 
         do_tidb_exe(insert_plan)
@@ -425,8 +425,8 @@ def create_project(project_name,expired=None):
     `content` json DEFAULT NULL COMMENT '消息内容',
     `send_at` int(11) DEFAULT NULL COMMENT '计划发送时间',
     `recall_result` text DEFAULT NULL COMMENT '发送结果',
-    `created_at` int(11) DEFAULT NULL COMMENT '创建时间',
-    `updated_at` int(11) DEFAULT NULL COMMENT '更新时间',
+    `created_at` int(13) DEFAULT NULL COMMENT '创建时间',
+    `updated_at` int(13) DEFAULT NULL COMMENT '更新时间',
     PRIMARY KEY (`id`),
     KEY `distinct_id` (`distinct_id`),
     KEY `send_plan` (`status`,`priority`,`send_at`),
@@ -445,8 +445,8 @@ def create_project(project_name,expired=None):
     `send_at` int(11) DEFAULT NULL COMMENT '计划发送时间',
     `sent` int(11) DEFAULT NULL COMMENT '已发送数目',
     `total` int(11) DEFAULT NULL COMMENT '该计划总数目',
-    `created_at` int(11) DEFAULT NULL COMMENT '创建时间',
-    `updated_at` int(11) DEFAULT NULL COMMENT '更新时间',
+    `created_at` int(13) DEFAULT NULL COMMENT '创建时间',
+    `updated_at` int(13) DEFAULT NULL COMMENT '更新时间',
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin AUTO_INCREMENT=1001;""".format(project_name=project_name)
         do_tidb_exe(insert_noti_group)
@@ -459,8 +459,8 @@ def create_project(project_name,expired=None):
     `apply_times` int(11) DEFAULT 0 COMMENT '应用次数',
     `lastest_apply_time` int(11) DEFAULT NULL COMMENT '最后一次应用时间',
     `lastest_apply_list` int(11) DEFAULT NULL COMMENT '最后一次应用列表',
-    `created_at` int(11) DEFAULT NULL COMMENT '创建时间',
-    `updated_at` int(11) DEFAULT NULL COMMENT '更新时间',
+    `created_at` int(13) DEFAULT NULL COMMENT '创建时间',
+    `updated_at` int(13) DEFAULT NULL COMMENT '更新时间',
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin AUTO_INCREMENT=1001;""".format(project_name=project_name)
         do_tidb_exe(insert_noti_temple)
@@ -486,6 +486,5 @@ def update_mobile_ad_src():
 
 
 if __name__ == "__main__":
-        # create_project(project_name='test_app_with_date',expired='2020-01-01')
-        create_project(project_name='test_me')
-        update_mobile_ad_src()
+    create_project(project_name='test_me')
+    update_mobile_ad_src()

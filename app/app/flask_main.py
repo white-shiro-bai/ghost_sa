@@ -7,7 +7,7 @@ import sys
 import time
 
 from flask import Flask
-from logstash_async.formatter import LogstashFormatter, FlaskLogstashFormatter
+from logstash_async.formatter import FlaskLogstashFormatter
 from logstash_async.handler import AsynchronousLogstashHandler
 from logstash_async.transport import HttpTransport
 from sqlalchemy import event
@@ -122,7 +122,7 @@ def configure_blueprints(app):
     :param app: app
     """
     # 注册sa模块
-    from app.flaskr.sa import sa_bp
+    from app.flaskr.sa.view import sa_bp
     app.register_blueprint(sa_bp)
 
 
@@ -378,6 +378,18 @@ def configure_logging(app):
 
     :param app:
     """
+
+    def custom_time_formatter(*args):
+        """定制化时间格式方法
+        """
+        from pytz import timezone, utc
+        from datetime import datetime
+        utc_dt = utc.localize(datetime.utcnow())
+        my_tz = timezone("Asia/Shanghai")
+        converted = utc_dt.astimezone(my_tz)
+        return converted.timetuple()
+
+    logging.Formatter.converter = custom_time_formatter
     # 根据时间分割日志文件
     logs_folder = os.path.join(app.root_path, os.pardir, "logs")
     logging.getLogger(app.config["LOGGER_NAME"])
@@ -395,7 +407,6 @@ def configure_logging(app):
                    logstash_prefix='chinagoods-bigdata-ghost_sa'),
         ensure_ascii=False,
         metadata={"beat": "chinagoods-bigdata-ghost_sa"})
-
 
     # constants.FORMATTER_LOGSTASH_MESSAGE_FIELD_LIST =
     # 控制台文件中输出相应的日志信息

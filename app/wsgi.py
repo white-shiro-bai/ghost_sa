@@ -26,5 +26,4 @@ except Exception as e:
     print(f"启动错误，请检查uwsgi.ini配置, {e}")
 
 if __name__ == '__main__':
-    app.logger.info(f'启动环境为: {system_environments}...')
     app.run(host=app.config['HOST'], port=app.config['PORT'], threaded=True, passthrough_errors=True)

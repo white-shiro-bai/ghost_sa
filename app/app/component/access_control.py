@@ -140,7 +140,7 @@ class access_control:
 if __name__ == "__main__":
     if admin.access_control_commit_mode =='access_control':
         from app.component.access_control import access_control
-        from app.component.kafka_op import get_message_from_kafka
+        from app.utils.kafka_op import get_message_from_kafka
         ac_access_control = access_control()
         results = get_message_from_kafka(group_id=kafka.client_group_id+'_'+admin.access_control_kafka_client_group_id,client_id=kafka.client_id+'_'+admin.access_control_kafka_client_client_id)
         for item in results :

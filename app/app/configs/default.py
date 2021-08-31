@@ -278,8 +278,8 @@ class DefaultConfig(object):
 
     # 获取ip的位置信息
     # 这个文件在去这里下载对应的mmdb文件 https://dev.maxmind.com/geoip/geoip2/geolite2/
-    GEO_LITE2CITY_FILE = 'app/resources/GeoLite2-City.mmdb'
-    GEO_LITE2ASN_FILE = 'app/resources/GeoLite2-ASN.mmdb'
+    GEO_LITE2CITY_FILE = 'app/resources/geo/GeoLite2-City.mmdb'
+    GEO_LITE2ASN_FILE = 'app/resources/geo/GeoLite2-ASN.mmdb'
 
     # ip透传
     # user_ip_key字段优先作为用户ip。当检测到埋点里有 user_ip字段时，优先使用。使后端的埋点ip显示为用户ip，而非服务器ip。
@@ -345,7 +345,7 @@ class DefaultConfig(object):
     # Kafka群组地址，同一群组共享一个Offset，不会重复，也不会漏。
     CLIENT_GROUP_ID = 'your_group_id_here'
     # Kafka的Topic
-    KAFKA_TOPIC = 'events-tracking_test_cero'
+    KAFKA_TOPIC = 'events-tracking'
     CLIENT_ID = 'get_message_from_kafka'
     # latest,earliest,none
     KAFKA_OFFSET_RESET = 'latest'
@@ -354,3 +354,7 @@ class DefaultConfig(object):
     LOG2ELK = False
     ELK_HOST = '172.18.3.110'
     ELK_PORT = 23037
+
+    # 默认情况下Flask使用ascii编码来序列化对象。如果这个值被设置为False ， Flask不会将其编码为ASCII，并且按原样输出，返回它的unicode字符串。
+    # 比如jsonfiy会自动地采用utf-8来编码它然后才进行传输。
+    JSON_AS_ASCII = False

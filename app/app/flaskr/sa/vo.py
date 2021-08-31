@@ -1,12 +1,13 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
 """
-    鬼策接收数据模型
+    鬼策接收数据对象(view object）模块
 """
 import json
 import time
 
-from app.flaskr.models import ProjectModel, ProjectDeviceModel, ProjectPropertiesModel, ProjectUserModel
+from app.flaskr.sa.models import ProjectModel, ProjectDeviceModel, ProjectPropertiesModel, ProjectUserModel
+from app.utils.database import NewDynamicModel
 
 
 class RequestData(object):
@@ -95,7 +96,8 @@ class RequestData(object):
 
         ct = time.time()
         local_time = time.localtime(ct)
-        created_at = int(ct)
+        # 获取13位时间戳
+        created_at = round(time.time() * 1000)
         dt = time.strftime("%Y-%m-%d", local_time)
         hour = int(time.strftime("%H", local_time))
         self.created_at = created_at
@@ -103,18 +105,20 @@ class RequestData(object):
         self.dt = dt
         self.hour = hour
 
-    def set_ua_properties(self, user_agent, ua_platform, ua_browser, ua_version):
+    def set_ua_properties(self, user_agent, ua_platform, ua_browser, ua_version, ua_language):
         """设置ua属性.
         :param user_agent:
         :param ua_platform:
         :param ua_browser:
         :param ua_version:
+        :param ua_language:
         :return:
         """
         self.user_agent = user_agent
         self.ua_platform = ua_platform
         self.ua_browser = ua_browser
         self.ua_version = ua_version
+        self.ua_language = ua_language
 
     def set_connect_properties(self, connection, pragma, cache_control, accept, accept_encoding, accept_language):
         """设置连接属性.
@@ -240,7 +244,10 @@ class RequestData(object):
         """将request_data转换成project_model
         :return:
         """
-        project_model = ProjectModel()
+        project_model = NewDynamicModel(ProjectModel, f'{self.project}')
+        # from app.flaskr._tmp.projectmodel_to_chinagoods import ProjectModel_To_Chinagoods
+        # project_model = ProjectModel_To_Chinagoods()
+        # 动态变更表名
         project_model.track_id = self.track_id
         project_model.distinct_id = self.distinct_id
         project_model.lib = self.lib
@@ -277,7 +284,7 @@ class RequestData(object):
         """将request_data转换成project_device
         :return:
         """
-        project_device_model = ProjectDeviceModel()
+        project_device_model = NewDynamicModel(ProjectDeviceModel, f'{self.project}_device')
         project_device_model.track_id = self.track_id
         project_device_model.distinct_id = self.distinct_id
         project_device_model.lib = self.lib
@@ -314,7 +321,7 @@ class RequestData(object):
         """将request_data转换成project_properties
         :return:
         """
-        project_properties_model = ProjectPropertiesModel()
+        project_properties_model = NewDynamicModel(ProjectPropertiesModel, f'{self.project}_properties')
         project_properties_model.lib = self.lib
         project_properties_model.event = self.event
         project_properties_model.remark = self.remark
@@ -330,7 +337,7 @@ class RequestData(object):
         """将request_data转换成project_user
         :return:
         """
-        project_user_model = ProjectUserModel()
+        project_user_model = NewDynamicModel(ProjectUserModel, f'{self.project}_user')
         project_user_model.distinct_id = self.distinct_id
         project_user_model.lib = self.lib
         project_user_model.map_id = self.map_id

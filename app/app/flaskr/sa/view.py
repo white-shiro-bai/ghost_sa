@@ -6,8 +6,8 @@
 
 from flask import Blueprint
 
-from app.component.api import get_data
 from app.configs.code import ResponseCode
+from app.flaskr.sa.bu import get_data
 from app.utils.response import res
 
 sa_bp = Blueprint('sa', __name__)

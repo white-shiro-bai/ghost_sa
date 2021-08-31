@@ -10,7 +10,7 @@ import traceback
 from app.configs.export import write_to_log
 from app.configs import admin, kafka
 if admin.use_kafka is True:
-    from app.component.kafka_op import get_message_from_kafka
+    from app.utils.kafka_op import get_message_from_kafka
 
 class trigger:
     def __init__(self, project, data_decode):

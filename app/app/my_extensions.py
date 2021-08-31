@@ -13,9 +13,6 @@ from flask_plugins import PluginManager
 from flask_sqlalchemy import (SQLAlchemy)
 from flask_wtf.csrf import CSRFProtect
 
-from app.component.kafka_op import CreateKafkaProducer
-from app.utils.geo import GeoCityReader, GeoAsnReader
-
 """
     xiaowei.song 2016-7-13
 

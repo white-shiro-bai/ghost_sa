@@ -1,0 +1,20 @@
+version: "3.9"
+services:
+  ghost_sa:
+    image: "ghost_sa:latest"
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/code
+    environment:
+      FLASK_ENV: production
+    extra_hosts:
+      - "bigdata-master-01.chinagoods.te:172.18.5.10"
+      - "bigdata-util-gateway-01.chinagoods.te:172.18.5.14"
+      - "bigdata-node-01.chinagoods.te:172.18.5.17"
+      - "bigdata-node-02.chinagoods.te:172.18.5.15"
+      - "bigdata-node-03.chinagoods.te:172.18.5.16"
+      - "bigdata-node-04.chinagoods.te:172.18.5.2"
+      - "bigdata-node-05.chinagoods.te:172.18.5.3"
+      - "bigdata-node-06.chinagoods.te:172.18.5.4"
+    #network_mode: host
