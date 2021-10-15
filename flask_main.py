@@ -4,7 +4,7 @@
 import sys
 sys.path.append("..")
 sys.setrecursionlimit(10000000)
-from component.api import get_datas, get_long, shortit, show_short_cut_list, ghost_check ,installation_track,show_project_list,show_mobile_ad_list,show_mobile_src_list,create_mobile_ad_link,check_exist_distinct_id,who_am_i,shortcut_read,show_qrcode,show_long_qrcode,show_all_logos,show_logo,access_permit,get_access_control_token,get_check_token
+from component.api import get_datas, get_long, shortit, show_short_cut_list, ghost_check ,installation_track,show_project_list,show_mobile_ad_list,show_mobile_src_list,create_mobile_ad_link,check_exist_distinct_id,who_am_i,shortcut_read,show_qrcode,show_long_qrcode,show_all_logos,show_logo,access_permit,get_access_control_token,get_check_token,access_control_list,access_control_detail,update_access_status,status_codes
 from component.api_noti import show_usergroup_plan,show_usergroup_list,duplicate_scheduler_jobs,show_usergroup_data,disable_usergroup_data,show_temples,apply_temples_list,show_noti_group,show_noti_detial,manual_send,disable_single,show_scheduler_jobs,create_scheduler_jobs_manual,create_manual_temple_noti,create_manual_non_temple_noti,show_temple_args,recall_blacklist_commit,query_msg_type,query_blacklist_single
 from configs import admin
 from flask_cors import CORS
@@ -52,6 +52,7 @@ def favicon():
 
 #项目管理
 app.add_url_rule('/show_project_list', view_func=show_project_list, methods=['POST'])#查询已有项目信息
+app.add_url_rule('/status_codes', view_func=status_codes, methods=['GET','POST'])#查询状态列表
 #数据收集
 app.add_url_rule('/sa', view_func=get_datas, methods=['GET', 'POST'])#神策SDK上报接口
 app.add_url_rule('/sa.gif', view_func=get_datas, methods=['GET', 'POST'])#神策SDK上报接口
@@ -103,6 +104,9 @@ app.add_url_rule('/usergroups/blacklist_single',view_func=query_blacklist_single
 app.add_url_rule('/access_control/access_permit',view_func=access_permit, methods=['POST','GET'])#查询接入控制
 app.add_url_rule('/access_control/token',view_func=get_access_control_token, methods=['POST','GET'])#生成cdn_mode的token
 app.add_url_rule('/access_control/get_check_token',view_func=get_check_token, methods=['POST','GET'])#查询正确的token
+app.add_url_rule('/access_control/access_control_list',view_func=access_control_list, methods=['POST','GET'])#查询已有的控制列表类型
+app.add_url_rule('/access_control/access_control_detail',view_func=access_control_detail, methods=['POST','GET'])#查看列表详情
+app.add_url_rule('/access_control/update_access_status',view_func=update_access_status, methods=['POST','GET'])#修改详情
 
 if __name__ == '__main__':
     app.run(threaded=True, host='0.0.0.0', port=8000)  # 默认不填写的话，是5000端口；

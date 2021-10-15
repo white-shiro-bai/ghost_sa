@@ -1,3 +1,13 @@
+# -*- coding: utf-8 -*-
+#
+#Date: 2021-09-18 16:29:59
+#Author: unknowwhite@outlook.com
+#WeChat: Ben_Xiaobai
+#LastEditTime: 2021-10-15 16:03:15
+#FilePath: \ghost_sa_github\component\url_tools.py
+#
+import sys
+sys.path.append('./')
 # -*- coding: utf-8 -*
 # author: unknowwhite@outlook.com
 # wechat: Ben_Xiaobai
@@ -22,7 +32,7 @@ def get_url_params(params):
             v = request.form.get(params)
         elif request.method == 'GET':
             v = request.args.get(params)
-        elif request.method == 'POST' and not v:
+        if request.method == 'POST' and not v:
             v = request.args.get(params)
         elif request.method == 'GET' and not v:
             v = request.form.get(params)

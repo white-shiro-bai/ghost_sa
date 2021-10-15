@@ -26,7 +26,7 @@ class access_control:
         self.start_time = int(time.time())
         self.check_mem_start = int(time.time())
         self.my_memory = 0
-        self.term_times = {'distinct_id':1,'add_on_key':1,'ip':admin.access_control_distinct_id_per_ip,'ip_group':admin.access_control_distinct_id_per_ip*admin.access_control_ip_per_ip_group}
+        self.term_times = {'distinct_id':1,'add_on_key':admin.access_control_per_add_on_key,'ip':admin.access_control_distinct_id_per_ip,'ip_group':admin.access_control_distinct_id_per_ip*admin.access_control_ip_per_ip_group}
 
     def check_mem(self):
         #每30秒检查一次内存占用量
@@ -57,6 +57,22 @@ class access_control:
         type_int={'ip':60,'ip_group':61,'distinct_id':62,'add_on_key':63}
         insert_update_access_control_list(project=project,key=key,type_int=type_int[type_str],event=event,pv=pv,date=date,hour=hour)
 
+    def check_threshold(self,project,event):
+        if project:
+            if event == 'all':
+                if 'all' in self.threshold_list[project]:
+                    limit = self.threshold_list[project]['all']
+                elif 'default_sum' in self.threshold_list[project]:
+                    limit = self.threshold_list[project]['all']['default_sum']
+                else:
+                    limit =  admin.access_control_sum_count
+            elif event != '' or event != ' ':
+                if projects_project_event in self.threshold_list[projects_project]:
+                    limit = self.threshold_list[projects_project][projects_project_event]
+                elif 'default_event' in self.threshold_list[projects_project]:
+                    limit = self.threshold_list[projects_project]['default_event']
+                else:
+                    limit = admin.access_control_event_default
 
     def etl(self):
         self.refresh_threshold_list()

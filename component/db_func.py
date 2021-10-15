@@ -988,3 +988,101 @@ def query_access_control(key,project=None,type_id=None,event=None,date=None,hour
         sql="""select `event`,cast(date as char),hour,pv from access_control where `key`="{key}" and (status =58 or {time_str}) {add_on_where}""".format(type_id=type_id,key=key,time_str=time_str,add_on_where=add_on_where)
     result = do_tidb_select(sql=sql,retrycount=0)
     return result
+
+def query_access_control_exclude(key,project=None,type_id=None,event=None):
+    add_on_where = ''
+    add_on_where = add_on_where + (f' and project="{project}"' if project else '')
+    add_on_where = add_on_where + (f' and type={type_id}' if type_id else '')
+    add_on_where = add_on_where + (f' and event="{event}"' if event else '')
+    sql="""select `event`,cast(date as char) from access_control where `key`="{key}" and status = 78 {add_on_where}""".format(key=key,add_on_where=add_on_where)
+    result = do_tidb_select(sql=sql,retrycount=0)
+    return result
+
+def get_access_control_event():
+    sql ='''SELECT `project`,`event` from access_control GROUP BY `project`,`event` ORDER BY `project`,`event`'''
+    result = do_tidb_select(sql=sql)
+    return result
+
+def get_status_codes():
+    sql = '''select `id`,`desc`,`p_id` from status_code'''
+    result = do_tidb_select(sql=sql,retrycount=0)
+    return result
+
+def get_access_control_detail_count(**kwargs):
+    events = kwargs['events'] if 'events' in kwargs else None
+    event2 = []
+    for event in events.split(','):
+        event2.append('"'+event+'"')    
+    event = ','.join(event2)
+    startdate = kwargs['startdate'] if 'startdate' in kwargs and kwargs['startdate'] else getdate(dateinput='today')
+    enddate = kwargs['enddate'] if 'enddate' in kwargs and kwargs['enddate'] else getdate(dateinput='today')
+    project = kwargs['project'] if 'project' in kwargs and kwargs['project'] else None
+    sort = kwargs['sort'] if 'sort' in kwargs and kwargs['sort'] else 'hour'
+    way = kwargs['way'] if 'way' in kwargs and kwargs['way'] else 'desc'
+    key = kwargs['key'] if 'key' in kwargs and kwargs['key'] else None
+    hour = kwargs['hour'] if 'hour' in kwargs and kwargs['hour'] else None
+    status = kwargs['status'] if 'status' in kwargs and kwargs['status'] else None
+    type_id = kwargs['type_id'] if 'type_id' in kwargs and kwargs['type_id'] else None
+    add_on_where = ''
+    add_on_where = add_on_where+' and hour = {hour}'.format(hour=hour) if hour else add_on_where
+    add_on_where = add_on_where+' and `key` = "{key}"'.format(key=key) if key else add_on_where
+    add_on_where = add_on_where+' and `status` = {key}'.format(key=status) if status else add_on_where
+    add_on_where = add_on_where+' and `type` = {key}'.format(key=type_id) if type_id else add_on_where
+    sql="""SELECT
+    count(*)
+FROM
+    access_control
+WHERE
+    date >= '{startdate}' and date <='{enddate}'
+    and project = '{project}'
+    and EVENT IN ( {event} ) {add_on_where}
+    """.format(project=project,startdate=startdate,enddate=enddate,sort=sort,way=way,event=event,add_on_where=add_on_where)
+    print(sql)
+    result = do_tidb_select(sql=sql,retrycount=0)
+    return result
+
+
+def get_access_control_detail(**kwargs):
+    events = kwargs['events'] if 'events' in kwargs else None
+    event2 = []
+    for event in events.split(','):
+        event2.append('"'+event+'"')    
+    event = ','.join(event2)
+    startdate = kwargs['startdate'] if 'startdate' in kwargs and kwargs['startdate'] else getdate(dateinput='today')
+    enddate = kwargs['enddate'] if 'enddate' in kwargs and kwargs['enddate'] else getdate(dateinput='today')
+    project = kwargs['project'] if 'project' in kwargs and kwargs['project'] else None
+    sort = kwargs['sort'] if 'sort' in kwargs and kwargs['sort'] else 'hour'
+    way = kwargs['way'] if 'way' in kwargs and kwargs['way'] else 'desc'
+    page = int(kwargs['page'])-1 if 'page' in kwargs and int(kwargs['page']) >0 else 0
+    length = int(kwargs['length']) if 'length' in kwargs else 50
+    key = kwargs['key'] if 'key' in kwargs and kwargs['key'] else None
+    hour = kwargs['hour'] if 'hour' in kwargs and kwargs['hour'] else None
+    status = kwargs['status'] if 'status' in kwargs and kwargs['status'] else None
+    type_id = kwargs['type_id'] if 'type_id' in kwargs and kwargs['type_id'] else None
+    add_on_where = ''
+    add_on_where = add_on_where+' and hour = {hour}'.format(hour=hour) if hour else add_on_where
+    add_on_where = add_on_where+' and `key` = "{key}"'.format(key=key) if key else add_on_where
+    add_on_where = add_on_where+' and `status` = {key}'.format(key=status) if status else add_on_where
+    add_on_where = add_on_where+' and `type` = {key}'.format(key=type_id) if type_id else add_on_where
+    sql="""SELECT
+    `key`,type,`event`,`status`,date,`hour`,FROM_UNIXTIME(access_control.updated_at,'%Y-%m-%d %H:%i:%s')as updated_at,pv
+FROM
+    access_control
+WHERE
+    date >= '{startdate}' and date <='{enddate}'
+    and project = '{project}'
+    and EVENT IN ( {event} )  {add_on_where}
+ORDER BY
+{sort} {way} limit {page},{length}""".format(project=project,startdate=startdate,enddate=enddate,sort=sort,way=way,event=event,page=page*length,length=length,add_on_where=add_on_where)
+    print(sql)
+    result = do_tidb_select(sql=sql,retrycount=0)
+    result0 = []
+    for row in result[0]:
+        result0.append({'key':row[0],'type_id':row[1],'event':row[2],'status_id':row[3],'date':str(row[4]),'hour':row[5],'updated_at':row[6],'pv':row[7]})
+    return result0,result[1]
+
+def update_access_control(**kwargs):
+    sql="""update access_control set status={status_id_target},updated_at = UNIX_TIMESTAMP(CURRENT_TIMESTAMP) where project='{project}' and event='{event}' and type={type_id} and status={status_id_source} and date='{date}' and hour= {hour} and `key`='{key}'  limit 1""".format_map(kwargs)
+    print(sql)
+    result  = do_tidb_exe(sql=sql,retrycount=0)
+    return result

@@ -13,10 +13,10 @@ import base64
 import json
 import pprint
 import os
-from component.db_func import insert_event,get_long_url_from_short, insert_noti_temple,insert_shortcut_history,check_long_url,insert_shortcut,show_shortcut,count_shortcut,show_check,insert_properties,insert_user_db,show_project,read_mobile_ad_list,count_mobile_ad_list,read_mobile_ad_src_list,check_mobile_ad_url,insert_mobile_ad_list,distinct_id_query,insert_shortcut_read,query_access_control
+from component.db_func import insert_event,get_long_url_from_short, insert_noti_temple,insert_shortcut_history,check_long_url,insert_shortcut,show_shortcut,count_shortcut,show_check,insert_properties,insert_user_db,show_project,read_mobile_ad_list,count_mobile_ad_list,read_mobile_ad_src_list,check_mobile_ad_url,insert_mobile_ad_list,distinct_id_query,insert_shortcut_read,query_access_control,query_access_control_exclude,get_access_control_event,get_access_control_detail,get_access_control_detail_count,update_access_control,get_status_codes
 from geoip.geo import get_addr,get_asn
 import gzip
-from component.api_tools import insert_device,encode_urlutm,insert_user,recall_dsp,return_dsp_utm,gen_token
+from component.api_tools import insert_device,encode_urlutm,insert_user,recall_dsp,return_dsp_utm,gen_token,tag_name,user_info
 from configs.export import write_to_log
 from component.shorturl import get_suoim_short_url
 from configs import admin
@@ -762,6 +762,84 @@ def show_logo(filename):
         returnimage = f.read()
     return Response(returnimage, mimetype="image")
 
+def access_control_list():
+    password = get_url_params('password')
+    if password == admin.admin_password:
+        event_list = get_access_control_event()
+        pending_list  = {}
+        for item in event_list[0]:
+            if item[0] not in pending_list:
+                pending_list[item[0]] = []
+            if item[1] not in pending_list[item[0]]:
+                pending_list[item[0]].append(item[1])
+        return jsonify({'data':pending_list})
+
+def status_codes():
+    password = get_url_params('password')
+    if password == admin.admin_password:
+        event_list = get_status_codes()
+        pending_list  = {}
+        for item in event_list[0]:
+            if item[2]==0:
+                pending_list[item[0]] = {'name':item[1],'list':{}}
+            elif item[2]!=0:
+                pending_list[item[2]]['list'][item[0]] = item[1]
+        return jsonify({'data':pending_list})
+
+def access_control_detail():
+    password = get_url_params('password')
+    if password == admin.admin_password:
+        project = get_url_params('project')
+        events = get_url_params('events')
+        startdate = get_url_params('startdate')
+        enddate = get_url_params('enddate')
+        page = get_url_params('page') if get_url_params('page') else 1
+        length = get_url_params('length') if get_url_params('length') else 50
+        sort = get_url_params('sort',None)
+        status = get_url_params('status',None)
+        way = get_url_params('way',None)
+        key = get_url_params('key',None)
+        hour = get_url_params('hour',None)
+        type_id = get_url_params('type_id',None)
+        result_list,result_count = get_access_control_detail(project=project,events=events,startdate=startdate,enddate=enddate,page=page,length=length,sort=sort,way=way,key=key,hour=hour,status=status,type_id=type_id)
+        result_total = get_access_control_detail_count(project=project,events=events,startdate=startdate,enddate=enddate,page=page,length=length,sort=sort,way=way,key=key,hour=hour,status=status,type_id=type_id)
+        tag = tag_name()
+        user = user_info()
+        for i in range(result_count):
+            result_list[i]['type_name'] = tag.find(tag_id=result_list[i]['type_id'])
+            result_list[i]['status_name'] = tag.find(tag_id=result_list[i]['status_id'])
+            if result_list[i]['type_id'] == 62 :
+                result_list[i]['key_info'] = user.find(distinct_id=result_list[i]['key'],project=project)
+            elif result_list[i]['type_id'] == 60 :
+                result_list[i]['key_info'] = json.loads(get_addr(result_list[i]['key'])[0])
+            result_list[i]['default_hit'] = True if result_list[i]['hour']+admin.access_control_query_hour>=int(time.strftime("%H",time.localtime())) else False
+        pending_list = {'total':result_total[0][0][0],'page':page,'length':length,'count':result_count,'data':result_list}
+        return jsonify(pending_list)
+
+def update_access_status():
+    password = get_url_params('password')
+    if password == admin.admin_password:
+        status_id_target = get_url_params('status_id_target')
+        if str(status_id_target) == '78' or str(status_id_target) == '58':
+            override = get_url_params('override')
+            if override != admin.admin_override_code :
+                return jsonify({'result':0,'desc':'永久解封或永久封禁需要提权'})
+        project = get_url_params('project')
+        event = get_url_params('event')
+        type_id = get_url_params('type_id')
+        date = get_url_params('date')
+        key = get_url_params('key',None)
+        hour = get_url_params('hour',None)
+        status_id_source = get_url_params('status_id_source')
+        if status_id_target and project and event and type_id and date and key and hour and status_id_source:
+            result = update_access_control(project=project,event=event,type_id=type_id,date=date,key=key,hour=hour,status_id_target=status_id_target,status_id_source=status_id_source)
+            if result[1] > 0 :
+                return jsonify({'result':result[1],'desc':'更新成功'})
+            else:
+                return jsonify({'result':result[1],'desc':'无更新内容'})
+        else:
+            return jsonify({'result':0,'desc':'缺参数'})
+
 
 def access_permit():
     time1 = int(time.time()*1000)
@@ -844,6 +922,7 @@ def access_permit():
                 cdn_token_list.append(sha1.hexdigest()[int(token['hour_str']):int(token['hour_str'])+int(token['length'])])
         token_checked = True if cdn_token in cdn_token_list else False
     distinct_event = distinct_id if admin.access_control_cdn_mode_distinct_id_token_check is False or token_checked is True or mode not in ('cdn','cdn2') else None
+    
     if not distinct_event and 'distinct_id' in properties:
         distinct_event = properties['distinct_id']
     if project and (mode == 'cdn' or mode == 'cdn2' or admin.access_control_force_cdn_record is True) :
@@ -887,8 +966,26 @@ def access_permit():
                         if result_add_on_key[0]:
                             result_combine.append(result_add_on_key[0])
                     if len(result_combine) > 0:
-                        insert_data(project=project,data_decode={'ip_data':{'args_http_x_forward_for':args_http_x_forward_for,'args_remote_addr':args_remote_addr,'args_ip':args_ip,'headers_x_forward_for':headers_x_forward_for,'remote_addr':remote_addr},'type':'access_control','distinct_id':distinct_event,'event':'access_control','lib':{'$lib':'ghost_sa'},'_track_id':0,'properties':{'owner':owner,'args':args,'forms':forms,'jsons':req_jsons,'$device_id':device_id,'auth':'failed','return':result_combine,'return_code':403,'time_cost':int(time.time()*1000) - time1}},User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good,created_at=None,updated_at=None,use_kafka=admin.use_kafka)
-                        return jsonify({'auth':'failed','data':result_combine,'time_cost':int(time.time()*1000) - time1}),403
+                        referrer_list = []
+                        exclude_combine = 0
+                        if exclude_combine ==0:
+                            exclude_combine = exclude_combine + query_access_control_exclude(key=ip,project=project,type_id=60,event=event)[1]
+                        if exclude_combine ==0:
+                            if get_url_params('http_referer'):
+                                referrer_list.append(get_url_params('http_referer')) 
+                            if request.referrer:
+                                referrer_list.append(request.referrer[0:2047]) 
+                            for ref in referrer_list:
+                                exclude_combine = exclude_combine + query_access_control_exclude(key=urllib.parse.urlparse(ref).netloc,project=project,type_id=74,event=event)[1]
+                        if exclude_combine ==0:
+                            exclude_combine = exclude_combine + query_access_control_exclude(key=ip_group,project=project,type_id=61,event=event)[1]
+                        if exclude_combine ==0:
+                            exclude_combine = exclude_combine + query_access_control_exclude(key=distinct_id,project=project,type_id=62,event=event)[1]
+                        if exclude_combine ==0:
+                            exclude_combine = exclude_combine + query_access_control_exclude(key=add_on_key,project=project,type_id=63,event=event)[1]
+                        if exclude_combine ==0:
+                            insert_data(project=project,data_decode={'ip_data':{'args_http_x_forward_for':args_http_x_forward_for,'args_remote_addr':args_remote_addr,'args_ip':args_ip,'headers_x_forward_for':headers_x_forward_for,'remote_addr':remote_addr},'type':'access_control','distinct_id':distinct_event,'event':'access_control','lib':{'$lib':'ghost_sa'},'_track_id':0,'properties':{'owner':owner,'args':args,'forms':forms,'jsons':req_jsons,'$device_id':device_id,'auth':'failed','return':result_combine,'return_code':403,'time_cost':int(time.time()*1000) - time1}},User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good,created_at=None,updated_at=None,use_kafka=admin.use_kafka)
+                            return jsonify({'auth':'failed','data':result_combine,'time_cost':int(time.time()*1000) - time1}),403
                 if admin.access_control_force_result_record is True:
                     insert_data(project=project,data_decode={'ip_data':{'args_http_x_forward_for':args_http_x_forward_for,'args_remote_addr':args_remote_addr,'args_ip':args_ip,'headers_x_forward_for':headers_x_forward_for,'remote_addr':remote_addr},'type':'access_control','distinct_id':distinct_event,'event':'access_control','lib':{'$lib':'ghost_sa'},'_track_id':0,'properties':{'owner':owner,'args':args,'forms':forms,'jsons':req_jsons,'$device_id':device_id,'auth':'success','return':result_combine,'return_code':200,'time_cost':int(time.time()*1000) - time1}},User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good,created_at=None,updated_at=None,use_kafka=admin.use_kafka)
                 return jsonify({'auth':'success','data':result_combine,'time_cost':int(time.time()*1000) - time1}),200

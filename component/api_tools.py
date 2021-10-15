@@ -5,6 +5,7 @@ import sys
 sys.path.append("..")
 sys.path.append("./")
 # sys.setrecursionlimt(10000000)
+from component.db_op import do_tidb_select
 from component.db_func import insert_devicedb,insert_user_db,find_recall_url,insert_event,find_recall_history,insert_properties,check_utm
 from component.api_req import get_json_from_api
 from configs import admin
@@ -305,6 +306,79 @@ def gen_token():
         token_item = {'token':sha1.hexdigest(),'date_str':tokentime['date_str'],'hour_str':tokentime['hour_str'][0:2],'length':str(40-int(tokentime['hour_str'][0:2]))}
         token_group.append(token_item)
     return token_group
+
+
+class tag_name:
+    def __init__(self) -> None:
+        self.tags = {}
+
+    def check_ram(self):
+        if self.tag_id in self.tags:
+            return self.tags[self.tag_id]
+        else:
+            return None
+
+    def update_ram(self):
+        sql = f'''select `desc` from status_code where id ={self.tag_id}'''
+        result  = do_tidb_select(sql=sql)
+        if result[1]>0:
+            self.tags[self.tag_id] = result[0][0][0]
+            print('增加',self.tag_id)
+        else:
+            self.tags[self.tag_id] = None
+            print('未找到',self.tag_id)
+
+    def find(self,tag_id=None):
+        if tag_id and tag_id !='' and tag_id !=' ' and tag_id !='""':
+            self.tag_id = tag_id
+            try_time = 3
+            tag_name = None
+            while try_time >0 and not tag_name:
+                if self.check_ram():
+                    return self.check_ram()
+                else:
+                    self.update_ram()
+                try_time = try_time - 1
+            return None
+        else:
+            return None
+
+class user_info:
+    def __init__(self) -> None:
+        self.tags = {}
+
+    def check_ram(self):
+        if self.tag_id in self.tags:
+            return self.tags[self.tag_id]
+        else:
+            return None
+
+    def update_ram(self):
+        sql = f'''select all_user_profile from {self.project}_user where distinct_id='{self.tag_id}' and all_user_profile is not null and all_user_profile != ' ' and all_user_profile != '' ORDER BY created_at desc limit 1'''
+        result  = do_tidb_select(sql=sql)
+        if result[1]>0:
+            self.tags[self.tag_id] = json.loads(result[0][0][0])
+            print('增加',self.tag_id)
+        else:
+            self.tags[self.tag_id] = None
+            print('未找到',self.tag_id)
+
+    def find(self,distinct_id=None,project=None):
+        self.project = project
+        if distinct_id and distinct_id !='' and distinct_id !=' ' and distinct_id !='""':
+            self.tag_id = distinct_id
+            try_time = 2
+            tag_name = None
+            while try_time >0 and not tag_name:
+                if self.check_ram():
+                    return self.check_ram()
+                else:
+                    self.update_ram()
+                try_time = try_time - 1
+            return None
+        else:
+            return None
+
 
 if __name__ == "__main__":
     print(gen_token())
