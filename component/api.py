@@ -831,7 +831,7 @@ def update_access_status():
         key = get_url_params('key',None)
         hour = get_url_params('hour',None)
         status_id_source = get_url_params('status_id_source')
-        if status_id_target and project and event and type_id and date and key and hour and status_id_source:
+        if status_id_target and project and event and type_id and date and key and status_id_source and hour is not None:
             result = update_access_control(project=project,event=event,type_id=type_id,date=date,key=key,hour=hour,status_id_target=status_id_target,status_id_source=status_id_source)
             if result[1] > 0 :
                 return jsonify({'result':result[1],'desc':'更新成功'})
