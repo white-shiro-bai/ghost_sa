@@ -940,7 +940,7 @@ def access_permit():
             if not distinct_event:
                 distinct_event = 'access_control_without_distinct_id'
             if password == admin.admin_password:#只有正确的密码才能触发动作
-                if override != admin.admin_override_code:
+                if override != admin.admin_override_code and (admin.access_control_token_means_override is True and token_checked is False):
                     if admin.access_control_cdn_mode_mega_match is False and mode == 'cdn': #不启动匹配其他参数功能时，cdn模式只匹配cdnmode的数据，其他模式则匹配实际的event或所有event。
                         event = 'cdn_mode'
                     elif admin.access_control_cdn_mode_mega_match is False and mode == 'cdn2': #不启动匹配其他参数功能时，cdn模式只匹配cdnmode的数据，其他模式则匹配实际的event或所有event。
