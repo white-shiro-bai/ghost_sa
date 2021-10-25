@@ -947,12 +947,17 @@ def access_permit():
                         event = 'cdn_mode2'
                     if ip:
                         ip_group = '.'.join(ip.split('.')[0:3])
+                        ip_group_extend = '.'.join(ip.split('.')[0:2])
                         result_ip = query_access_control(project=project,key=ip,type_id=60,event=event,pv=limit,query_hour=query_hour,date=date,hour=hour,arr_mode=arr_mode)
                         if result_ip[0]:
                             result_combine.append(result_ip[0])
                         result_ip_group = query_access_control(project=project,key=ip_group,type_id=61,event=event,pv=limit,query_hour=query_hour,date=date,hour=hour,arr_mode=arr_mode)
                         if result_ip_group[0]:
                             result_combine.append(result_ip_group[0])
+                        if admin.access_control_check_ip_group_extend == True :
+                            result_ip_group_extend = query_access_control(project=project,key=ip_group_extend,type_id=80,event=event,pv=limit,query_hour=query_hour,date=date,hour=hour,arr_mode=arr_mode)
+                            if result_ip_group_extend[0]:
+                                result_combine.append(result_ip_group_extend[0])
                     if (mode == 'cdn' or mode == 'cdn2') and admin.access_control_cdn_mode_distinct_id_check is True:
                         distinct_id = distinct_cdn if not distinct_id else distinct_id #如果强制检查cdn模式的distinct_id，哪怕提交参数时不提交distinct_id，也会取header里的disntict_id用于检查
                         if admin.access_control_cdn_mode_distinct_id_token_check is True:

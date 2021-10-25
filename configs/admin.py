@@ -3,7 +3,7 @@
 #Date: 2021-09-18 16:29:59
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2021-10-20 14:32:27
+#LastEditTime: 2021-10-25 15:46:45
 #FilePath: \ghost_sa_github\configs\admin.py
 #
 import sys
@@ -83,4 +83,6 @@ access_control_token_means_override = False #如果CDN模式下使用参数传�
 access_control_cdn_mode_mega_match = False #CDN模式是否参考其他event作为封禁依据。当False时，CDN模式只核对event是cdn_mode的事件。
 access_control_distinct_id_per_ip = 4 # ip触发进入黑名单的量是distinct_id的阈值的倍数
 access_control_ip_per_ip_group = 3 # ip组触发进入黑名单的量是ip的阈值的倍数
+access_control_ip_group_per_ip_group_extend = 5 # 超大IP组触发进入黑名单的量是ip组的倍数
+access_control_check_ip_group_extend = True # 是否拦截进入超大IP组的IP
 access_control_per_add_on_key = 50 # add_on_key触发进入黑名单的量是distinct_id的阈值的倍数

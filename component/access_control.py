@@ -26,7 +26,8 @@ class access_control:
         self.start_time = int(time.time())
         self.check_mem_start = int(time.time())
         self.my_memory = 0
-        self.term_times = {'distinct_id':1,'add_on_key':admin.access_control_per_add_on_key,'ip':admin.access_control_distinct_id_per_ip,'ip_group':admin.access_control_distinct_id_per_ip*admin.access_control_ip_per_ip_group}
+        self.term_times = {'distinct_id':1,'add_on_key':admin.access_control_per_add_on_key,'ip':admin.access_control_distinct_id_per_ip,'ip_group':admin.access_control_distinct_id_per_ip*admin.access_control_ip_per_ip_group,'ip_group_extend':admin.access_control_distinct_id_per_ip*admin.access_control_ip_per_ip_group*admin.access_control_ip_group_per_ip_group_extend}
+        self.type_int={'ip':60,'ip_group':61,'distinct_id':62,'add_on_key':63,'ip_group_extend':80}
 
     def check_mem(self):
         #每30秒检查一次内存占用量
@@ -54,8 +55,7 @@ class access_control:
         # print(self.threshold_list)
 
     def insert_data(self,project,key,type_str,event,pv,hour,date):
-        type_int={'ip':60,'ip_group':61,'distinct_id':62,'add_on_key':63}
-        insert_update_access_control_list(project=project,key=key,type_int=type_int[type_str],event=event,pv=pv,date=date,hour=hour)
+        insert_update_access_control_list(project=project,key=key,type_int=self.type_int[type_str],event=event,pv=pv,date=date,hour=hour)
 
     def check_threshold(self,project,event):
         if project:
@@ -129,8 +129,10 @@ class access_control:
     def commit(self,project=None,event=None,ip_commit=None,distinct_id_commit=None,add_on_key_commit=None):
         if ip_commit:
             ip_group_commit = '.'.join(ip_commit.split('.')[0:3])
+            ip_group_extend_commit = '.'.join(ip_commit.split('.')[0:2])
             self.update_data(project=project,event=event,term='ip',content=ip_commit)
             self.update_data(project=project,event=event,term='ip_group',content=ip_group_commit)
+            self.update_data(project=project,event=event,term='ip_group_extend',content=ip_group_extend_commit)
         if distinct_id_commit:
             self.update_data(project=project,event=event,term='distinct_id',content=distinct_id_commit)
         if add_on_key_commit:
