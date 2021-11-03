@@ -420,6 +420,7 @@ def create_scheduler_jobs_manual():
             write_to_log(filename='api_noti',defname='create_scheduler_jobs_manual',result=error)
             returnjson = {'result':'fail','error':error}
             return jsonify(returnjson)
+
 def create_manual_temple_noti():
     #外部触发模板消息
     project = get_url_params('project')
@@ -428,6 +429,7 @@ def create_manual_temple_noti():
     password = get_url_params('password')
     owner = get_url_params('owner')
     data = get_url_params('data')
+    status = get_url_params('status')
     if password == admin.admin_password and request.method == 'POST' and owner and owner !='' and project:
         try:
             data_jsons = json.loads(data)
@@ -438,7 +440,7 @@ def create_manual_temple_noti():
                     result_temple = select_noti_temple(project=project,temple_id=temple_id)
                     result = apply_temple(project=project,temple_args=json.loads(result_temple[0][0][2]),temple_content=json.loads(result_temple[0][0][3]),data_json=item['data_json'],data_key=item['distinct_id'],send_at=send_at,group_id=None,owner=owner)
                     data_list.append(result)
-            result_insert = create_non_usergroup_noti(args={'owner':owner,'temple_id':temple_id,'project':project,'data':data_list})
+            result_insert = create_non_usergroup_noti(args={'status':status,'owner':owner,'temple_id':temple_id,'project':project,'data':data_list})
             return jsonify(result_insert)
         except Exception:
             error = traceback.format_exc()
@@ -454,6 +456,7 @@ def create_manual_non_temple_noti():
     medium_id = get_url_params('medium_id')
     owner = get_url_params('owner')
     data = get_url_params('data')
+    status = get_url_params('status')
     if password == admin.admin_password and request.method == 'POST' and owner and owner !='' and project:
         try:
             data_jsons = json.loads(data)
@@ -466,7 +469,7 @@ def create_manual_non_temple_noti():
                 elif 'distinct_id' in item and item['distinct_id'] !='':
                     item['send_at'] = send_at
                     data_list.append(item)
-            result = create_non_usergroup_non_temple_noti(args={'owner':owner,'project':project,'data':data_list,'medium_id':medium_id})
+            result = create_non_usergroup_non_temple_noti(args={'status':status,'owner':owner,'project':project,'data':data_list,'medium_id':medium_id})
             return jsonify(result)
         except Exception:
             error = traceback.format_exc()
