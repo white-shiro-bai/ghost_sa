@@ -760,7 +760,7 @@ FROM
 	left JOIN status_code AS lsid ON {project}_usergroup_list.`status` = lsid.id
 	left join status_code as tid on {project}_noti.type = tid.id
     where 1=1 {everywhere}
-	ORDER BY {project}_noti.created_at asc
+	ORDER BY {project}_noti.created_at asc,{project}_noti.id asc
 	limit {page},{length}"""
     # print(sql)
     result = do_tidb_select(sql=sql)
