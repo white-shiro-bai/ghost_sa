@@ -3,7 +3,7 @@
 #Date: 2021-09-18 16:29:59
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2021-10-25 15:46:45
+#LastEditTime: 2021-11-24 16:49:33
 #FilePath: \ghost_sa_github\configs\admin.py
 #
 import sys
@@ -31,6 +31,20 @@ use_kafka = False #True时，数据写入kafka。False时，直接插入数据�
 # 是否开启properties表
 
 use_properties = True #True时，会插入properties表，这个表不是必须的，只是方便提取数据时快速找到埋点里包含的变量。
+
+#IP地址转化
+#IP_Address dictionary
+ip_city_mode = 'all' #mode for ip_city. 'all' for all info. 'language' for only language selected , it was designed for saving storage spaces. default value : "all"
+ip_city_language = ['zh-CN', 'en'] #only work at "language" mode. ip_city will only return information in matched language.It had better to be contained more then one primary language if ghost_sa worked in an international project as the reason is not every ip address has the result in primary language. defult value : ['zh-CN', 'en']
+        #   *language support:
+        #   * de -- German
+        #   * en -- English names may still include accented characters if that is the accepted spelling in English. In other words, English does not mean ASCII.
+        #   * es -- Spanish
+        #   * fr -- French
+        #   * ja -- Japanese
+        #   * pt-BR -- Brazilian Portuguese
+        #   * ru -- Russian
+        #   * zh-CN -- Simplified Chinese.
 
 # 移动广告回调支持
 
