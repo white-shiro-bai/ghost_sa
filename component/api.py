@@ -193,7 +193,7 @@ def get_long(short_url):
         msg = {"group":"shortcut_history","data":{"short_url":short_url,"status":status,"time2":time2,"ip":ip,"user_agent":User_Agent,"accept_language":Accept_Language,"ua_platform":ua_platform,"ua_browser":ua_browser,"ua_version":ua_version,"ua_language":ua_language,"created_at":time1/1000}}
         insert_message_to_kafka(key=ip, msg=msg)
     if status == 'success':
-        return redirect(long_url)
+        return redirect(long_url.replace(' ',''))
     elif status == 'expired':
         return '您查询的地址已过期'
     elif status == 'fail':
@@ -201,7 +201,7 @@ def get_long(short_url):
 
 def shortit():
     if 'org_url' in request.form:
-        org_url = request.form.get('org_url')
+        org_url = request.form.get('org_url').replace(' ','')
         expired_at = int(time.mktime(time.strptime(request.form.get('expired_at','2038-01-19'), "%Y-%m-%d")))
         project = request.form.get('project',None)
         src = request.form.get('src','suoim')
