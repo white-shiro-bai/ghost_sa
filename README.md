@@ -109,9 +109,7 @@ SDK的使用方法，可以直接查看神策官方文档 https://www.sensorsdat
 
 目前已知问题问的比较频繁的有：
 
-1.鬼策不支持beacon方式上报 https://github.com/white-shiro-bai/ghost_sa/issues/27 使用鬼策建议js用image方式，其他端用默认方式即可。
-
-这个请参考神策官方文档 https://manual.sensorsdata.cn/sa/latest/tech_sdk_client_web_high-7549300.html?utm_source=github&utm_campaign=ghost_sa 的相关说明：( 神策系统 1.10 版本以后 ) 支持使用 'ajax' 和 'beacon' 方式发送数据，这两种默认都是 post 方式， beacon 方式兼容性较差。
+1.鬼策建议js用image方式上报数据，这个请参考神策官方文档 https://manual.sensorsdata.cn/sa/latest/tech_sdk_client_web_high-7549300.html?utm_source=github&utm_campaign=ghost_sa 的相关说明：( 神策系统 1.10 版本以后 ) 支持使用 'ajax' 和 'beacon' 方式发送数据，这两种默认都是 post 方式， beacon 方式兼容性较差。
 
 2.不支持神策的新版本可视化全埋点功能，所以请使用较新SDK的用户，根据神策文档 https://manual.sensorsdata.cn/sa/latest/enable_visualized_autotrack-7548675.html?utm_source=github&utm_campaign=ghost_sa 关闭 可视化全埋点功能，减少报错。
 

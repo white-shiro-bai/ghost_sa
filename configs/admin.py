@@ -3,16 +3,15 @@
 #Date: 2021-09-18 16:29:59
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2021-11-24 16:49:33
+#LastEditTime: 2022-01-19 17:20:56
 #FilePath: \ghost_sa_github\configs\admin.py
 #
 import sys
 sys.path.append('./')
-# -*- coding: utf-8 -*
-# author: unknowwhite@outlook.com
-# wechat: Ben_Xiaobai
-import sys
-sys.path.append("./")
+
+
+#Database
+database_type = 'tidb' # type for database. 'tidb' support from tidb(https://docs.pingcap.com/zh/tidb/stable/?utm_source=ghost_sa),tested from tidb v3.0.0 to v5.1.1 and newer. 'mysql' support mysql from v5.7 to v8 and newer. #! WARNING: Do not use Ghost_sa with mysql in a production deployment , it runs very slow.
 
 # 身份识别
 who_am_i = 'ghost_sa' #向外发送回调请求时的UA识别
