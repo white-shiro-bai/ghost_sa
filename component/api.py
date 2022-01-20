@@ -114,7 +114,7 @@ def get_data():
     project = request.args.get('project')
     if project:
         User_Agent = request.headers.get('User-Agent')[0:2047] if request.headers.get('User-Agent') else None#Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36
-        if User_Agent and User_Agent !='' and ('spider' in User_Agent.lower() or 'googlebot' in User_Agent.lower() or 'adsbot-google' in User_Agent.lower() ):
+        if User_Agent and User_Agent !='' and any([pt in User_Agent.lower() for pt in admin.bot_list]):
             remark = 'spider'
         Host = request.headers.get('Host') #: 10.16.5.241:5000
         Connection = request.headers.get('Connection')#: keep-alive
@@ -852,7 +852,7 @@ def access_permit():
     User_Agent = request.headers.get('User-Agent')[0:2047] if request.headers.get('User-Agent') else None#Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36
     if get_url_params('user_agent'):
         User_Agent = get_url_params('user_agent')
-    if User_Agent and User_Agent !='' and 'spider' in User_Agent.lower() :
+    if User_Agent and User_Agent !='' and any([pt in User_Agent.lower() for pt in admin.bot_list]):
         remark = 'spider'
     Host = request.headers.get('Host') #: 10.16.5.241:5000
     if get_url_params('host'):
