@@ -39,12 +39,13 @@ ghost_sa(鬼策)可以理解为不带前端界面的神策服务端。
 11.接入控制功能，结合CDN实现反爬虫，结合后端服务实现反作弊，反羊毛等。（截止更新时，神策无此功能）
 
 使用了flask框架，可以通过gunicorn部署。数据库建议使用TiDB，实测1天200万事件量，单次查询当天事件在10毫秒左右，查询1个月范围的数据，返回在30-60秒左右。
-实际使用在TiDB最低的配置3x8c_32g的情况下，每天可以支持500万的事件量。
+实际使用在TiDB最低的配置3x8c_32g（ecs.i2g.2xlarge）的情况下，支持600的峰值QPS，每天可以支持500万的事件量。
+如果搭配Kafka使用，单台4c8g（ecs.t5-c1m2.xlarge）的鬼策服务端和Kafka混合部署，可以承受2000-3000峰值QPS，一天2000万事件量。
 如果只是体验和测试功能，也可以用MySQL 5.7（含）以上的版本，不过性能很差。
 
 支持使用Kafka。
 
-目前经过测试，支持IOS，Android，JS，小程序，Python的SDK上报。
+目前经过测试，支持IOS，Android，JS，小程序，PHP，Python，JAVA的SDK上报，其他端应该也支持，不过不保证。
 SDK可以在神策的项目中下载 https://github.com/sensorsdata
 SDK的使用方法，可以直接查看神策官方文档 https://www.sensorsdata.cn/manual/?utm_source=github&utm_campaign=ghost_sa
 
