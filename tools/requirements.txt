@@ -4,3 +4,4 @@ Pillow>=9.0.0
 qrcode==6.1
 flask-cors==3.0.10
 guppy3==3.1.0
+xmltodict==0.12.0

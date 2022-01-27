@@ -14,6 +14,8 @@ import traceback
 import time
 from configs import admin
 from component.recall_blacklist import blacklist_commit,blacklist_query
+from component.umail import send_umail
+from configs import email,umail
 
 
 class send:
@@ -32,9 +34,15 @@ class send:
             pass
 
     def via_email(self):
-        default_mail_from = self.noti_content['mail_from'] if 'mail_from' in self.noti_content and self.noti_content['mail_from'] and self.noti_content['mail_from'] != '' else 'test@youremail.com'#默认发送邮箱
+        default_mail_from = self.noti_content['mail_from'] if 'mail_from' in self.noti_content and self.noti_content['mail_from'] and self.noti_content['mail_from'] != '' else email.mail_user #默认发送邮箱
         result = send_email(to_addr=self.noti_content['mail_to'],from_addr=default_mail_from,subject=self.noti_content['subject'],html=self.noti_content['content'])
         return result
+
+    def via_umail(self):
+        default_mail_from = self.noti_content['mail_from'] if 'mail_from' in self.noti_content and self.noti_content['mail_from'] and self.noti_content['mail_from'] != '' else umail.umail_user#默认发送邮箱
+        result = send_umail(to_addr=self.noti_content['mail_to'],from_addr=default_mail_from,subject=self.noti_content['subject'],html=self.noti_content['content'])
+        return result
+
     def sms(self):
         pass
         return 2
@@ -63,6 +71,8 @@ class send:
                 return self.sms()
             elif self.noti_type == 29:
                 return self.wechat_official_account()
+            elif self.noti_type == 81:
+                return self.via_umail()
         except Exception:
             error = traceback.format_exc()
             write_to_log(filename='messenger',defname='play_all',result=error)
