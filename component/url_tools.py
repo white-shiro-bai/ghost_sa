@@ -3,7 +3,7 @@
 #Date: 2021-09-18 16:29:59
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2022-01-19 15:10:02
+#LastEditTime: 2022-02-09 10:42:23
 #FilePath: \ghost_sa_github\component\url_tools.py
 #
 import sys
@@ -26,7 +26,7 @@ def get_url_params(params,default=None,log_error=False):
     if got_json:
         if params in got_json:
             v = got_json[params]
-    elif v == '' or not v:
+    if v == '' or not v:
         if request.method == 'POST':
             v = request.form.get(params)
         elif request.method == 'GET':
