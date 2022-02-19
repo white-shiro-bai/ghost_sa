@@ -11,7 +11,6 @@ import time
 import urllib.parse
 import base64
 import json
-import pprint
 import os
 from component.db_func import insert_event,get_long_url_from_short, insert_noti_temple,insert_shortcut_history,check_long_url,insert_shortcut,show_shortcut,count_shortcut,show_check,insert_properties,insert_user_db,show_project,read_mobile_ad_list,count_mobile_ad_list,read_mobile_ad_src_list,check_mobile_ad_url,insert_mobile_ad_list,distinct_id_query,insert_shortcut_read,query_access_control,query_access_control_exclude,get_access_control_event,get_access_control_detail,get_access_control_detail_count,update_access_control,get_status_codes
 from geoip.geo import get_addr,get_asn
@@ -26,7 +25,7 @@ if admin.use_kafka is True:
 import re
 from trigger import trigger
 from component.qrcode import gen_qrcode
-from component.url_tools import get_url_params
+from component.url_tools import get_url_params,get_req_info
 import hashlib
 if admin.access_control_commit_mode =='none_kafka':
     from component.access_control import access_control
@@ -110,36 +109,10 @@ def get_data():
     bitimage1 = os.path.join('image','43byte.gif')
     with open(bitimage1, 'rb') as f:
         returnimage = f.read()
-    remark = request.args.get('remark') if 'remark' in request.args else 'normal'
     project = request.args.get('project')
+    req_info = get_req_info()
     if project:
-        User_Agent = request.headers.get('User-Agent')[0:2047] if request.headers.get('User-Agent') else None#Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36
-        if User_Agent and User_Agent !='' and any([pt in User_Agent.lower() for pt in admin.bot_list]):
-            remark = 'spider'
-        Host = request.headers.get('Host') #: 10.16.5.241:5000
-        Connection = request.headers.get('Connection')#: keep-alive
-        Pragma = request.headers.get('Pragma')#: no-cache
-        Cache_Control = request.headers.get('Cache-Control')#: no-cache
-        Accept = request.headers.get('Accept')[0:254] if request.headers.get('Accept') else None#: image/webp,image/apng,image/*,*/*;q=0.8
-        Accept_Encoding = request.headers.get('Accept-Encoding')[0:254] if request.headers.get('Accept-Encoding') else None#: gzip, deflate
-        Accept_Language = request.headers.get('Accept-Language')[0:254] if request.headers.get('Accept-Language') else None#: zh-CN,zh;q=0.9
-        ua_platform = request.user_agent.platform #客户端操作系统
-        ua_browser = request.user_agent.browser #客户端的浏览器
-        ua_version = request.user_agent.version #客户端浏览器的版本
-        ua_language = request.user_agent.language #客户端浏览器的语言
-        ext = request.args.get('ext')
-        url = request.url
-        # ip = '124.115.214.179' #测试西安bug
-        # ip = '36.5.99.68' #测试安徽bug
-        if request.headers.get('X-Forwarded-For') is None:
-            ip = request.remote_addr#服务器直接暴露
-        else:
-            ip = request.headers.get('X-Forwarded-For') #获取SLB真实地址
-        ip_city,ip_is_good = get_addr(ip)
-        ip_asn,ip_asn_is_good = get_asn(ip)
-        referrer = request.referrer[0:2047] if request.referrer else None
         pending_data_list_all = []
-        # data_list_all.append( get_url_params('data') )
         if get_url_params('data'):
             de64 = base64.b64decode(urllib.parse.unquote(get_url_params('data')).encode('utf-8'))
             try:
@@ -162,7 +135,7 @@ def get_data():
                         ip = user_ip
                         ip_city,ip_is_good = get_addr(user_ip)
                         ip_asn,ip_asn_is_good = get_asn(user_ip)
-            insert_data(project=project,data_decode=pending_data,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good)
+            insert_data(project=project,data_decode=pending_data,User_Agent=req_info['User_Agent'],Host=req_info['Host'],Connection=req_info['Connection'],Pragma=req_info['Pragma'],Cache_Control=req_info['Cache_Control'],Accept=req_info['Accept'],Accept_Encoding=req_info['Accept_Encoding'],Accept_Language=req_info['Accept_Language'],ip=req_info['ip'],ip_city=req_info['ip_city'],ip_asn=req_info['ip_asn'],url=req_info['url'],referrer=req_info['referrer'],remark=req_info['remark'],ua_platform=req_info['ua_platform'],ua_browser=req_info['ua_browser'],ua_version=req_info['ua_version'],ua_language=req_info['ua_language'],ip_is_good=req_info['ip_is_good'],ip_asn_is_good=req_info['ip_asn_is_good'])
     return Response(returnimage, mimetype="image/gif")
 
 def get_datas():
@@ -176,22 +149,13 @@ def get_datas():
 def get_long(short_url):
     time1 = int(time.time()*1000)
     long_url,status = get_long_url_from_short(short_url=short_url)
-    User_Agent = request.headers.get('User-Agent') 
-    Accept_Language = request.headers.get('Accept-Language')#: zh-CN,zh;q=0.9
-    ua_platform = request.user_agent.platform #客户端操作系统
-    ua_browser = request.user_agent.browser #客户端的浏览器
-    ua_version = request.user_agent.version #客户端浏览器的版本
-    ua_language = request.user_agent.language #客户端浏览器的语言
-    url = request.url
-    ip = request.headers.get('X-Forwarded-For') #获取SLB真实地址
-    if request.headers.get('X-Forwarded-For') is None:
-        ip = request.remote_addr                            #服务器直接暴露
+    req_info = get_req_info()
     time2 = int(time.time()*1000) - time1
     if admin.use_kafka is False:
-        insert_shortcut_history(short_url=short_url,result=status,cost_time=time2,ip=ip,user_agent=User_Agent,accept_language=Accept_Language,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,created_at=time1/1000)
+        insert_shortcut_history(short_url=short_url,result=status,cost_time=time2,ip=req_info['ip'],user_agent=req_info['User_Agent'],accept_language=req_info['Accept_Language'],ua_platform=req_info['ua_platform'],ua_browser=req_info['ua_browser'],ua_version=req_info['ua_version'],ua_language=req_info['ua_language'],created_at=int(time1/1000))
     elif admin.use_kafka is True:
-        msg = {"group":"shortcut_history","data":{"short_url":short_url,"status":status,"time2":time2,"ip":ip,"user_agent":User_Agent,"accept_language":Accept_Language,"ua_platform":ua_platform,"ua_browser":ua_browser,"ua_version":ua_version,"ua_language":ua_language,"created_at":time1/1000}}
-        insert_message_to_kafka(key=ip, msg=msg)
+        msg = {"group":"shortcut_history","data":{"short_url":short_url,"status":status,"time2":time2,"ip":req_info['ip'],"user_agent":req_info['User_Agent'],"accept_language":req_info['Accept_Language'],"ua_platform":req_info['ua_platform'],"ua_browser":req_info['ua_browser'],"ua_version":req_info['ua_version'],"ua_language":req_info['ua_language'],"created_at":int(time1/1000)}}
+        insert_message_to_kafka(key=req_info['ip'],msg=msg)
     if status == 'success':
         return redirect(long_url.replace(' ',''))
     elif status == 'expired':
@@ -344,41 +308,12 @@ def installation_track():
     start_time = time.time()
     project = request.args.get('project')
     if project:
-        User_Agent = request.headers.get('User-Agent') #Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36
-        Host = request.headers.get('Host') #: 10.16.5.241:5000
-        Connection = request.headers.get('Connection')#: keep-alive
-        Pragma = request.headers.get('Pragma')#: no-cache
-        Cache_Control = request.headers.get('Cache-Control')#: no-cache
-        Accept = request.headers.get('Accept')[0:254] if request.headers.get('Accept') else None#: image/webp,image/apng,image/*,*/*;q=0.8
-        Accept_Encoding = request.headers.get('Accept-Encoding')[0:254] if request.headers.get('Accept-Encoding') else None #: gzip, deflate
-        remark = request.args.get('remark') if 'remark' in request.args else 'normal'
-        Accept_Language = request.headers.get('Accept-Language')[0:254] if request.headers.get('Accept-Language') else None#: zh-CN,zh;q=0.9
-        ua_platform = request.user_agent.platform #客户端操作系统
-        ua_browser = request.user_agent.browser #客户端的浏览器
-        ua_version = request.user_agent.version #客户端浏览器的版本
-        ua_language = request.user_agent.language #客户端浏览器的语言
-        ext = request.args.get('ext')
-        url = request.url
+        req_info = get_req_info()
         args = request.args.to_dict(request.args)
         data = {"properties":args}
-        # ip = '124.115.214.179' #测试西安bug
-        # ip = '36.5.99.68' #测试安徽bug
-        if    'ip' in args and len(args['ip']) - len( args['ip'].replace('.','') ) == 3:#判断IP里是否存在IP地址
-            ip = args['ip']
-        elif request.headers.get('X-Forwarded-For') is not None:
-            ip = request.headers.get('X-Forwarded-For') #获取SLB真实地址
-        else:
-            ip = request.remote_addr#服务器直接暴露
-        ip_city,ip_is_good = get_addr(ip)
-        ip_asn,ip_asn_is_good = get_asn(ip)
-        if ip_is_good ==0:
-            ip_city = '{}'
-        if ip_asn_is_good ==0:
-            ip_asn = '{}'
-        referrer = request.referrer[0:2047] if request.referrer else None
         try:
             if 'properties' in data and 'is_offerwall' in    data['properties'] and data['properties']['is_offerwall']=='1':
-                count_event,count_user,time_cost = insert_installation_track(project=project,data_decode=data,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma, Cache_Control=Cache_Control, Accept=Accept, Accept_Encoding=Accept_Encoding, Accept_Language=Accept_Language, ip=ip, ip_city=ip_city,ip_asn=ip_asn, url=url, referrer=referrer, remark=remark, ua_platform=ua_platform, ua_browser=ua_browser, ua_version=ua_version, ua_language=ua_language, ip_is_good=ip_is_good, ip_asn_is_good=ip_asn_is_good)
+                count_event,count_user,time_cost = insert_installation_track(project=project,data_decode=data,User_Agent=req_info['User_Agent'],Host=req_info['Host'],Connection=req_info['Connection'],Pragma=req_info['Pragma'], Cache_Control=req_info['Cache_Control'], Accept=req_info['Accept'], Accept_Encoding=req_info['Accept_Encoding'], Accept_Language=req_info['Accept_Language'], ip=req_info['ip'], ip_city=req_info['ip_city'],ip_asn=req_info['ip_asn'], url=req_info['url'], referrer=req_info['referrer'], remark=req_info['remark'], ua_platform=req_info['ua_platform'], ua_browser=req_info['ua_browser'], ua_version=req_info['ua_version'], ua_language=req_info['ua_language'], ip_is_good=req_info['ip_is_good'], ip_asn_is_good=req_info['ip_asn_is_good'])
                 if count_event and count_event>0 or count_user and count_user>0:
                     code = 0 #有米标准
                     msg = "success" #有米标准
@@ -392,7 +327,7 @@ def installation_track():
                 returnjson = {'count_event':count_event,'count_user':count_user,'timecost':round(time_cost,4),'code':code,'msg':msg,'args':args,'result':result,'error':error}
                 return jsonify(returnjson)
             else:
-                insert_installation_track(project=project,data_decode=data,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma, Cache_Control=Cache_Control, Accept=Accept, Accept_Encoding=Accept_Encoding, Accept_Language=Accept_Language, ip=ip, ip_city=ip_city,ip_asn=ip_asn, url=url, referrer=referrer, remark=remark, ua_platform=ua_platform, ua_browser=ua_browser, ua_version=ua_version, ua_language=ua_language, ip_is_good=ip_is_good, ip_asn_is_good=ip_asn_is_good)
+                insert_installation_track(project=project,data_decode=data,User_Agent=req_info['User_Agent'],Host=req_info['Host'],Connection=req_info['Connection'],Pragma=req_info['Pragma'], Cache_Control=req_info['Cache_Control'], Accept=req_info['Accept'], Accept_Encoding=req_info['Accept_Encoding'], Accept_Language=req_info['Accept_Language'], ip=req_info['ip'], ip_city=req_info['ip_city'],ip_asn=req_info['ip_asn'], url=req_info['url'], referrer=req_info['referrer'], remark=req_info['remark'], ua_platform=req_info['ua_platform'], ua_browser=req_info['ua_browser'], ua_version=req_info['ua_version'], ua_language=req_info['ua_language'], ip_is_good=req_info['ip_is_good'], ip_asn_is_good=req_info['ip_asn_is_good'])
                 bitimage1 = os.path.join('image','43byte.gif')
                 with open(bitimage1, 'rb') as f:
                     returnimage = f.read()
@@ -452,40 +387,9 @@ def check_exist_distinct_id():
     project = request.args.get('project')
     distinct_id = request.args.get('distinct_id')
     query_from = request.args.get('query_from')
-
-    User_Agent = request.headers.get('User-Agent')[0:2047] if request.headers.get('User-Agent') else None #Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36
-    Host = request.headers.get('Host') #: 10.16.5.241:5000
-    Connection = request.headers.get('Connection')#: keep-alive
-    Pragma = request.headers.get('Pragma')#: no-cache
-    Cache_Control = request.headers.get('Cache-Control')#: no-cache
-    Accept = request.headers.get('Accept')[0:254] if request.headers.get('Accept') else None#: image/webp,image/apng,image/*,*/*;q=0.8
-    Accept_Encoding = request.headers.get('Accept-Encoding')[0:254] if request.headers.get('Accept-Encoding') else None #: gzip, deflate
-    remark = request.args.get('remark') if 'remark' in request.args else 'normal'
-    Accept_Language = request.headers.get('Accept-Language')[0:254] if request.headers.get('Accept-Language') else None#: zh-CN,zh;q=0.9
-    ua_platform = request.user_agent.platform #客户端操作系统
-    ua_browser = request.user_agent.browser #客户端的浏览器
-    ua_version = request.user_agent.version #客户端浏览器的版本
-    ua_language = request.user_agent.language #客户端浏览器的语言
-    ext = request.args.get('ext')
-    url = request.url
+    req_info = get_req_info()
     args = request.args.to_dict(request.args)
     data = {"properties":args}
-    # ip = '124.115.214.179' #测试西安bug
-    # ip = '36.5.99.68' #测试安徽bug
-    if    'ip' in args and len(args['ip']) - len( args['ip'].replace('.','') ) == 3:#判断IP里是否存在IP地址
-        ip = args['ip']
-    elif request.headers.get('X-Forwarded-For') is not None:
-        ip = request.headers.get('X-Forwarded-For') #获取SLB真实地址
-    else:
-        ip = request.remote_addr#服务器直接暴露
-    ip_city,ip_is_good = get_addr(ip)
-    ip_asn,ip_asn_is_good = get_asn(ip)
-    if ip_is_good ==0:
-        ip_city = '{}'
-    if ip_asn_is_good ==0:
-        ip_asn = '{}'
-    referrer = request.referrer[0:2047] if request.referrer else None
-
     if password == admin.admin_password and project and distinct_id and query_from:#只有正确的密码才能触发动作
         try:
             if ',' in distinct_id:
@@ -498,12 +402,12 @@ def check_exist_distinct_id():
                 time_cost = time.time() - start_time
                 returnjson['timecost'] = round(time_cost,4)
                 data['returnjson'] = returnjson
-                insert_event(table=project,alljson=json.dumps(data),track_id=0,distinct_id=query_from,lib='ghost_sa',event='check_exist',type_1='ghost_sa_func',User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,created_at=start_time)
+                insert_event(table=project,alljson=json.dumps(data),track_id=0,distinct_id=query_from,lib='ghost_sa',event='check_exist',type_1='ghost_sa_func',User_Agent=req_info['User_Agent'],Host=req_info['Host'],Connection=req_info['Connection'],Pragma=req_info['Pragma'],Cache_Control=req_info['Cache_Control'],Accept=req_info['Accept'],Accept_Encoding=req_info['Accept_Encoding'],Accept_Language=req_info['Accept_Language'],ip=req_info['ip'],ip_city=req_info['ip_city'],ip_asn=req_info['ip_asn'],url=req_info['url'],referrer=req_info['referrer'],remark=req_info['remark'],ua_platform=req_info['ua_platform'],ua_browser=req_info['ua_browser'],ua_version=req_info['ua_version'],ua_language=req_info['ua_language'],created_at=start_time)
                 if admin.use_properties is True:
                     properties_key = []
                     for keys in data.keys():
                         properties_key.append(keys)
-                    insert_properties(project=project,lib='ghost_sa',remark=remark,event='check_exist',properties=json.dumps(properties_key),properties_len=len(data.keys()),created_at=start_time,updated_at=start_time)
+                    insert_properties(project=project,lib='ghost_sa',remark=req_info['remark'],event='check_exist',properties=json.dumps(properties_key),properties_len=len(data.keys()),created_at=start_time,updated_at=start_time)
                 return jsonify(returnjson)
             else:
                 #正常一条一递，兼容有米和七麦的标准
@@ -517,24 +421,24 @@ def check_exist_distinct_id():
                     returnjson = {'result':'success','results_count':results_count,'timecost':round(time_cost,4),'code':0,'msg':'not_exists','query_from':query_from}
                     returnjson[distinct_id] = results_count
                     data['returnjson'] = returnjson
-                    insert_event(table=project,alljson=json.dumps(data),track_id=0,distinct_id=query_from,lib='ghost_sa',event='check_exist',type_1='ghost_sa_func',User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,created_at=start_time)
+                    insert_event(table=project,alljson=json.dumps(data),track_id=0,distinct_id=query_from,lib='ghost_sa',event='check_exist',type_1='ghost_sa_func',User_Agent=req_info['User_Agent'],Host=req_info['Host'],Connection=req_info['Connection'],Pragma=req_info['Pragma'],Cache_Control=req_info['Cache_Control'],Accept=req_info['Accept'],Accept_Encoding=req_info['Accept_Encoding'],Accept_Language=req_info['Accept_Language'],ip=req_info['ip'],ip_city=req_info['ip_city'],ip_asn=req_info['ip_asn'],url=req_info['url'],referrer=req_info['referrer'],remark=req_info['remark'],ua_platform=req_info['ua_platform'],ua_browser=req_info['ua_browser'],ua_version=req_info['ua_version'],ua_language=req_info['ua_language'],created_at=start_time)
                     if admin.use_properties is True:
                         properties_key = []
                         for keys in data.keys():
                             properties_key.append(keys)
-                        insert_properties(project=project,lib='ghost_sa',remark=remark,event='check_exist',properties=json.dumps(properties_key),properties_len=len(data.keys()),created_at=start_time,updated_at=start_time)
+                        insert_properties(project=project,lib='ghost_sa',remark=req_info['remark'],event='check_exist',properties=json.dumps(properties_key),properties_len=len(data.keys()),created_at=start_time,updated_at=start_time)
                     return jsonify(returnjson)
                 time_cost = time.time() - start_time
                 returnjson = {'result':'success','results_count':results_count,'timecost':round(time_cost,4),'code':-1,'msg':'exists','query_from':query_from}
                 returnjson[distinct_id] = results_count
                 # returnjson = {'result':'success','results_count':results_count,'code':-1,'msg':'exists'}
                 data['returnjson'] = returnjson
-                insert_event(table=project,alljson=json.dumps(data),track_id=0,distinct_id=query_from,lib='ghost_sa',event='check_exist',type_1='ghost_sa_func',User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,created_at=start_time)
+                insert_event(table=project,alljson=json.dumps(data),track_id=0,distinct_id=query_from,lib='ghost_sa',event='check_exist',type_1='ghost_sa_func',User_Agent=req_info['User_Agent'],Host=req_info['Host'],Connection=req_info['Connection'],Pragma=req_info['Pragma'],Cache_Control=req_info['Cache_Control'],Accept=req_info['Accept'],Accept_Encoding=req_info['Accept_Encoding'],Accept_Language=req_info['Accept_Language'],ip=req_info['ip'],ip_city=req_info['ip_city'],ip_asn=req_info['ip_asn'],url=req_info['url'],referrer=req_info['referrer'],remark=req_info['remark'],ua_platform=req_info['ua_platform'],ua_browser=req_info['ua_browser'],ua_version=req_info['ua_version'],ua_language=req_info['ua_language'],created_at=start_time)
                 if admin.use_properties is True:
                     properties_key = []
                     for keys in data.keys():
                         properties_key.append(keys)
-                    insert_properties(project=project,lib='ghost_sa',remark=remark,event='check_exist',properties=json.dumps(properties_key),properties_len=len(data.keys()),created_at=start_time,updated_at=start_time)
+                    insert_properties(project=project,lib='ghost_sa',remark=req_info['remark'],event='check_exist',properties=json.dumps(properties_key),properties_len=len(data.keys()),created_at=start_time,updated_at=start_time)
                 return jsonify(returnjson)
         except Exception:
             error = traceback.format_exc()
@@ -680,52 +584,17 @@ def create_mobile_ad_link():
         return jsonify(returnjson)
 
 def who_am_i():
-    ip = request.headers.get('X-Forwarded-For') #获取SLB真实地址
-    if request.headers.get('X-Forwarded-For') is None:
-        ip = request.remote_addr                #服务器直接暴露
-
-    ip_city,ip_is_good = get_addr(ip)
-    ip_asn,ip_asn_is_good = get_asn(ip)
-    if ip_is_good ==0:
-        ip_city = '{}'
-    if ip_asn_is_good ==0:
-        ip_asn = '{}'
-    User_Agent = request.headers.get('User-Agent')[0:2047] if request.headers.get('User-Agent') else None#Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36
-    Host = request.headers.get('Host') #: 10.16.5.241:5000
-    Connection = request.headers.get('Connection')#: keep-alive
-    Pragma = request.headers.get('Pragma')#: no-cache
-    Cache_Control = request.headers.get('Cache-Control')#: no-cache
-    Accept = request.headers.get('Accept')[0:254] if request.headers.get('Accept') else None#: image/webp,image/apng,image/*,*/*;q=0.8
-    Accept_Encoding = request.headers.get('Accept-Encoding')[0:254] if request.headers.get('Accept-Encoding') else None#: gzip, deflate
-    Accept_Language = request.headers.get('Accept-Language')[0:254] if request.headers.get('Accept-Language') else None#: zh-CN,zh;q=0.9
-    ua_platform = request.user_agent.platform #客户端操作系统
-    ua_browser = request.user_agent.browser #客户端的浏览器
-    ua_version = request.user_agent.version #客户端浏览器的版本
-    ua_language = request.user_agent.language #客户端浏览器的语言
-    url = request.url
-    referrer = request.referrer
-
-    returnjson = {'ip':ip,'ip_city':ip_city,'ip_asn':ip_asn,'ip_is_good':ip_is_good,'ip_asn_is_good':ip_asn_is_good,'User_Agent':User_Agent,'Host':Host,'Connection':Connection,'Pragma':Pragma,'Cache_Control':Cache_Control,'Accept':Accept,'Accept_Encoding':Accept_Encoding,'Accept_Language':Accept_Language,'ua_platform':ua_platform,'ua_browser':ua_browser,'ua_version':ua_version,'ua_language':ua_language,'url':url,'referrer':referrer}
-    return jsonify(returnjson)
+    req_info = get_req_info()
+    return jsonify(req_info)
 
 def shortcut_read(short_url):
     time1 = int(time.time())
-    User_Agent = request.headers.get('User-Agent') 
-    Accept_Language = request.headers.get('Accept-Language')#: zh-CN,zh;q=0.9
-    ua_platform = request.user_agent.platform #客户端操作系统
-    ua_browser = request.user_agent.browser #客户端的浏览器
-    ua_version = request.user_agent.version #客户端浏览器的版本
-    ua_language = request.user_agent.language #客户端浏览器的语言
-    url = request.url
-    referrer = request.referrer
-    ip = request.headers.get('X-Forwarded-For') #获取SLB真实地址
-    if request.headers.get('X-Forwarded-For') is None:
-        ip = request.remote_addr#服务器直接暴露        
+    req_info = get_req_info()
     if admin.use_kafka is False:
-        insert_shortcut_read(short_url=short_url,ip=ip,user_agent=User_Agent,accept_language=Accept_Language,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,referrer=referrer,created_at=time1)
+        insert_shortcut_read(short_url=short_url,ip=req_info['ip'],user_agent=req_info['User_Agent'],accept_language=req_info['Accept_Language'],ua_platform=['ua_platform'],ua_browser=['ua_browser'],ua_version=['ua_version'],ua_language=['ua_language'],referrer=['referrer'],created_at=time1)
     elif admin.use_kafka is True:
-        msg = {"group":"shortcut_read","data":{"short_url":short_url,"ip":ip,"user_agent":User_Agent,"accept_language":Accept_Language,"ua_platform":ua_platform,"ua_browser":ua_browser,"ua_version":ua_version,"ua_language":ua_language,"referrer":referrer,"created_at":time1}}
-        insert_message_to_kafka(key=ip, msg=msg)
+        msg = {"group":"shortcut_read","data":{"short_url":short_url,"ip":req_info['ip'],"user_agent":req_info['User_Agent'],"accept_language":req_info['Accept_Language'],"ua_platform":req_info['ua_platform'],"ua_browser":req_info['ua_browser'],"ua_version":req_info['ua_version'],"ua_language":req_info['ua_language'],"referrer":req_info['referrer'],"created_at":time1}}
+        insert_message_to_kafka(key=req_info['ip'],msg=msg)
     bitimage1 = os.path.join('image','43byte.gif')
     with open(bitimage1, 'rb') as f:
         returnimage = f.read()
@@ -848,46 +717,7 @@ def access_permit():
     arr_mode = get_url_params('arr_mode')
     distinct_id = get_url_params('distinct_id')
     project = get_url_params('project')
-    remark = request.args.get('remark') if 'remark' in request.args else 'normal'
-    User_Agent = request.headers.get('User-Agent')[0:2047] if request.headers.get('User-Agent') else None#Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36
-    if get_url_params('user_agent'):
-        User_Agent = get_url_params('user_agent')
-    if User_Agent and User_Agent !='' and any([pt in User_Agent.lower() for pt in admin.bot_list]):
-        remark = 'spider'
-    Host = request.headers.get('Host') #: 10.16.5.241:5000
-    if get_url_params('host'):
-        Host = get_url_params('host')
-    Connection = request.headers.get('Connection')#: keep-alive
-    Pragma = request.headers.get('Pragma')#: no-cache
-    Cache_Control = request.headers.get('Cache-Control')#: no-cache
-    Accept = request.headers.get('Accept')[0:254] if request.headers.get('Accept') else None#: image/webp,image/apng,image/*,*/*;q=0.8
-    Accept_Encoding = request.headers.get('Accept-Encoding')[0:254] if request.headers.get('Accept-Encoding') else None#: gzip, deflate
-    Accept_Language = request.headers.get('Accept-Language')[0:254] if request.headers.get('Accept-Language') else None#: zh-CN,zh;q=0.9
-    ua_platform = request.user_agent.platform #客户端操作系统
-    ua_browser = request.user_agent.browser #客户端的浏览器
-    ua_version = request.user_agent.version #客户端浏览器的版本
-    ua_language = request.user_agent.language #客户端浏览器的语言
-    ext = request.args.get('ext')
-    url = request.url
-    if get_url_params('request_uri'):
-        url = get_url_params('request_uri')
-    referrer = request.referrer[0:2047] if request.referrer else None
-    if get_url_params('http_referrer') and get_url_params('http_referrer')!= '$http_referrer' :
-        referrer = get_url_params('http_referrer')[0:2047]
-    elif get_url_params('http_referer') and get_url_params('http_referer')!= '$http_referer' :
-        referrer = get_url_params('http_referer')[0:2047]
-    if get_url_params('http_x_forward_for') and get_url_params('http_x_forward_for') != '' and get_url_params('http_x_forward_for').count('.')==3:
-        ip = get_url_params('http_x_forward_for')
-    elif get_url_params('remote_addr') and get_url_params('remote_addr') != '' and get_url_params('remote_addr').count('.')==3:
-        ip = get_url_params('remote_addr')
-    elif get_url_params('ip') and get_url_params('ip') != '' and get_url_params('ip').count('.')==3:
-        ip = get_url_params('ip')
-    elif request.headers.get('X-Forwarded-For'):
-        ip = request.headers.get('X-Forwarded-For') #获取SLB真实地址
-    else:
-        ip = request.remote_addr#服务器直接暴露
-    ip_city,ip_is_good = get_addr(ip)
-    ip_asn,ip_asn_is_good = get_asn(ip)
+    req_info = get_req_info()
     add_on_key = get_url_params('add_on_key')
     event = get_url_params('event')
     date = get_url_params('date')
@@ -934,7 +764,8 @@ def access_permit():
         if not distinct_cdn:
             distinct_cdn = 'cdn_mode_without_distinct_id'
         if dnt != admin.admin_do_not_track_code:
-            insert_data(project=project,data_decode={'ip_data':{'args_http_x_forward_for':args_http_x_forward_for,'args_remote_addr':args_remote_addr,'args_ip':args_ip,'headers_x_forward_for':headers_x_forward_for,'remote_addr':remote_addr},'type':'track','distinct_id':distinct_cdn,'event':'cdn_mode' if mode == 'cdn' or admin.access_control_force_cdn_record is True else 'cdn_mode2','lib':{'$lib':'ghost_sa'},'_track_id':0,'properties':{'owner':owner,'args':args,'forms':forms,'jsons':req_jsons,'$device_id':device_id}},User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good,created_at=None,updated_at=None,use_kafka=admin.use_kafka)#这里event强制指定为cdn_mode，哪怕是强制写入其他事件也是以cdnmode为准。保证其他查询正常，也保证cdn模式查询正常。
+            insert_data(project=project,data_decode={'ip_data':{'args_http_x_forward_for':args_http_x_forward_for,'args_remote_addr':args_remote_addr,'args_ip':args_ip,'headers_x_forward_for':headers_x_forward_for,'remote_addr':remote_addr},'type':'track','distinct_id':distinct_cdn,'event':'cdn_mode' if mode == 'cdn' or admin.access_control_force_cdn_record is True else 'cdn_mode2','lib':{'$lib':'ghost_sa'},'_track_id':0,'properties':{'owner':owner,'args':args,'forms':forms,'jsons':req_jsons,'$device_id':device_id}},User_Agent=req_info['User_Agent'],Host=req_info['Host'],Connection=req_info['Connection'],Pragma=req_info['Pragma'],Cache_Control=req_info['Cache_Control'],Accept=req_info['Accept'],Accept_Encoding=req_info['Accept_Encoding'],Accept_Language=req_info['Accept_Language'],ip=req_info['ip'],ip_city=req_info['ip_city'],ip_asn=req_info['ip_asn'],url=req_info['url'],referrer=req_info['referrer'],remark=req_info['remark'],ua_platform=req_info['ua_platform'],ua_browser=req_info['ua_browser'],ua_version=req_info['ua_version'],ua_language=req_info['ua_language'],ip_is_good=req_info['ip_is_good'],ip_asn_is_good=req_info['ip_asn_is_good'])#这里event强制指定为cdn_mode，哪怕是强制写入其他事件也是以cdnmode为准。保证其他查询正常，也保证cdn模式查询正常。
+    ip = req_info['ip']
     if admin.access_control_query is True :
         if project:
             if not distinct_event:
@@ -989,17 +820,17 @@ def access_permit():
                         if exclude_combine ==0:
                             exclude_combine = exclude_combine + query_access_control_exclude(key=add_on_key,project=project,type_id=63,event=event)[1]
                         if exclude_combine ==0:
-                            insert_data(project=project,data_decode={'ip_data':{'args_http_x_forward_for':args_http_x_forward_for,'args_remote_addr':args_remote_addr,'args_ip':args_ip,'headers_x_forward_for':headers_x_forward_for,'remote_addr':remote_addr},'type':'access_control','distinct_id':distinct_event,'event':'access_control','lib':{'$lib':'ghost_sa'},'_track_id':0,'properties':{'owner':owner,'args':args,'forms':forms,'jsons':req_jsons,'$device_id':device_id,'auth':'failed','return':result_combine,'return_code':403,'time_cost':int(time.time()*1000) - time1}},User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good,created_at=None,updated_at=None,use_kafka=admin.use_kafka)
+                            insert_data(project=project,data_decode={'ip_data':{'args_http_x_forward_for':args_http_x_forward_for,'args_remote_addr':args_remote_addr,'args_ip':args_ip,'headers_x_forward_for':headers_x_forward_for,'remote_addr':remote_addr},'type':'access_control','distinct_id':distinct_event,'event':'access_control','lib':{'$lib':'ghost_sa'},'_track_id':0,'properties':{'owner':owner,'args':args,'forms':forms,'jsons':req_jsons,'$device_id':device_id,'auth':'failed','return':result_combine,'return_code':403,'time_cost':int(time.time()*1000) - time1}},User_Agent=req_info['User_Agent'],Host=req_info['Host'],Connection=req_info['Connection'],Pragma=req_info['Pragma'],Cache_Control=req_info['Cache_Control'],Accept=req_info['Accept'],Accept_Encoding=req_info['Accept_Encoding'],Accept_Language=req_info['Accept_Language'],ip=req_info['ip'],ip_city=req_info['ip_city'],ip_asn=req_info['ip_asn'],url=req_info['url'],referrer=req_info['referrer'],remark=req_info['remark'],ua_platform=req_info['ua_platform'],ua_browser=req_info['ua_browser'],ua_version=req_info['ua_version'],ua_language=req_info['ua_language'],ip_is_good=req_info['ip_is_good'],ip_asn_is_good=req_info['ip_asn_is_good'])
                             return jsonify({'auth':'failed','data':result_combine,'time_cost':int(time.time()*1000) - time1}),403
                 if admin.access_control_force_result_record is True:
-                    insert_data(project=project,data_decode={'ip_data':{'args_http_x_forward_for':args_http_x_forward_for,'args_remote_addr':args_remote_addr,'args_ip':args_ip,'headers_x_forward_for':headers_x_forward_for,'remote_addr':remote_addr},'type':'access_control','distinct_id':distinct_event,'event':'access_control','lib':{'$lib':'ghost_sa'},'_track_id':0,'properties':{'owner':owner,'args':args,'forms':forms,'jsons':req_jsons,'$device_id':device_id,'auth':'success','return':result_combine,'return_code':200,'time_cost':int(time.time()*1000) - time1}},User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good,created_at=None,updated_at=None,use_kafka=admin.use_kafka)
+                    insert_data(project=project,data_decode={'ip_data':{'args_http_x_forward_for':args_http_x_forward_for,'args_remote_addr':args_remote_addr,'args_ip':args_ip,'headers_x_forward_for':headers_x_forward_for,'remote_addr':remote_addr},'type':'access_control','distinct_id':distinct_event,'event':'access_control','lib':{'$lib':'ghost_sa'},'_track_id':0,'properties':{'owner':owner,'args':args,'forms':forms,'jsons':req_jsons,'$device_id':device_id,'auth':'success','return':result_combine,'return_code':200,'time_cost':int(time.time()*1000) - time1}},User_Agent=req_info['User_Agent'],Host=req_info['Host'],Connection=req_info['Connection'],Pragma=req_info['Pragma'],Cache_Control=req_info['Cache_Control'],Accept=req_info['Accept'],Accept_Encoding=req_info['Accept_Encoding'],Accept_Language=req_info['Accept_Language'],ip=req_info['ip'],ip_city=req_info['ip_city'],ip_asn=req_info['ip_asn'],url=req_info['url'],referrer=req_info['referrer'],remark=req_info['remark'],ua_platform=req_info['ua_platform'],ua_browser=req_info['ua_browser'],ua_version=req_info['ua_version'],ua_language=req_info['ua_language'],ip_is_good=req_info['ip_is_good'],ip_asn_is_good=req_info['ip_asn_is_good'])
                 return jsonify({'auth':'success','data':result_combine,'time_cost':int(time.time()*1000) - time1}),200
         if project:
-            insert_data(project=project,data_decode={'ip_data':{'args_http_x_forward_for':args_http_x_forward_for,'args_remote_addr':args_remote_addr,'args_ip':args_ip,'headers_x_forward_for':headers_x_forward_for,'remote_addr':remote_addr},'type':'access_control','distinct_id':distinct_event,'event':'access_control','lib':{'$lib':'ghost_sa'},'_track_id':0,'properties':{'owner':owner,'args':args,'forms':forms,'jsons':req_jsons,'$device_id':device_id,'auth':'wrong_password','return_code':403,'time_cost':int(time.time()*1000) - time1}},User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good,created_at=None,updated_at=None,use_kafka=admin.use_kafka)
+            insert_data(project=project,data_decode={'ip_data':{'args_http_x_forward_for':args_http_x_forward_for,'args_remote_addr':args_remote_addr,'args_ip':args_ip,'headers_x_forward_for':headers_x_forward_for,'remote_addr':remote_addr},'type':'access_control','distinct_id':distinct_event,'event':'access_control','lib':{'$lib':'ghost_sa'},'_track_id':0,'properties':{'owner':owner,'args':args,'forms':forms,'jsons':req_jsons,'$device_id':device_id,'auth':'wrong_password','return_code':403,'time_cost':int(time.time()*1000) - time1}},User_Agent=req_info['User_Agent'],Host=req_info['Host'],Connection=req_info['Connection'],Pragma=req_info['Pragma'],Cache_Control=req_info['Cache_Control'],Accept=req_info['Accept'],Accept_Encoding=req_info['Accept_Encoding'],Accept_Language=req_info['Accept_Language'],ip=req_info['ip'],ip_city=req_info['ip_city'],ip_asn=req_info['ip_asn'],url=req_info['url'],referrer=req_info['referrer'],remark=req_info['remark'],ua_platform=req_info['ua_platform'],ua_browser=req_info['ua_browser'],ua_version=req_info['ua_version'],ua_language=req_info['ua_language'],ip_is_good=req_info['ip_is_good'],ip_asn_is_good=req_info['ip_asn_is_good'])
         return jsonify({'auth':'miss_info','data':result_combine,'time_cost':int(time.time()*1000) - time1}),403
     else:
         if admin.access_control_force_result_record is True and project:
-            insert_data(project=project,data_decode={'ip_data':{'args_http_x_forward_for':args_http_x_forward_for,'args_remote_addr':args_remote_addr,'args_ip':args_ip,'headers_x_forward_for':headers_x_forward_for,'remote_addr':remote_addr},'type':'access_control','distinct_id':distinct_event,'event':'access_control','lib':{'$lib':'ghost_sa'},'_track_id':0,'properties':{'owner':owner,'args':args,'forms':forms,'jsons':req_jsons,'$device_id':device_id,'auth':'offload','return':result_combine,'return_code':200,'time_cost':int(time.time()*1000) - time1}},User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,ip_is_good=ip_is_good,ip_asn_is_good=ip_asn_is_good,created_at=None,updated_at=None,use_kafka=admin.use_kafka)
+            insert_data(project=project,data_decode={'ip_data':{'args_http_x_forward_for':args_http_x_forward_for,'args_remote_addr':args_remote_addr,'args_ip':args_ip,'headers_x_forward_for':headers_x_forward_for,'remote_addr':remote_addr},'type':'access_control','distinct_id':distinct_event,'event':'access_control','lib':{'$lib':'ghost_sa'},'_track_id':0,'properties':{'owner':owner,'args':args,'forms':forms,'jsons':req_jsons,'$device_id':device_id,'auth':'offload','return':result_combine,'return_code':200,'time_cost':int(time.time()*1000) - time1}},User_Agent=req_info['User_Agent'],Host=req_info['Host'],Connection=req_info['Connection'],Pragma=req_info['Pragma'],Cache_Control=req_info['Cache_Control'],Accept=req_info['Accept'],Accept_Encoding=req_info['Accept_Encoding'],Accept_Language=req_info['Accept_Language'],ip=req_info['ip'],ip_city=req_info['ip_city'],ip_asn=req_info['ip_asn'],url=req_info['url'],referrer=req_info['referrer'],remark=req_info['remark'],ua_platform=req_info['ua_platform'],ua_browser=req_info['ua_browser'],ua_version=req_info['ua_version'],ua_language=req_info['ua_language'],ip_is_good=req_info['ip_is_good'],ip_asn_is_good=req_info['ip_asn_is_good'])
         return jsonify({'auth':'offload','data':result_combine,'time_cost':int(time.time()*1000) - time1}),200
 
 

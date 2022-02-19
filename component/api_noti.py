@@ -4,12 +4,12 @@
 import sys
 sys.path.append("./")
 sys.setrecursionlimit(10000000)
-from component.url_tools import get_url_params
+from component.url_tools import get_url_params,get_req_info
 from configs.export import write_to_log
 from configs import admin
 from component.public_value import get_next_time
 import time
-from flask import request,jsonify,Response,redirect
+from flask import request,jsonify
 import traceback
 from component.db_func import show_project_usergroup_plan,show_project_usergroup_list,duplicate_scheduler_jobs_sql,select_usergroup_data_for_api,select_usergroup_datacount_for_api,disable_usergroup_data_db,show_temples_db,show_noti_group_db,show_noti_group_count_db,show_noti_db,show_noti_count_db,select_noti_group,select_noti_single,disable_noti_db,show_scheduler_jobs_db,show_scheduler_jobs_count_db,select_usergroup_jobs_plan_manual,insert_scheduler_job,select_noti_temple,select_msg_type,show_project_usergroup_plan_count,show_project_usergroup_list_count
 import json
@@ -17,6 +17,7 @@ from scheduler import create_noti_group
 from component.messenger import send_manual,create_non_usergroup_noti,create_non_usergroup_non_temple_noti
 from scheduler_jobs.etl_model import apply_temple
 from component.recall_blacklist import blacklist_commit, blacklist_query
+from component.api import insert_data
 
 
 def show_usergroup_plan():
@@ -555,6 +556,47 @@ def query_blacklist_single():
     else:
         returnjson = {'result':'fail','error':'参数错误'}
         return jsonify(returnjson)
+
+def sms_callback():
+    start_time = time.time()
+    project = get_url_params('project')
+    password = get_url_params('password')
+    owner = get_url_params('owner','sms_callback')
+    mode = get_url_params('mode','aliyun')
+    req_info = get_req_info()
+    blacklist = []
+    if password == admin.admin_password and project:
+        if mode == 'aliyun':
+            #work with aliyun
+            data_list = request.json
+            for data in data_list:
+                data['mode'] = 82
+                data['owner'] = owner
+                blacklist.append({'key':data['phone_number'],'status': 'success' if data['success'] is True else 'failed','code':data['err_code'],'description':data['err_msg'],'delivery_time':data['report_time'],'mode':data['mode'],'owner':owner})
+                data_decode = {'properties':data,'type':'sms_callback','distinct_id':'sms_callback','event':'sms_callback','lib':{'$lib':'ghost_sa'},'_track_id':0}
+                insert_data(project=project, data_decode=data_decode,User_Agent=req_info['User_Agent'],Host=req_info['Host'],Connection=req_info['Connection'],Pragma=req_info['Pragma'],Cache_Control=req_info['Cache_Control'],Accept=req_info['Accept'],Accept_Encoding=req_info['Accept_Encoding'],Accept_Language=req_info['Accept_Language'],ip=req_info['ip'],ip_city=req_info['ip_city'],ip_asn=req_info['ip_asn'],url=req_info['url'],referrer=req_info['referrer'],remark=req_info['remark'],ua_platform=req_info['ua_platform'],ua_browser=req_info['ua_browser'],ua_version=req_info['ua_version'],ua_language=req_info['ua_language'],ip_is_good=req_info['ip_is_good'],ip_asn_is_good=req_info['ip_asn_is_good'])
+            return_pending  = {"code" : 0,  "msg" : "接收成功"}
+        elif mode == 'qcloud':
+            #work with tencent cloud
+            data_list = request.json
+            for data in data_list:
+                data['mode'] = 83
+                data['owner'] = owner
+                blacklist.append({'key':data['mobile'],'status': 'success' if data['report_status'] =='SUCCESS' else 'failed','code':data['errmsg'],'description':data['description'],'delivery_time':data['user_receive_time'],'mode':data['mode'],'owner':owner})
+                data_decode = {'properties':data,'type':'sms_callback','distinct_id':'sms_callback','event':'sms_callback','lib':{'$lib':'ghost_sa'},'_track_id':0}
+                insert_data(project=project, data_decode=data_decode,User_Agent=req_info['User_Agent'],Host=req_info['Host'],Connection=req_info['Connection'],Pragma=req_info['Pragma'],Cache_Control=req_info['Cache_Control'],Accept=req_info['Accept'],Accept_Encoding=req_info['Accept_Encoding'],Accept_Language=req_info['Accept_Language'],ip=req_info['ip'],ip_city=req_info['ip_city'],ip_asn=req_info['ip_asn'],url=req_info['url'],referrer=req_info['referrer'],remark=req_info['remark'],ua_platform=req_info['ua_platform'],ua_browser=req_info['ua_browser'],ua_version=req_info['ua_version'],ua_language=req_info['ua_language'],ip_is_good=req_info['ip_is_good'],ip_asn_is_good=req_info['ip_asn_is_good'])
+            return_pending  = { "result": 0,"errmsg": "OK"}
+        for item in blacklist:
+            if item['status'] != 'success' and item['code'] in ['GX:1104','DB:0141','DB:Black','DB:0141','tuiding','td:88','GX:1002','GX:1103','GB:0008','HAVBEEN','1015','MX:0012','TSBLACK','MB:1077']:
+                commit = blacklist_commit(data={'project':project,'type':item['mode'],'key':item['mobile'],'status':41,'reason_id':36,'owner':item['owner'],'comment':item['description']})
+                commit.add_by_junk_warning()
+            elif item['status'] != 'success':
+                commit = blacklist_commit(data={'project':project,'type':item['mode'],'key':item['mobile'],'status':40,'reason_id':35,'owner':item['owner'],'comment':item['description']})
+                commit.add_by_wrong_address()
+        return_pending['timecost'] = time.time()-start_time
+        return jsonify(return_pending)
+    else:
+        return jsonify({"code" : 1,  "msg" : "缺少参数", "result": 1,"errmsg": "缺少参数",'timecost':time.time()-start_time})
 
 if __name__ == "__main__":
     show_temple_args()

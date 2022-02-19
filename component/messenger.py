@@ -16,6 +16,7 @@ from configs import admin
 from component.recall_blacklist import blacklist_commit,blacklist_query
 from component.umail import send_umail
 from configs import email,umail
+from component.aliyun_sms import sendsms
 
 
 class send:
@@ -53,6 +54,12 @@ class send:
         # print(content)
         result = post_wechat_notification(data=json.loads(self.noti_content['content']))
         return result
+        
+    def aliyun_sms(self):
+        from configs import aliyun_sms_conf
+        sms_data = json.loads(self.noti_content['content'])
+        result = sendsms(phone_number=sms_data['phone_number'],template_param=str(sms_data['template_param']),template_code=sms_data['template_code'],sign_name=sms_data['sign_name'] if 'sign_name' in sms_data else aliyun_sms_conf.default_signname)
+        return result
     def wechat_subscriptions(self):
         pass
     def wechat_miniprogram(self):
@@ -73,6 +80,8 @@ class send:
                 return self.wechat_official_account()
             elif self.noti_type == 81:
                 return self.via_umail()
+            elif self.noti_type == 82:
+                return self.aliyun_sms()
         except Exception:
             error = traceback.format_exc()
             write_to_log(filename='messenger',defname='play_all',result=error)
@@ -85,7 +94,11 @@ class send:
             result = self.sent_all()
             if result == 'success':
                 return result
-            elif result !='success':
+            elif result == 'junk':
+                commit = blacklist_commit(data={'project':self.project,'type':self.noti_type,'key':self.noti_content['key'],'status':41,'reason_id':36,'owner':'messenger.py','comment':result})
+                commit.add_by_junk_warning()
+                return result
+            else:
                 commit = blacklist_commit(data={'project':self.project,'type':self.noti_type,'key':self.noti_content['key'],'reason_id':35,'status':40,'owner':'messenger.py','comment':result,'distinct_id':self.distinct_id})
                 commit.add_by_wrong_address()
                 return result
