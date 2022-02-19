@@ -237,6 +237,39 @@ def create_noti_temple_wechat():
     pending_content = {'content':json.dumps({'wechat_openid':wechat_openid,'wechat_template_id':wechat_template_id,'target_url':target_url,'data':content}),'key':key,'level':"51"}
     result = insert_noti_temple(project=project,name=name,args=json.dumps(pending_args,ensure_ascii=False),content=json.dumps(pending_content,ensure_ascii=False),temple_desc=temple_desc)
 
+def create_noti_temple_aliyun_sms():
+    #这是一个适用于发阿里云短信的模板
+    #模板信息
+    name = '会员过期提醒短信' #模板的名称
+    temple_desc = '尊敬的name，您的sku已过期date，请及时续期，获得更多创意。' #描述模板
+
+    #模板策略
+    project = 'demo_app' #项目名称
+    track_url = 'https://yourdomain/sa.gif' #鬼策的监测地址（用来接收数据的地址）
+    remark = 'production' #鬼策的remark标记
+    default_send_time = '* * * * *' #自动发送的时间，分，时，日，月，周。不填的用*代替。跟crontab一个逻辑，但不支持1-10的方式表达，多日的需要1,2,3,4,5,6,7,8这样的形式填 如'* 1 1,2,3 * *'即为每月1,2,3日的凌晨1点执行。其中周位0表示周一，6表示周日
+
+    #附加组件调用
+    required = False #模板是否需要调用外部程序补充数据，True时会调用func_dir和func_name所指定的程序。调用外部程序的功能主要用来解决用户分群时无法创建千人千面结果的情况，如分群只分出了用户信息，但是推送内容并不同步生产，如一个分群对应多次个模板套用的情况。
+    func_dir = "" #模板所需要调用的外部程序目录
+    func_name = "" #模板所需要调用的外部程序名称
+
+    #meta信息（模板描述信息）
+    medium = "aliyun_sms" #模板适配的媒介名称（对应status_code表）
+    medium_id = 82 #模板适配的媒介id（对应status_code表）
+
+    #替换参数
+    args = {"mobile":"___mobile___","owner":"___owner___","nickname":"___nickname___","expired_days_str":"___expired_days_str___"} #temple_args,data_args和func里返回的内容会替换content里的___key___部分，
+    #推送正文
+    template_param = {"name":"___nickname___","date":"___expired_days_str___","sku":"___sku___"} #推送里的变量，这是例子，换成你申请的模板里的变量
+    template_code = "SMS_200000000" #阿里云的短信模板ID
+    sign_name = "你的签名" #阿里云的短信签名
+    key = "___mobile___" #指定key，用于黑名单过滤
+    #入库
+    pending_args = {"add_on_func": {"dir": func_dir, "name": func_name , "required": required}, "args": args, "ghost_sa": {"remark": remark, "track_url": track_url}, "meta": {"medium": medium, "medium_id": medium_id, "default_send_time":default_send_time}}
+    pending_content = {'key':key,'level':"51",'content':json.dumps({'template_param':template_param,"template_code":template_code,"sign_name":sign_name,"phone_number":key})}
+    result = insert_noti_temple(project=project,name=name,args=json.dumps(pending_args,ensure_ascii=False),content=json.dumps(pending_content,ensure_ascii=False),temple_desc=temple_desc)
+
 
 if __name__ == "__main__":
     # create_usergroup_plan()
