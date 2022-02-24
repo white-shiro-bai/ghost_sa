@@ -36,12 +36,12 @@ class send:
 
     def via_email(self):
         default_mail_from = self.noti_content['mail_from'] if 'mail_from' in self.noti_content and self.noti_content['mail_from'] and self.noti_content['mail_from'] != '' else email.mail_user #默认发送邮箱
-        result = send_email(to_addr=self.noti_content['mail_to'],from_addr=default_mail_from,subject=self.noti_content['subject'],html=self.noti_content['content'])
+        result = send_email(to_addr=self.noti_content['mail_to'],from_addr=default_mail_from,subject=self.noti_content['subject'],html=self.noti_content['content'],sender_alias=self.noti_content['sender_alias'] if 'sender_alias' in self.noti_content else email.sender_alias)
         return result
 
     def via_umail(self):
         default_mail_from = self.noti_content['mail_from'] if 'mail_from' in self.noti_content and self.noti_content['mail_from'] and self.noti_content['mail_from'] != '' else umail.umail_user#默认发送邮箱
-        result = send_umail(to_addr=self.noti_content['mail_to'],from_addr=default_mail_from,subject=self.noti_content['subject'],html=self.noti_content['content'])
+        result = send_umail(to_addr=self.noti_content['mail_to'],from_addr=default_mail_from,subject=self.noti_content['subject'],html=self.noti_content['content'],sender_alias=self.noti_content['sender_alias'] if 'sender_alias' in self.noti_content else umail.umail_alias)
         return result
 
     def sms(self):

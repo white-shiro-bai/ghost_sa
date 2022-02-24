@@ -192,12 +192,13 @@ def create_noti_temple():
     # content = "这是一个测试内容，用户昵称是___nickname___，跳转链接是http://www.tvcbook.com/?utm_source=___utm_source___\u0026tm_campaign=___utm_campaign___\u0026utm_term=___utm_term___\u0026utm_content=___group_id___\u0026utm_medium=___utm_medium___,跟踪链接是___read_tracker___" #推送的正文内容，需要替换的部分前后加上___，应用模板的时候，会被temple_args,data_args和func里返回的内容替换.
     subject = "___subject___" #推送的标题内容，需要替换的部分前后加上___，应用模板的时候，会被temple_args,data_args和func里返回的内容替换.
     mail_to = "___email___" #推送的目标地址，不一定是email地址，也可以是手机号，看自定义变量定义的是什么
+    sender_alias = "鬼策" #显示在收件箱里的别名
     mail_from = "" #推送的发件人地址，不一定是email，看自定义变量定义的是什么
     key = mail_to #指定key，用于黑名单过滤
     level = 52
     #入库
     pending_args = {"add_on_func": {"dir": func_dir, "name": func_name , "required": required}, "args": args, "ghost_sa": {"remark": remark, "track_url": track_url}, "meta": {"medium": medium, "medium_id": medium_id, "default_send_time":default_send_time}}
-    pending_content = {"content": content, "mail_from": mail_from, "mail_to": mail_to, "subject": subject,"key":key,"level":level}
+    pending_content = {"content": content, "mail_from": mail_from, "mail_to": mail_to, "subject": subject,"key":key,"level":level,"sender_alias":sender_alias}
     result = insert_noti_temple(project=project,name=name,args=json.dumps(pending_args,ensure_ascii=False),content=json.dumps(pending_content,ensure_ascii=False),temple_desc=temple_desc)
     
 def create_noti_temple_wechat():

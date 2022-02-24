@@ -3,7 +3,7 @@
 #Date: 2022-01-24 16:35:57
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2022-01-27 15:01:01
+#LastEditTime: 2022-02-24 15:44:01
 #FilePath: \ghost_sa_github\component\umail.py
 #
 import sys
@@ -13,15 +13,16 @@ from configs import umail
 import smtplib
 from email.mime.text import MIMEText
 from email.header import Header
+from email.utils import formataddr
 from configs.export import write_to_log
 from component.public_value import getdate
 from component.recall_blacklist import blacklist_commit
 import time
 import xmltodict
 
-def send_umail(to_addr='unknowwhite@outlook.com',from_addr=umail.umail_user,subject='鬼策测试邮件标题',html="""<p>鬼策测试邮件正文</p><p><a href="https://github.com/white-shiro-bai/ghost_sa">这是一个测试链接</a></p>"""):
+def send_umail(to_addr='unknowwhite@outlook.com',from_addr=umail.umail_user,subject='鬼策测试邮件标题',html="""<p>鬼策测试邮件正文</p><p><a href="https://github.com/white-shiro-bai/ghost_sa">这是一个测试链接</a></p>""",sender_alias = umail.umail_alias):
     message = MIMEText(html, 'html', 'utf-8')
-    message['From'] = Header(from_addr, 'utf-8') #括号里的对应发件人邮箱昵称（随便起）、发件人邮箱账号
+    message['From'] = formataddr([sender_alias,from_addr]) #括号里的对应发件人邮箱昵称（随便起）、发件人邮箱账号
     message['To'] = Header(to_addr, 'utf-8') #括号里的对应收件人邮箱昵称、收件人邮箱账号
     message['Subject'] = Header(subject, 'utf-8')
     try:
