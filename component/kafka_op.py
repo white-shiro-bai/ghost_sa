@@ -1,3 +1,13 @@
+# -*- coding: utf-8 -*-
+#
+#Date: 2022-03-12 14:54:46
+#Author: unknowwhite@outlook.com
+#WeChat: Ben_Xiaobai
+#LastEditTime: 2022-03-12 17:35:05
+#FilePath: \ghost_sa_github_cgq\component\kafka_op.py
+#
+import sys
+sys.path.append('./')
 # -*- coding: utf-8 -*
 # author: unknowwhite@outlook.com
 # wechat: Ben_Xiaobai
@@ -23,12 +33,8 @@ def insert_message_to_kafka(key, msg):
 
 kafka_offset_reset = 'earliest' #latest,earliest,none 首次拉取kafka订阅的模式
 
-def get_message_from_kafka():
-    consumer=KafkaConsumer(kafka.kafka_topic, bootstrap_servers=kafka.bootstrap_servers, group_id=kafka.client_group_id,auto_offset_reset=kafka_offset_reset,client_id='get_message_from_kafka')
-    return consumer
-
-def get_message_from_kafka_independent_listener():
-    consumer=KafkaConsumer(kafka.kafka_topic, bootstrap_servers=kafka.bootstrap_servers, group_id=admin.independent_listener_kafka_client_group_id,auto_offset_reset=kafka_offset_reset,client_id='get_message_from_kafka_independent_listener')
+def get_message_from_kafka(group_id=kafka.client_group_id,client_id=kafka.client_id):
+    consumer=KafkaConsumer(kafka.kafka_topic, bootstrap_servers=kafka.bootstrap_servers, group_id=group_id,auto_offset_reset=kafka.kafka_offset_reset,client_id=client_id,metadata_max_age_ms= 1 * 60 * 1000)
     return consumer
 
 if __name__ == "__main__":
