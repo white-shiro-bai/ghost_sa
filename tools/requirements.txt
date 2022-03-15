@@ -3,7 +3,7 @@ kafka-python==2.0.2
 Pillow
 qrcode==6.1
 flask-cors==3.0.10
-guppy3==3.1.0
+guppy3
 xmltodict==0.12.0
 pymysql
 geoip2
