@@ -22,4 +22,4 @@ def register():
 @sa_bp.route('/favicon.ico')
 @sa_bp.route('/')
 def index():
-    return res(ResponseCode.URL_NOT_FOUND)
+    return res(ResponseCode.SUCCEED)
