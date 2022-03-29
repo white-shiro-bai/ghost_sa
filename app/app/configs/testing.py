@@ -16,15 +16,18 @@ class TestingConfig(DefaultConfig):
     TESTING = True
 
     # 测试环境数据库配置
-    SQLALCHEMY_DATABASE_URI = 'mysql://developer:123456@10.237.43.127/travelclouddev?charset=utf8'
+    SQLALCHEMY_DATABASE_URI = 'mysql://cg_mall:cg_mall%40123@172.18.3.106:3306/ghost_test?charset=utf8'
 
     # This will print all SQL statements
-    SQLALCHEMY_ECHO = True
+    SQLALCHEMY_ECHO = False
 
     # Security
     SECRET_KEY = "SecretKeyForSessionSigning"
-    WTF_CSRF_ENABLED = True
+    WTF_CSRF_ENABLED = False
     WTF_CSRF_SECRET_KEY = "reallyhardtoguess"
+
+    # 开启kafka接收数据
+    USE_KAFKA = False
 
     # Error/Info Logging
     # If SEND_LOGS is set to True, the admins (see the mail configuration) will
