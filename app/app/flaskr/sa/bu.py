@@ -96,6 +96,10 @@ def get_data():
                     and current_app.config['USER_IP_KEY'] in data.get('properties', {}) \
                     and data.get('properties', {}).get(current_app.config['USER_IP_KEY']):
                 user_ip = data.get('properties', {}).get(current_app.config['USER_IP_KEY'])
+                # 若存在$IP，则取其中第一个
+                if user_ip:
+                    user_ip = user_ip.split(', ')[0]
+                # user_ip为ipv4，则中间.为3个字符，若存在多个ip，则
                 if len(user_ip) - len(user_ip.replace('.', '')) == 3:
                     ip = user_ip
                     ip_city, ip_is_good = get_address(user_ip)
