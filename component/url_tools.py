@@ -3,8 +3,8 @@
 #Date: 2021-09-18 16:29:59
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2022-02-19 19:56:23
-#FilePath: \ghost_sa_github\component\url_tools.py
+#LastEditTime: 2022-05-15 16:56:04
+#FilePath: \ghost_sa_github_cgq\component\url_tools.py
 #
 import sys
 sys.path.append("./")
@@ -13,6 +13,19 @@ from configs.export import write_to_log
 from geoip.geo import get_addr,get_asn
 from configs import admin
 import urllib
+import base64
+import json
+import gzip
+
+def sa_decode(params):
+    de64 = base64.b64decode(urllib.parse.unquote(params).encode('utf-8'))
+    try:
+        pending_data = json.loads(gzip.decompress(de64))
+        return pending_data
+    except:
+        pending_data = json.loads(de64)
+        return pending_data
+
 
 
 def get_url_params(params,default=None,log_error=False):

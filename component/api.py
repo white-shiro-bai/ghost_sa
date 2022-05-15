@@ -25,7 +25,7 @@ if admin.use_kafka is True:
 import re
 from trigger import trigger
 from component.qrcode import gen_qrcode
-from component.url_tools import get_url_params,get_req_info
+from component.url_tools import get_url_params,get_req_info,sa_decode
 import hashlib
 if admin.access_control_commit_mode =='none_kafka':
     from component.access_control import access_control
@@ -114,17 +114,9 @@ def get_data():
     if project:
         pending_data_list_all = []
         if get_url_params('data'):
-            de64 = base64.b64decode(urllib.parse.unquote(get_url_params('data')).encode('utf-8'))
-            try:
-                pending_data_list_all.append(json.loads(gzip.decompress(de64)))
-            except:
-                pending_data_list_all.append(json.loads(de64))
+            pending_data_list_all.append(sa_decode(get_url_params('data')))
         if get_url_params('data_list'):
-            de64_list = base64.b64decode(urllib.parse.unquote(get_url_params('data_list')).encode('utf-8'))
-            try:
-                data_decodes = json.loads(gzip.decompress(de64_list))
-            except:
-                data_decodes = json.loads(de64_list)
+            data_decodes = sa_decode(get_url_params('data_list'))
             for data_decode in data_decodes:
                 pending_data_list_all.append(data_decode)
         for pending_data in pending_data_list_all:
@@ -137,6 +129,12 @@ def get_data():
                         ip_asn,ip_asn_is_good = get_asn(user_ip)
             insert_data(project=project,data_decode=pending_data,User_Agent=req_info['User_Agent'],Host=req_info['Host'],Connection=req_info['Connection'],Pragma=req_info['Pragma'],Cache_Control=req_info['Cache_Control'],Accept=req_info['Accept'],Accept_Encoding=req_info['Accept_Encoding'],Accept_Language=req_info['Accept_Language'],ip=req_info['ip'],ip_city=req_info['ip_city'],ip_asn=req_info['ip_asn'],url=req_info['url'],referrer=req_info['referrer'],remark=req_info['remark'],ua_platform=req_info['ua_platform'],ua_browser=req_info['ua_browser'],ua_version=req_info['ua_version'],ua_language=req_info['ua_language'],ip_is_good=req_info['ip_is_good'],ip_asn_is_good=req_info['ip_asn_is_good'])
     return Response(returnimage, mimetype="image/gif")
+
+def decode_sa_data():
+    try:
+        return jsonify({'decode':sa_decode(get_url_params('data'))})
+    except:
+        return '解码失败：\n'+get_url_params('data')
 
 def get_datas():
     try:
