@@ -3,6 +3,8 @@
 """
     业务逻辑模块
 """
+import math
+
 from app.component.url_tools import get_post_datas
 from app.configs.code import ResponseCode
 from app.flaskr.sa.vo import RequestData
@@ -96,6 +98,10 @@ def get_data():
                     and current_app.config['USER_IP_KEY'] in data.get('properties', {}) \
                     and data.get('properties', {}).get(current_app.config['USER_IP_KEY']):
                 user_ip = data.get('properties', {}).get(current_app.config['USER_IP_KEY'])
+                # 若存在$IP，则取其中第一个
+                if user_ip:
+                    user_ip = user_ip.split(', ')[0]
+                # user_ip为ipv4，则中间.为3个字符，若存在多个ip，则
                 if len(user_ip) - len(user_ip.replace('.', '')) == 3:
                     ip = user_ip
                     ip_city, ip_is_good = get_address(user_ip)
@@ -116,7 +122,7 @@ def insert_data(request_data):
     start_time = time.time()
 
     data_decode = request_data.data
-    json_data_str = json.dumps(data_decode, ensure_ascii=False)
+    # json_data_str = json.dumps(data_decode, ensure_ascii=False)
     track_id = data_decode.get('_track_id', 0)
 
     distinct_id = data_decode.get('distinct_id', '')
@@ -128,6 +134,16 @@ def insert_data(request_data):
     if not lib:
         lib = data_decode.get('properties', {}).get('$lib')
     request_data.set_common_properties(track_id=track_id, distinct_id=distinct_id, event=event, lib=lib, type_=type_)
+
+    # 修正上报时间
+    created_at = request_data.created_at
+    device_created_at = data_decode.get('time', created_at)
+    device_push_at = data_decode.get('_flush_time', created_at)
+    # 时间修正机制解释如下：发生事件时的时间（time）值为t1，发送数据时的时间（_flush_time）的值为t2（客户端时间，且_flush_time不入库），服务端接收到数据的时间（$recive_time）为t3（服务端时间）。
+    # 如果 | t3 – t2 | > 60s，则认为客户端的时间不准确，会对事件触发时间进行修正，修正后事件时间t1‘ = t1 + (t3 – t2) 。
+    if math.fabs(created_at - device_push_at) > 60000:
+        device_created_at = device_created_at + (created_at - device_push_at)
+        data_decode['time'] = device_created_at
 
     access_control_cdn_mode_write = current_app.config['ACCESS_CONTROL_CDN_MODE_WRITE']
     if not current_app.config['USE_KAFKA']:

@@ -71,15 +71,16 @@ def get_post_datas():
 
     request_source_data = request_data if request_data else request_datas
     current_app.logger.debug(f'请求数据为{request_source_data}')
-    de64 = base64.b64decode(urllib.parse.unquote(request_source_data).encode('utf-8'))
-    try:
 
+    try:
+        de64 = base64.b64decode(urllib.parse.unquote(request_source_data).encode('utf-8'))
         # request_target_data = json.loads(gzip.decompress(de64))
         if gzip_flag:
             de64 = gzip.decompress(de64)
         request_target_data = json.loads(de64)
     except Exception as e:
         current_app.logger.debug(f'请求参数为{request.url}, args: {request.args}, form: {request.form}, body: {request.data}, json: {request.json}')
+        current_app.logger.error(f'解码失败，原始数据为{request_source_data}, 使用base64.b64decode解码失败，开始异常为：{e}')
         current_app.logger.error(f'解码失败，原始数据为{de64}, 使用json.loads(de64)解码失败，开始异常为：{e}')
         try:
             request_target_data = json.loads(gzip.decompress(de64))
