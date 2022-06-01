@@ -122,7 +122,7 @@ def insert_data(request_data):
     start_time = time.time()
 
     data_decode = request_data.data
-    json_data_str = json.dumps(data_decode, ensure_ascii=False)
+    # json_data_str = json.dumps(data_decode, ensure_ascii=False)
     track_id = data_decode.get('_track_id', 0)
 
     distinct_id = data_decode.get('distinct_id', '')
