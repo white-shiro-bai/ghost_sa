@@ -3,7 +3,7 @@
 # Date: 2022-08-17 09:08:01
 # Author: unknowwhite@outlook.com
 # WeChat: Ben_Xiaobai
-#LastEditTime: 2022-08-31 23:57:11
+#LastEditTime: 2022-09-06 14:08:07
 #FilePath: \ghost_sa_github_cgq\docs\从零开始的数据分析\python_track_demo.py
 #
 import sys
@@ -63,7 +63,7 @@ class python_track:
         self.trackdata = dict(self.eventdata)
         self.trackdata.update(oncedata)
         self.trackdata['action'] = action
-        self.trackdata['event_duration'] = int((time.time() - self.timestart) * 1000)
+        self.trackdata['current_event_duration'] = int((time.time() - self.timestart) * 1000)
         # 所有的action都带上相对初始化的基础时间
         if action in (200,400,700,800):
             self.trackdata['api_timecost'] = int((time.time() - self.apitimestart) * 1000)
