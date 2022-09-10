@@ -27,9 +27,6 @@ from trigger import trigger
 from component.qrcode import gen_qrcode
 from component.url_tools import get_url_params,get_req_info,sa_decode
 import hashlib
-if admin.access_control_commit_mode =='none_kafka':
-    from component.access_control import access_control
-    ac_none_kafka = access_control()
 
 
 def insert_data(project,data_decode,User_Agent,Host,Connection,Pragma,Cache_Control,Accept,Accept_Encoding,Accept_Language,ip,ip_city,ip_asn,url,referrer,remark,ua_platform,ua_browser,ua_version,ua_language,ip_is_good,ip_asn_is_good,created_at=None,updated_at=None,use_kafka=admin.use_kafka):
@@ -94,6 +91,7 @@ def insert_data(project,data_decode,User_Agent,Host,Connection,Pragma,Cache_Cont
                 tr = trigger(project=project,data_decode=data_decode)
                 tr.play_all()
             if admin.access_control_commit_mode =='none_kafka':
+                from flask_main import ac_none_kafka
                 ac_none_kafka.traffic(project=project,event=event,ip_commit=ip,distinct_id_commit=distinct_id,add_on_key_commit=data_decode['properties'][admin.access_control_add_on_key] if admin.access_control_add_on_key in data_decode['properties'] else None)
         except Exception:
             error = traceback.format_exc()
