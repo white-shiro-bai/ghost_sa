@@ -379,6 +379,31 @@ class user_info:
         else:
             return None
 
+class device_cache:
+    from component.public_func import show_my_memory
 
+    def __init__(self) -> None:
+        self.start_time = int(time.time())
+        self.check_mem_start = int(time.time())
+        self.my_memory = 0
+        self.pending_date = {}
+    def check_mem(self):
+        #check memory occupied.
+        if int(time.time()-self.check_mem_start) <= admin.access_control_max_memory_gap and self.projects != {}:
+            return self.my_memory
+        else:
+            self.my_memory = int(self.show_my_memory())
+            self.check_mem_start = int(time.time())
+            return self.my_memory
+    def insert_data(self,project,key,type_str,event,pv,hour,date):
+        count = insert_devicedb(table=project,distinct_id=distinct_id,device_id=device_id,manufacturer=manufacturer,model=model,os=os,os_version=os_version,screen_width=screen_width,screen_height=screen_height,network_type=network_type,user_agent=user_agent,accept_language=accept_language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,wifi=wifistr,app_version=app_version,carrier=carrier,referrer=referrer,referrer_host=referrer_host,bot_name=bot_name,browser=browser,browser_version=browser_version,is_login_id=is_login_idstr,screen_orientation=screen_orientation,gps_latitude=gps_latitude,gps_longitude=gps_longitude,first_visit_time=first_visit_time,first_referrer=first_referrer,first_referrer_host=first_referrer_host,first_browser_language=first_browser_language,first_browser_charset=first_browser_charset,first_search_keyword=first_search_keyword,first_traffic_source_type=first_traffic_source_type,utm_content=utm_content,utm_campaign=utm_campaign,utm_medium=utm_medium,utm_term=utm_term,utm_source=utm_source,latest_utm_content=latest_utm_content,latest_utm_campaign=latest_utm_campaign,latest_utm_medium=latest_utm_medium,latest_utm_term=latest_utm_term,latest_utm_source=latest_utm_source,latest_referrer=latest_referrer,latest_referrer_host=latest_referrer_host,latest_search_keyword=latest_search_keyword,latest_traffic_source_type=latest_traffic_source_type,update_content=update_content,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,lib=lib,created_at=created_at,updated_at=updated_at)
+        print('插入或跟新device'+str(count)+'条')
+
+    def commit(self):
+        pass
+    def etl(self):
+        pass
+    def traffic(self):
+        pass
 if __name__ == "__main__":
     print(gen_token())

@@ -3,8 +3,8 @@
 #Date: 2021-09-18 16:29:59
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2022-02-19 17:37:45
-#FilePath: \ghost_sa_github\configs\admin.py
+#LastEditTime: 2022-09-12 18:45:33
+#FilePath: \ghost_sa_github_cgq\configs\admin.py
 #
 
 #Database
@@ -12,6 +12,14 @@ database_type = 'tidb' # type for database. 'tidb' support from tidb(https://doc
 
 #Bot Identify
 bot_list = ['spider','googlebot','adsbot-google','baiduboxapp','bingpreview','bingbot'] # If there any string in User_Agent,the request will be set remark as 'spider' ,no matter what the original remark is . Maintain bot list in lower case.
+
+#Performance Enchance
+combine_device_type = 'original' # 'original' mode is fit for tidb , every event can update device table. As the reason original mode leads a low performance in None tidb environment , but it provide a stateless compatibility. 'memcache_once' mode use memory to cache device update and combine the same info except update time,finally each distinct_id have a row.'memcache_session' mode use memory to cache device update with a session id and detect idle time,data will be insert to device table with session id which each session have a row.
+combine_device_memory = 100000000 #unit byte。default is 100000000(1G), if thread use memory exceed setting , insert all cache into table first.
+combine_device_max_memory_gap = 30 #frequency what memory occupied chech. default is 30 seconds , tiny value provide accurate but cost more interrupt , huge value have better performace but lead more risk on OOM. Data lost is annoying even it can be recovery by event table. this value should be smaller then combine_device_max_window.
+combine_device_max_window = 300 #unit seconds。default is 300(every 5 minutes). Force insert device table after window since last insert if max_memory or gap not trigger insert.
+combine_device_max_distinct_id = 1000 #unit keys. default is 1000.if cached distinct id reach the limit , insert all cache into table first.
+combine_device_multiple_threads = 6 # insert treads. between 2 and 9 is good depend on your database performance.Data insert have retry times to avoid data lost when database busy or connection unstable, 1 is not a good idea at lock table , only 1 thread with retry function can jam the process on a single lock.
 
 
 # 身份识别
