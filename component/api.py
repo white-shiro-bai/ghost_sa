@@ -209,6 +209,8 @@ def shortit():
 def show_short_cut_list():
     page = int(request.args.get('page')) if 'page' in request.args else 1
     length = int(request.args.get('length')) if 'length' in request.args else 50
+    if length >= 5000:
+        length = 5000
     sort = '`shortcut`.created_at'
     if 'sort' in request.args:
         sort_org = request.args.get('sort')
