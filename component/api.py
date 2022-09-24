@@ -163,6 +163,10 @@ def shortit():
     if 'org_url' in request.form:
         org_url = request.form.get('org_url').replace(' ','')
         expired_at = int(time.mktime(time.strptime(request.form.get('expired_at','2038-01-19'), "%Y-%m-%d")))
+        
+        if expired_at <= int(time.time()):
+            returnjson = {'result':'error','error':'不允许创建过期时间早于当前时间的短链接'}
+            return jsonify(returnjson)
         project = request.form.get('project',None)
         src = request.form.get('src','suoim')
         submitter = request.form.get('submitter',None)
