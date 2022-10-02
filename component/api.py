@@ -163,7 +163,6 @@ def shortit():
     if 'org_url' in request.form:
         org_url = request.form.get('org_url').replace(' ','')
         expired_at = int(time.mktime(time.strptime(request.form.get('expired_at','2038-01-19'), "%Y-%m-%d")))
-        
         if expired_at <= int(time.time()):
             returnjson = {'result':'error','error':'不允许创建过期时间早于当前时间的短链接'}
             return jsonify(returnjson)
@@ -472,7 +471,7 @@ def show_mobile_ad_list():
     #默认跟踪参数的含义，见文档 https://github.com/white-shiro-bai/ghost_sa/blob/master/docs/admaster.md
     page = int(request.args.get('page')) if 'page' in request.args else 1
     length = int(request.args.get('length')) if 'length' in request.args else 50
-    sort    = '`mobile_ad_list`.created_at'
+    sort    = 'created_at'
     if 'sort' in request.args:
         sort_org = request.args.get('sort')
         sort = sort_org
@@ -480,20 +479,20 @@ def show_mobile_ad_list():
     add_on_parames = []
     if 'create_date_start' in request.args:
         # print('kk1')
-        add_on_parames.append('mobile_ad_list.created_at>={crstart}'.format(crstart=request.args.get('create_date_start')))
+        add_on_parames.append('`mobile_ad_list`.created_at>={crstart}'.format(crstart=request.args.get('create_date_start')))
         # print(add_on_params)
     if 'create_date_end' in request.args:
-        add_on_parames.append('mobile_ad_list.created_at<={crend}'.format(crend=request.args.get('create_date_end')))
+        add_on_parames.append('`mobile_ad_list`.created_at<={crend}'.format(crend=request.args.get('create_date_end')))
     if 'expired_date_start' in request.args:
-        add_on_parames.append('mobile_ad_list.expired_at>={epstart}'.format(epstart=request.args.get('expired_date_start')))
+        add_on_parames.append('`mobile_ad_list`.expired_at>={epstart}'.format(epstart=request.args.get('expired_date_start')))
     if 'expired_date_end' in request.args:
-        add_on_parames.append('mobile_ad_list.expired_at<={epend}'.format(epend=request.args.get('expired_date_end')))
+        add_on_parames.append('`mobile_ad_list`.expired_at<={epend}'.format(epend=request.args.get('expired_date_end')))
     if 'url' in request.args:
-        add_on_parames.append('mobile_ad_list.url=\'{url}\''.format(url=request.args.get('url')))
+        add_on_parames.append('`mobile_ad_list`.url=\'{url}\''.format(url=request.args.get('url')))
     if 'src' in request.args:
-        add_on_parames.append('mobile_ad_list.src like \'{src}%\''.format(src=request.args.get('src')))
+        add_on_parames.append('`mobile_ad_list`.src like \'{src}%\''.format(src=request.args.get('src')))
     if 'src_name' in request.args:
-        add_on_parames.append('mobile_ad_src.src_name like \'{src_name}%\''.format(src=request.args.get('src_name')))
+        add_on_parames.append('`mobile_ad_src`.src_name like \'{src_name}%\''.format(src=request.args.get('src_name')))
     if 'utm_source' in request.args:
         add_on_parames.append('`mobile_ad_list`.utm_source like \'%{utm_source}%\''.format(utm_source=request.args.get('utm_source')))
     if 'utm_medium' in request.args:
