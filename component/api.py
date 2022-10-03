@@ -549,6 +549,9 @@ def create_mobile_ad_link():
     if 'src' in request.form and 'project' in request.form:
         src = request.form.get('src')
         expired_at = int(time.mktime(time.strptime(request.form.get('expired_at','2038-01-19'), "%Y-%m-%d"))) if 'expired_at' in request.form else 2147483647
+        if expired_at <= int(time.time()):
+            returnjson = {'result':'error','error':'不允许创建过期时间早于当前时间的第三方跟踪链接'}
+            return jsonify(returnjson)
         project = request.form.get('project',None)
         submitter = request.form.get('submitter',None)
         utm_source = request.form.get('utm_source',None)
