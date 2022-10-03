@@ -471,10 +471,10 @@ def show_mobile_ad_list():
     #默认跟踪参数的含义，见文档 https://github.com/white-shiro-bai/ghost_sa/blob/master/docs/admaster.md
     page = int(request.args.get('page')) if 'page' in request.args else 1
     length = int(request.args.get('length')) if 'length' in request.args else 50
-    sort    = 'created_at'
+    sort    = '`mobile_ad_list`.created_at'
     if 'sort' in request.args:
         sort_org = request.args.get('sort')
-        sort = sort_org
+        sort = '`mobile_ad_src`.' + sort_org if sort_org == 'src_name' else '`mobile_ad_list`.'+ sort_org
     way = request.args.get('way') if 'way' in request.args else 'desc'
     add_on_parames = []
     if 'create_date_start' in request.args:
