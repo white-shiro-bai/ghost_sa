@@ -116,6 +116,8 @@ SDK的使用方法，可以直接查看神策官方文档 https://www.sensorsdat
 
 # 更多文档：
 
+接口文档及示例 链接: https://www.apifox.cn/apidoc/shared-48bfd396-858f-442a-b290-5a5a5404ea97  访问密码: gLC6ZUQF
+
 wiki  https://github.com/white-shiro-bai/ghost_sa/wiki
 
 讨论组 https://github.com/white-shiro-bai/ghost_sa/discussions
