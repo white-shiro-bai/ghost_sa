@@ -386,24 +386,85 @@ class device_cache:
         self.start_time = int(time.time())
         self.check_mem_start = int(time.time())
         self.my_memory = 0
-        self.pending_date = {}
+        self.pending_data = {}
     def check_mem(self):
         #check memory occupied.
-        if int(time.time()-self.check_mem_start) <= admin.access_control_max_memory_gap and self.projects != {}:
+        if int(time.time()-self.check_mem_start) <= admin.combine_device_max_memory_gap and self.projects != {}:
             return self.my_memory
         else:
             self.my_memory = int(self.show_my_memory())
             self.check_mem_start = int(time.time())
             return self.my_memory
-    def insert_data(self,project,key,type_str,event,pv,hour,date):
+
+
+    def insert_device_data(self,project,distinct_id,device_id,manufacturer,model,os,os_version,screen_width,screen_height,network_type,user_agent,accept_language,ip,ip_city,ip_asn,wifistr,app_version,carrier,referrer,referrer_host,bot_name,browser,browser_version,is_login_idstr,screen_orientation,gps_latitude,gps_longitude,first_visit_time,first_referrer,first_referrer_host,first_browser_language,first_browser_charset,first_search_keyword,first_traffic_source_type,utm_content,utm_campaign,utm_medium,utm_term,utm_source,latest_utm_content,latest_utm_campaign,latest_utm_medium,latest_utm_term,latest_utm_source,latest_referrer,latest_referrer_host,latest_search_keyword,latest_traffic_source_type,update_content,ua_platform,ua_browser,ua_version,ua_language,lib,created_at,updated_at):
         count = insert_devicedb(table=project,distinct_id=distinct_id,device_id=device_id,manufacturer=manufacturer,model=model,os=os,os_version=os_version,screen_width=screen_width,screen_height=screen_height,network_type=network_type,user_agent=user_agent,accept_language=accept_language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,wifi=wifistr,app_version=app_version,carrier=carrier,referrer=referrer,referrer_host=referrer_host,bot_name=bot_name,browser=browser,browser_version=browser_version,is_login_id=is_login_idstr,screen_orientation=screen_orientation,gps_latitude=gps_latitude,gps_longitude=gps_longitude,first_visit_time=first_visit_time,first_referrer=first_referrer,first_referrer_host=first_referrer_host,first_browser_language=first_browser_language,first_browser_charset=first_browser_charset,first_search_keyword=first_search_keyword,first_traffic_source_type=first_traffic_source_type,utm_content=utm_content,utm_campaign=utm_campaign,utm_medium=utm_medium,utm_term=utm_term,utm_source=utm_source,latest_utm_content=latest_utm_content,latest_utm_campaign=latest_utm_campaign,latest_utm_medium=latest_utm_medium,latest_utm_term=latest_utm_term,latest_utm_source=latest_utm_source,latest_referrer=latest_referrer,latest_referrer_host=latest_referrer_host,latest_search_keyword=latest_search_keyword,latest_traffic_source_type=latest_traffic_source_type,update_content=update_content,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,lib=lib,created_at=created_at,updated_at=updated_at)
         print('插入或跟新device'+str(count)+'条')
 
+    def insert_device(self,project,data_decode,user_agent,accept_language,ip,ip_city,ip_is_good,ip_asn,ip_asn_is_good,ua_platform,ua_browser,ua_version,ua_language,created_at=None,updated_at=None):
+        self.insert_data_income = {'project':project,'data_decode':data_decode,'user_agent':user_agent,'accept_language':accept_language,'ip':ip,'ip_city':ip_city,'ip_asn':ip_asn,'ip_is_good':ip_is_good,'ip_asn_is_good':ip_asn_is_good,'ua_browser':ua_browser,'ua_platform':ua_platform,'ua_language':ua_language,'ua_version':ua_version,'created_at':created_at if created_at else int(time.time()),'updated_at':updated_at if created_at else int(time.time())}
+        distinct_status = self.check_distinct_id()
+        if distinct_status == 'nowhere':
+            self.insert_device_data()
+        elif distinct_status in ('in_mem','in_device'):
+            self.triffic()
+
+    def check_distinct_id_in_db(self):
+        pass
+
+    def check_distinct_id(self):
+        if 'distinct_id' in self.insert_data_income['data_decode'] and self.insert_data_income['data_decode']['distinct_id'] != '':
+            pending_checking_distinct_id = self.insert_data_income['data_decode']['distinct_id']
+            if self.insert_project in self.pending_data and pending_checking_distinct_id in self.pending_data[self.insert_project]:
+                #已经在缓存中，继续加缓存
+                return 'in_mem'
+            else:
+                if self.check_distinct_id_in_db() >= 1:
+                    #检查是否在device表里已有
+                    return 'in_device'
+                else:
+                    return 'nowhere'
+                
+        else:
+            return 'no_distinct_id'
+
     def commit(self):
         pass
+
     def etl(self):
         pass
-    def traffic(self):
-        pass
+
+    def traffic(self,project):
+        if self.insert_project not in self.pending_data :
+            self.pending_data[self.insert_project] = {}
+        if self.insert_data_decode['distinct_id'] not in self.pending_data[self.insert_project]:
+            self.pending_data[self.insert_project][self.insert_data_decode['distinct_id']] = {}
+
+    def update_ram(self):
+        decode_list = ['user_agent','accept_language','ip','ip_city','ip_is_good','ip_asn','ip_asn_is_good','ua_platform','ua_browser','ua_version','ua_language']
+        for decode_item in decode_list:
+            if decode_item not in self.pending_data[self.insert_project][self.insert_data_decode['distinct_id']] or self.insert_data_decode[decode_item] != '' :
+                self.pending_data[self.insert_project][self.insert_data_decode['distinct_id']][decode_item] = self.insert_data_decode[decode_item]
+        if 'created_at' not in self.pending_data[self.insert_project][self.insert_data_decode['distinct_id']] or self.inse
+
+
+        ,,data_decode,,created_at=None,updated_at=None
+
+
+
+
+
+        # if 'all' not in self.projects[project]:
+        #     self.projects[project]['all'] = {'ip_group':{},'ip':{},'distinct_id':{},'add_on_key':{}}
+        # if event not in self.projects[project]:
+        #     self.projects[project][event] = {'ip_group':{},'ip':{},'distinct_id':{},'add_on_key':{}}
+        # if int(time.time())-self.start_time >= admin.access_control_max_window or self.check_mem() >= admin.access_control_max_memory:
+        #     write_to_log(filename='access_control', defname='traffic', result='开始清理:'+str(self.check_mem()))
+        #     self.etl()
+        #     write_to_log(filename='access_control', defname='traffic', result='完成清理:'+str(self.check_mem()))
+        #     self.traffic(project=project,event=event,ip_commit=ip_commit,distinct_id_commit=distinct_id_commit,add_on_key_commit=add_on_key_commit)
+        # else:
+        #     self.commit(project=project,event=event,ip_commit=ip_commit,distinct_id_commit=distinct_id_commit,add_on_key_commit=add_on_key_commit)
+            # print('commit')
 if __name__ == "__main__":
     print(gen_token())

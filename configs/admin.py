@@ -3,7 +3,7 @@
 #Date: 2021-09-18 16:29:59
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2022-09-12 18:45:33
+#LastEditTime: 2022-10-22 17:30:52
 #FilePath: \ghost_sa_github_cgq\configs\admin.py
 #
 
@@ -13,6 +13,9 @@ database_type = 'tidb' # type for database. 'tidb' support from tidb(https://doc
 #Bot Identify
 bot_list = ['spider','googlebot','adsbot-google','baiduboxapp','bingpreview','bingbot'] # If there any string in User_Agent,the request will be set remark as 'spider' ,no matter what the original remark is . Maintain bot list in lower case.
 
+#Info skip
+unrecognized_info_skip = ['url的domain解析失败','取值异常','未取到值,直接打开','未取到值','未取到值_非http的url','取值异常_referrer异常_','hostname解析异常','未知搜索引擎', 'url_host取值异常','获取url异常','url解析失败'] #unrecognized utm and other info list. Utm and info will update to {project}_device if they not in this list.
+
 #Performance Enchance
 combine_device_type = 'original' # 'original' mode is fit for tidb , every event can update device table. As the reason original mode leads a low performance in None tidb environment , but it provide a stateless compatibility. 'memcache_once' mode use memory to cache device update and combine the same info except update time,finally each distinct_id have a row.'memcache_session' mode use memory to cache device update with a session id and detect idle time,data will be insert to device table with session id which each session have a row.
 combine_device_memory = 100000000 #unit byte。default is 100000000(1G), if thread use memory exceed setting , insert all cache into table first.
@@ -20,7 +23,6 @@ combine_device_max_memory_gap = 30 #frequency what memory occupied chech. defaul
 combine_device_max_window = 300 #unit seconds。default is 300(every 5 minutes). Force insert device table after window since last insert if max_memory or gap not trigger insert.
 combine_device_max_distinct_id = 1000 #unit keys. default is 1000.if cached distinct id reach the limit , insert all cache into table first.
 combine_device_multiple_threads = 6 # insert treads. between 2 and 9 is good depend on your database performance.Data insert have retry times to avoid data lost when database busy or connection unstable, 1 is not a good idea at lock table , only 1 thread with retry function can jam the process on a single lock.
-
 
 # 身份识别
 who_am_i = 'ghost_sa' #向外发送回调请求时的UA识别
@@ -85,7 +87,7 @@ user_ip_first = True #user_ip_key字段优先作为用户ip。当检测到埋点
 user_ip_key = '$ip' # 后端上报埋点时传递ip用的key。
 
 #接入控制
-access_control_commit_mode = 'access_control' #接入控制数据的提交模式，默认 'trigger' 为使用trigger.py进程（建议）。'kafka_consumer'为使用kafka_consumer.py方式提交。'access_control'为独立进程方式提交，该方法可以用来独立控制内存消耗，不过会多消耗一份kafka订阅。'none_kafka'该方法仅在use_kafka是False时有效，不建议在没有kafka的环境下使用。'false'为关闭接入控制提交信息
+access_control_commit_mode = 'none_kafka' #接入控制数据的提交模式，默认 'trigger' 为使用trigger.py进程（建议）。'kafka_consumer'为使用kafka_consumer.py方式提交。'access_control'为独立进程方式提交，该方法可以用来独立控制内存消耗，不过会多消耗一份kafka订阅。'none_kafka'该方法仅在use_kafka是False时有效，不建议在没有kafka的环境下使用。'false'为关闭接入控制提交信息
 access_control_kafka_client_group_id='access_control_group'# 接入控制使用独立的kafka订阅时，会在kafka_op的group_id后面拼上的名字(会拼在kafka.py的group_id后面)
 access_control_kafka_client_client_id='access_control_client'# 接入控制使用独立的kafka订阅时，会在kafka_op的group_id后面拼上的名字(会拼在kafka.py的client_id后面)
 access_control_query = True #开启登录控制查询，当状态为False时，统一返回通过状态
