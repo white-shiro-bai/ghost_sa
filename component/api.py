@@ -122,9 +122,11 @@ def get_data():
                 if 'properties' in pending_data and admin.user_ip_key in pending_data['properties'] and pending_data['properties'][admin.user_ip_key]:
                     user_ip = pending_data['properties'][admin.user_ip_key]
                     if len(user_ip) - len(user_ip.replace('.','')) == 3:
-                        ip = user_ip
-                        ip_city,ip_is_good = get_addr(user_ip)
-                        ip_asn,ip_asn_is_good = get_asn(user_ip)
+                        ip_is_good = get_addr(user_ip)[1] # to aviod internal ip address, double check ips are valid for city name lookup. such as avoid like QA_Client --> Internal Network --> QA_Server --> Internet --> Ghost_SA
+                        if ip_is_good == 1:
+                            req_info['ip'] = user_ip
+                            req_info['ip_city'],req_info['ip_is_good'] = get_addr(user_ip)
+                            req_info['ip_asn'],req_info['ip_asn_is_good'] = get_asn(user_ip)
             insert_data(project=project,data_decode=pending_data,User_Agent=req_info['User_Agent'],Host=req_info['Host'],Connection=req_info['Connection'],Pragma=req_info['Pragma'],Cache_Control=req_info['Cache_Control'],Accept=req_info['Accept'],Accept_Encoding=req_info['Accept_Encoding'],Accept_Language=req_info['Accept_Language'],ip=req_info['ip'],ip_city=req_info['ip_city'],ip_asn=req_info['ip_asn'],url=req_info['url'],referrer=req_info['referrer'],remark=req_info['remark'],ua_platform=req_info['ua_platform'],ua_browser=req_info['ua_browser'],ua_version=req_info['ua_version'],ua_language=req_info['ua_language'],ip_is_good=req_info['ip_is_good'],ip_asn_is_good=req_info['ip_asn_is_good'])
     return Response(returnimage, mimetype="image/gif")
 
