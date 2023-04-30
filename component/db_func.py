@@ -1095,3 +1095,8 @@ def update_access_control(**kwargs):
     print(sql)
     result  = do_tidb_exe(sql=sql,retrycount=0)
     return result
+
+def check_distinct_id_in_device(project,distinct_id):
+    sql="""select count(1) from {project}_device where distinct_id = '{distinct_id}' limit 1""".format(project=project,distinct_id=distinct_id)
+    result = do_tidb_select(sql=sql,retrycount=0)[0][0]
+    return result if result else 0  # if result not found, return 0.  If found, return count.  This is used to filter out duplicate device
