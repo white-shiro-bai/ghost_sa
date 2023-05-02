@@ -414,6 +414,7 @@ class device_cache:
         #replace insert funcion from api_tools
         self.insert_data_income = {'project':project,'data_decode':data_decode,'user_agent':user_agent,'accept_language':accept_language,'ip':ip,'ip_city':ip_city,'ip_asn':ip_asn,'ip_is_good':ip_is_good,'ip_asn_is_good':ip_asn_is_good,'ua_browser':ua_browser,'ua_platform':ua_platform,'ua_language':ua_language,'ua_version':ua_version,'created_at':created_at if created_at else int(time.time()),'updated_at':updated_at if created_at else int(time.time())}
         distinct_status = self.check_distinct_id()
+        #force to insert into device if there is a brand new disticnt_id
         if distinct_status == 'nowhere':
             self.insert_device_data()
         elif distinct_status in ('in_mem','in_device'):
@@ -422,21 +423,90 @@ class device_cache:
 
     def check_distinct_id(self):
         if 'distinct_id' in self.insert_data_income['data_decode'] and self.insert_data_income['data_decode']['distinct_id'] != '':
-            #get distinct id if there
-            self.pending_checking_distinct_id = self.insert_data_income['data_decode']['distinct_id']
-            self.pending_checking_project = self.insert_data_income['project']
             #check ram first
-            if self.insert_project in self.pending_data and self.pending_checking_distinct_id in self.pending_data[self.insert_project]:
+            if self.insert_data_income['project'] in self.pending_data and self.self.insert_data_income['data_decode']['distinct_id'] in self.pending_data[self.insert_data_income['project']]:
                 #已经在缓存中，继续加缓存
                 return 'in_mem'
+            elif check_distinct_id_in_device(project=self.insert_data_income['project'],distinct_id=self.self.insert_data_income['data_decode']['distinct_id']) >= 1:
+                #检查是否在device表里已有
+                return 'in_device'
             else:
-                if check_distinct_id_in_device(project=self.pending_checking_project,distinct_id=self.pending_checking_distinct_id) >= 1:
-                    #检查是否在device表里已有
-                    return 'in_device'
-                else:
-                    return 'nowhere'
+                return 'nowhere'
         else:
             return 'no_distinct_id'
+
+
+    def traffic(self):
+        #create and update pending insert data to ram data after check distinct_id is already in device table.
+        if self.insert_data_income['project'] not in self.pending_data :
+            self.pending_data[self.insert_data_income['project']] = {}
+        if self.insert_data_income['data_decode']['distinct_id'] not in self.pending_data[self.pending_data[self.insert_data_income['project']]]:
+            self.pending_data[self.insert_data_income['project']][self.insert_data_income['data_decode']['distinct_id']] = {}
+        self.update_ram()
+        
+    def update_ram(self):
+        decode_list = ['user_agent','accept_language','ip','ip_city','ip_is_good','ip_asn','ip_asn_is_good','ua_platform','ua_browser','ua_version','ua_language','created_at','updated_at']
+        for decode_item in decode_list:
+            if decode_item not in self.pending_data[self.insert_project][self.insert_data_decode['distinct_id']] or self.insert_data_decode[decode_item] != '' :
+                self.pending_data[self.insert_project][self.insert_data_decode['distinct_id']][decode_item] = self.insert_data_decode[decode_item]
+        if 'created_at' not in self.pending_data[self.insert_project][self.insert_data_decode['distinct_id']] or self.insert
+
+distinct_id
+lib
+device_id
+manufacturer
+model
+os
+os_version
+ua_platform
+ua_browser
+ua_version
+ua_language
+screen_width
+screen_height
+network_type
+user_agent
+accept_language
+ip
+ip_city
+ip_asn
+wifi
+app_version
+carrier
+referrer
+referrer_host
+bot_name
+browser
+browser_version
+is_login_id
+screen_orientation
+gps_latitude
+gps_longitude
+first_visit_time
+first_referrer
+first_referrer_host
+first_browser_language
+first_browser_charset
+first_search_keyword
+first_traffic_source_type
+utm_content
+utm_campaign
+utm_medium
+utm_term
+utm_source
+latest_utm_content
+latest_utm_campaign
+latest_utm_medium
+latest_utm_term
+latest_utm_source
+latest_referrer
+latest_referrer_host
+latest_search_keyword
+latest_traffic_source_type
+created_at
+updated_at
+
+
 
     def commit(self):
         pass
@@ -444,25 +514,6 @@ class device_cache:
     def etl(self):
         #modify insert data to ram data
         pass
-
-    def traffic(self,project):
-        #create insert data to ram data
-        if self.insert_project not in self.pending_data :
-            self.pending_data[self.insert_project] = {}
-        if self.insert_data_decode['distinct_id'] not in self.pending_data[self.insert_project]:
-            self.pending_data[self.insert_project][self.insert_data_decode['distinct_id']] = {}
-
-    def update_ram(self):
-        decode_list = ['user_agent','accept_language','ip','ip_city','ip_is_good','ip_asn','ip_asn_is_good','ua_platform','ua_browser','ua_version','ua_language']
-        for decode_item in decode_list:
-            if decode_item not in self.pending_data[self.insert_project][self.insert_data_decode['distinct_id']] or self.insert_data_decode[decode_item] != '' :
-                self.pending_data[self.insert_project][self.insert_data_decode['distinct_id']][decode_item] = self.insert_data_decode[decode_item]
-        if 'created_at' not in self.pending_data[self.insert_project][self.insert_data_decode['distinct_id']] or self.inse
-
-
-        ,,data_decode,,created_at=None,updated_at=None
-
-
 
 
 
