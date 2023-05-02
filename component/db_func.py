@@ -207,8 +207,7 @@ def insert_mobile_ad_list(project,url,src,src_url,submitter,utm_source,utm_mediu
         return '',0
     return result[0],result[1]
 
-def read_mobile_ad_list(page,length,filters='',sort='created_at',way='desc'):
-    sort = 'mobile_ad_list.'+ sort
+def read_mobile_ad_list(page,length,filters='',sort='mobile_ad_list.created_at',way='desc'):
     sql ="""select mobile_ad_list.project,
     mobile_ad_list.url,
     mobile_ad_list.src,

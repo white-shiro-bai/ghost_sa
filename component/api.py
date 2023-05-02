@@ -122,9 +122,11 @@ def get_data():
                 if 'properties' in pending_data and admin.user_ip_key in pending_data['properties'] and pending_data['properties'][admin.user_ip_key]:
                     user_ip = pending_data['properties'][admin.user_ip_key]
                     if len(user_ip) - len(user_ip.replace('.','')) == 3:
-                        ip = user_ip
-                        ip_city,ip_is_good = get_addr(user_ip)
-                        ip_asn,ip_asn_is_good = get_asn(user_ip)
+                        ip_is_good = get_addr(user_ip)[1] # to aviod internal ip address, double check ips are valid for city name lookup. such as avoid like QA_Client --> Internal Network --> QA_Server --> Internet --> Ghost_SA
+                        if ip_is_good == 1:
+                            req_info['ip'] = user_ip
+                            req_info['ip_city'],req_info['ip_is_good'] = get_addr(user_ip)
+                            req_info['ip_asn'],req_info['ip_asn_is_good'] = get_asn(user_ip)
             insert_data(project=project,data_decode=pending_data,User_Agent=req_info['User_Agent'],Host=req_info['Host'],Connection=req_info['Connection'],Pragma=req_info['Pragma'],Cache_Control=req_info['Cache_Control'],Accept=req_info['Accept'],Accept_Encoding=req_info['Accept_Encoding'],Accept_Language=req_info['Accept_Language'],ip=req_info['ip'],ip_city=req_info['ip_city'],ip_asn=req_info['ip_asn'],url=req_info['url'],referrer=req_info['referrer'],remark=req_info['remark'],ua_platform=req_info['ua_platform'],ua_browser=req_info['ua_browser'],ua_version=req_info['ua_version'],ua_language=req_info['ua_language'],ip_is_good=req_info['ip_is_good'],ip_asn_is_good=req_info['ip_asn_is_good'])
     return Response(returnimage, mimetype="image/gif")
 
@@ -163,6 +165,9 @@ def shortit():
     if 'org_url' in request.form:
         org_url = request.form.get('org_url').replace(' ','')
         expired_at = int(time.mktime(time.strptime(request.form.get('expired_at','2038-01-19'), "%Y-%m-%d")))
+        if expired_at <= int(time.time()):
+            returnjson = {'result':'error','error':'不允许创建过期时间早于当前时间的短链接'}
+            return jsonify(returnjson)
         project = request.form.get('project',None)
         src = request.form.get('src','suoim')
         submitter = request.form.get('submitter',None)
@@ -205,6 +210,8 @@ def shortit():
 def show_short_cut_list():
     page = int(request.args.get('page')) if 'page' in request.args else 1
     length = int(request.args.get('length')) if 'length' in request.args else 50
+    if length >= 5000:
+        length = 5000
     sort = '`shortcut`.created_at'
     if 'sort' in request.args:
         sort_org = request.args.get('sort')
@@ -469,25 +476,25 @@ def show_mobile_ad_list():
     sort    = '`mobile_ad_list`.created_at'
     if 'sort' in request.args:
         sort_org = request.args.get('sort')
-        sort = sort_org
+        sort = '`mobile_ad_src`.' + sort_org if sort_org == 'src_name' else '`mobile_ad_list`.'+ sort_org
     way = request.args.get('way') if 'way' in request.args else 'desc'
     add_on_parames = []
     if 'create_date_start' in request.args:
         # print('kk1')
-        add_on_parames.append('mobile_ad_list.created_at>={crstart}'.format(crstart=request.args.get('create_date_start')))
+        add_on_parames.append('`mobile_ad_list`.created_at>={crstart}'.format(crstart=request.args.get('create_date_start')))
         # print(add_on_params)
     if 'create_date_end' in request.args:
-        add_on_parames.append('mobile_ad_list.created_at<={crend}'.format(crend=request.args.get('create_date_end')))
+        add_on_parames.append('`mobile_ad_list`.created_at<={crend}'.format(crend=request.args.get('create_date_end')))
     if 'expired_date_start' in request.args:
-        add_on_parames.append('mobile_ad_list.expired_at>={epstart}'.format(epstart=request.args.get('expired_date_start')))
+        add_on_parames.append('`mobile_ad_list`.expired_at>={epstart}'.format(epstart=request.args.get('expired_date_start')))
     if 'expired_date_end' in request.args:
-        add_on_parames.append('mobile_ad_list.expired_at<={epend}'.format(epend=request.args.get('expired_date_end')))
+        add_on_parames.append('`mobile_ad_list`.expired_at<={epend}'.format(epend=request.args.get('expired_date_end')))
     if 'url' in request.args:
-        add_on_parames.append('mobile_ad_list.url=\'{url}\''.format(url=request.args.get('url')))
+        add_on_parames.append('`mobile_ad_list`.url=\'{url}\''.format(url=request.args.get('url')))
     if 'src' in request.args:
-        add_on_parames.append('mobile_ad_list.src like \'{src}%\''.format(src=request.args.get('src')))
+        add_on_parames.append('`mobile_ad_list`.src like \'{src}%\''.format(src=request.args.get('src')))
     if 'src_name' in request.args:
-        add_on_parames.append('mobile_ad_src.src_name like \'{src_name}%\''.format(src=request.args.get('src_name')))
+        add_on_parames.append('`mobile_ad_src`.src_name like \'{src_name}%\''.format(src=request.args.get('src_name')))
     if 'utm_source' in request.args:
         add_on_parames.append('`mobile_ad_list`.utm_source like \'%{utm_source}%\''.format(utm_source=request.args.get('utm_source')))
     if 'utm_medium' in request.args:
@@ -544,6 +551,9 @@ def create_mobile_ad_link():
     if 'src' in request.form and 'project' in request.form:
         src = request.form.get('src')
         expired_at = int(time.mktime(time.strptime(request.form.get('expired_at','2038-01-19'), "%Y-%m-%d"))) if 'expired_at' in request.form else 2147483647
+        if expired_at <= int(time.time()):
+            returnjson = {'result':'error','error':'不允许创建过期时间早于当前时间的第三方跟踪链接'}
+            return jsonify(returnjson)
         project = request.form.get('project',None)
         submitter = request.form.get('submitter',None)
         utm_source = request.form.get('utm_source',None)
