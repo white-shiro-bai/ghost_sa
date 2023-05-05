@@ -8,12 +8,6 @@
 #
 import sys
 sys.path.append('./')
-# -*- coding: utf-8 -*
-# author: unknowwhite@outlook.com
-# wechat: Ben_Xiaobai
-import sys
-sys.path.append("./")
-sys.setrecursionlimit(10000000)
 from guppy import hpy
 import re
 
