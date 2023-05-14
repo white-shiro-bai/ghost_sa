@@ -3,7 +3,7 @@
 #Date: 2021-09-18 16:29:59
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2022-05-15 16:56:04
+#LastEditTime: 2023-05-05 10:12:37
 #FilePath: \ghost_sa_github_cgq\component\url_tools.py
 #
 import sys
@@ -12,6 +12,7 @@ from flask import request
 from configs.export import write_to_log
 from geoip.geo import get_addr,get_asn
 from configs import admin
+from component.public_func import key_counter
 import urllib
 import base64
 import json
@@ -94,16 +95,34 @@ def get_req_info():
     url = request.url
     if get_url_params('request_uri'):
         url = get_url_params('request_uri')
+    ip_group={'internet':{},'internal':{}}
+    ip_key_list = ['X-Forwarded-For','X-Original-Forwarded-For','X-True-Ip','X-Client-Ip','Wl-Proxy-Client-Ip','Proxy-Client-IP','X-Real-IP','HTTP_CLIENT_IP']
     if get_url_params('http_x_forward_for') and get_url_params('http_x_forward_for') != '' and get_url_params('http_x_forward_for').count('.')==3:
         ip = get_url_params('http_x_forward_for')
     elif get_url_params('remote_addr') and get_url_params('remote_addr') != '' and get_url_params('remote_addr').count('.')==3:
         ip = get_url_params('remote_addr')
     elif get_url_params('ip') and get_url_params('ip') != '' and get_url_params('ip').count('.')==3:
         ip = get_url_params('ip')
-    elif request.headers.get('X-Forwarded-For'):
-        ip = request.headers.get('X-Forwarded-For') #获取SLB真实地址
     else:
+        for header_key in ip_key_list:
+            #处理反向代理和其他WAF带过来的头信息
+            pending_ip = request.headers.get(header_key).split(',')[0].strip() if request.headers.get(header_key) else None
+            if pending_ip and len(pending_ip.split('.'))==4:
+                is_good_ip = get_addr(pending_ip)[1]
+                if is_good_ip == 1 :
+                    ip_group = key_counter(group=ip_group,keytype='internet',key=pending_ip)
+                elif is_good_ip == 0 :
+                    ip_group = key_counter(group=ip_group,keytype='internal',key=pending_ip)
         ip = request.remote_addr#服务器直接暴露
+        is_good_ip = get_addr(ip)[1]
+        if is_good_ip == 1 :
+            ip_group = key_counter(group=ip_group,keytype='internet',key=ip)
+        elif is_good_ip == 0 :
+            ip_group = key_counter(group=ip_group,keytype='internal',key=ip)
+        if len(ip_group['internet'])>0:
+            ip = max(ip_group['internet'], key=lambda x:ip_group['internet'][x])
+        else:
+            ip = max(ip_group['internal'], key=lambda x:ip_group['internal'][x])
     # ip = '124.115.214.179' #测试西安bug
     # ip = '36.5.99.68' #测试安徽bug
     ip_city,ip_is_good = get_addr(ip)
