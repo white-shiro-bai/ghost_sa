@@ -446,65 +446,17 @@ class device_cache:
         
     def update_ram(self):
         decode_list = ['user_agent','accept_language','ip','ip_city','ip_is_good','ip_asn','ip_asn_is_good','ua_platform','ua_browser','ua_version','ua_language','created_at','updated_at']
+        device_properties_list = {
+            'fix':{'distinct_id'},
+            'latest':{'lib','device_id'},
+            'first':{}
+            'manufacturer','model','os','os_version','ua_platform','ua_browser','ua_version','ua_language','screen_width','screen_height','network_type','user_agent','accept_language','ip','ip_city','ip_asn','wifi','app_version','carrier','referrer','referrer_host','bot_name','browser','browser_version','is_login_id','screen_orientation','gps_latitude','gps_longitude','first_visit_time','first_referrer','first_referrer_host','first_browser_language','first_browser_charset','first_search_keyword','first_traffic_source_type','utm_content','utm_campaign','utm_medium','utm_term','utm_source','latest_utm_content','latest_utm_campaign','latest_utm_medium','latest_utm_term','latest_utm_source','latest_referrer','latest_referrer_host','latest_search_keyword','latest_traffic_source_type','created_at','updated_at'
+            }
         for decode_item in decode_list:
             if decode_item not in self.pending_data[self.insert_project][self.insert_data_decode['distinct_id']] or self.insert_data_decode[decode_item] != '' :
                 self.pending_data[self.insert_project][self.insert_data_decode['distinct_id']][decode_item] = self.insert_data_decode[decode_item]
         if 'created_at' not in self.pending_data[self.insert_project][self.insert_data_decode['distinct_id']] or self.insert
 
-distinct_id
-lib
-device_id
-manufacturer
-model
-os
-os_version
-ua_platform
-ua_browser
-ua_version
-ua_language
-screen_width
-screen_height
-network_type
-user_agent
-accept_language
-ip
-ip_city
-ip_asn
-wifi
-app_version
-carrier
-referrer
-referrer_host
-bot_name
-browser
-browser_version
-is_login_id
-screen_orientation
-gps_latitude
-gps_longitude
-first_visit_time
-first_referrer
-first_referrer_host
-first_browser_language
-first_browser_charset
-first_search_keyword
-first_traffic_source_type
-utm_content
-utm_campaign
-utm_medium
-utm_term
-utm_source
-latest_utm_content
-latest_utm_campaign
-latest_utm_medium
-latest_utm_term
-latest_utm_source
-latest_referrer
-latest_referrer_host
-latest_search_keyword
-latest_traffic_source_type
-created_at
-updated_at
 
 
 
