@@ -115,15 +115,29 @@ def check_long_url(long_url):
     else:
         return '','empty'
 
-def insert_shortcut(project,short_url,long_url,expired_at,src,src_short_url,submitter,utm_source,utm_medium,utm_campaign,utm_content,utm_term):
+def insert_shortcut(project,short_url,long_url,expired_at,src,src_short_url,submitter,utm_source,utm_medium,utm_campaign,utm_content,utm_term,retrycount=0,short_url_dec=0):
     timenow = int(time.time())
-    sql = """insert into shortcut (`project`,`short_url`,`long_url`,`expired_at`,`created_at`,`src`,`src_short_url`,`submitter`,`utm_source`,`utm_medium`,`utm_campaign`,`utm_content`,`utm_term`) values ('{project}','{short_url}','{long_url}',{expired_at},{created_at},'{src}','{src_short_url}','{submitter}','{utm_source}','{utm_medium}','{utm_campaign}','{utm_content}','{utm_term}')""".format(project=project,short_url=short_url,long_url=long_url,expired_at=expired_at,created_at=timenow,src=src,src_short_url=src_short_url,submitter=submitter,utm_source=utm_source,utm_medium=utm_medium,utm_campaign=utm_campaign,utm_content=utm_content,utm_term=utm_term).replace("'None'","Null").replace("None","Null")
-    result = do_tidb_exe(sql)
+    sql = """insert into shortcut (`project`,`short_url`,`short_url_dec`,`long_url`,`expired_at`,`created_at`,`src`,`src_short_url`,`submitter`,`utm_source`,`utm_medium`,`utm_campaign`,`utm_content`,`utm_term`) values ('{project}','{short_url}',{short_url_dec},'{long_url}',{expired_at},{created_at},'{src}','{src_short_url}','{submitter}','{utm_source}','{utm_medium}','{utm_campaign}','{utm_content}','{utm_term}')""".format(project=project,short_url=short_url,short_url_dec=short_url_dec,long_url=long_url,expired_at=expired_at,created_at=timenow,src=src,src_short_url=src_short_url,submitter=submitter,utm_source=utm_source,utm_medium=utm_medium,utm_campaign=utm_campaign,utm_content=utm_content,utm_term=utm_term).replace("'None'","Null").replace("None","Null")
+    result = do_tidb_exe(sql,retrycount=retrycount)
     if result[1] == 0:
-        write_to_log(filename='db_func',defname='insert_shortcut',result=result+sql)
+        write_to_log(filename='db_func',defname='insert_shortcut',result=sql+str(result))
     return result[1]
 
+def update_shortdec(short_url,short_url_dec):
+    sql = """update `shortcut` set `short_url_dec`={short_url_dec} where `short_url` = '{short_url}';""".format(short_url=short_url,short_url_dec=short_url_dec)
+    result = do_tidb_exe(sql)
+    if result[1] == 0 :
+        write_to_log(filename='db_func',defname='update_shortdec',result=sql+str(result))
+    return result[1]
 
+def find_max_shortcut_dec():
+    sql = """select max(short_url_dec) as max_short_url_dec from shortcut"""
+    result = do_tidb_select(sql=sql)
+    if len(result[0])>0:
+        max_dec = result[0][0][0]
+        if max_dec is not None and max_dec >=0:
+            return max_dec
+    return 0 #provide a minimum number to avoid empty table or minimum is 0 both in dec and 62hex for ghost_sa new user 
 
 def show_shortcut(page,length,filters='',sort='`shortcut`.created_at',way='desc'):
     sql= """SELECT

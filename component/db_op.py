@@ -1,3 +1,13 @@
+# -*- coding: utf-8 -*-
+#
+#Date: 2022-03-13 00:19:41
+#Author: unknowwhite@outlook.com
+#WeChat: Ben_Xiaobai
+#LastEditTime: 2023-05-27 16:07:22
+#FilePath: \ghost_sa_github_cgq\component\db_op.py
+#
+import sys
+sys.path.append('./')
 # -*- coding: utf-8 -*
 # author: unknowwhite@outlook.com
 # wechat: Ben_Xiaobai
@@ -12,6 +22,7 @@ from configs.db import *
 # 数据库操作
 
 def exe_tidb(sql, args=None,presql=None):
+    #连接器中间层
     #执行数据库操作
     conn = get_conn_sqldb()
     cur = conn.cursor()
@@ -27,6 +38,7 @@ def exe_tidb(sql, args=None,presql=None):
     return results, result_count, lastest_id[0]
 
 def select_tidb(sql, args=None,presql=None):
+    #连接器中间层
     #数据库只读操作
     conn = get_conn_sqldb()
     cur = conn.cursor()
@@ -40,7 +52,7 @@ def select_tidb(sql, args=None,presql=None):
 
 
 def do_tidb_exe(sql,presql=None, args=None, retrycount=5):
-    # 执行库
+    # 带保护执行库
     if  sql.lower().startswith('update') and "where" not in sql.lower():
         write_to_log(filename='db_op', defname='do_tidb_exe', result=sql+str(args)+'update必须包含where条件才能执行')
         return 'update必须包含where条件才能执行', 0 , 0
@@ -63,7 +75,7 @@ def do_tidb_exe(sql,presql=None, args=None, retrycount=5):
 
 
 def do_tidb_select(sql,presql=None, args=None, retrycount=5):
-    # 查询库
+    # 带保护查询库
     try:
         results, result_count = select_tidb(sql=sql, args=args,presql=presql)
         return results, result_count

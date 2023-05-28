@@ -51,22 +51,24 @@ def create_project(project_name,expired=None):
     `access_control_threshold_event` int(11) DEFAULT NULL COMMENT '接入控制的单项缺省值'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;"""
 
-    create_shortcut = """CREATE TABLE if not EXISTS `shortcut` (
-    `project` varchar(255) DEFAULT NULL COMMENT '项目名',
-    `short_url` varchar(255) DEFAULT NULL COMMENT '短链地址',
-    `long_url` varchar(768) DEFAULT NULL COMMENT '长链地址',
-    `expired_at` int(11) DEFAULT NULL COMMENT '过期时间',
-    `created_at` int(11) DEFAULT NULL COMMENT '创建时间',
-    `src` varchar(10) DEFAULT NULL COMMENT '使用的第三方创建源',
-    `src_short_url` varchar(255) DEFAULT NULL COMMENT '创建源返回的短地址',
-    `submitter` varchar(255) DEFAULT NULL COMMENT '由谁提交',
-    `utm_source` varchar(2048) DEFAULT NULL COMMENT 'utm_source',
-    `utm_medium` varchar(2048) DEFAULT NULL COMMENT 'utm_medium',
-    `utm_campaign` varchar(2048) DEFAULT NULL COMMENT 'utm_campaign',
-    `utm_content` varchar(2048) DEFAULT NULL COMMENT 'utm_content',
-    `utm_term` varchar(2048) DEFAULT NULL COMMENT 'utm_term',
-    KEY `short_url` (`short_url`),
-    KEY `long_url` (`long_url`)
+    create_shortcut = """CREATE TABLE IF NOT EXISTS `shortcut` (
+`project` varchar(255) DEFAULT NULL COMMENT '项目名',
+`short_url` varchar(255) DEFAULT NULL COMMENT '短链地址',
+`short_url_dec` bigint(18) NOT NULL DEFAULT '0' COMMENT '短链地址十进制表达。正数是自身创建的。0是网站外带进来的需要参与排序的。-1是手动创建或修改不参与排序的。',
+`long_url` varchar(768) DEFAULT NULL COMMENT '长链地址',
+`expired_at` int(11) DEFAULT NULL COMMENT '过期时间',
+`created_at` int(11) DEFAULT NULL COMMENT '创建时间',
+`src` varchar(10) DEFAULT NULL COMMENT '使用的第三方创建源',
+`src_short_url` varchar(255) DEFAULT NULL COMMENT '创建源返回的短地址',
+`submitter` varchar(255) DEFAULT NULL COMMENT '由谁提交',
+`utm_source` varchar(2048) DEFAULT NULL COMMENT 'utm_source',
+`utm_medium` varchar(2048) DEFAULT NULL COMMENT 'utm_medium',
+`utm_campaign` varchar(2048) DEFAULT NULL COMMENT 'utm_campaign',
+`utm_content` varchar(2048) DEFAULT NULL COMMENT 'utm_content',
+`utm_term` varchar(2048) DEFAULT NULL COMMENT 'utm_term',
+KEY `long_url` (`long_url`),
+KEY `short_url_dec`(`short_url_dec`),
+UNIQUE KEY `short_url` (`short_url`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;"""
     create_shortcut_history = """CREATE TABLE IF NOT EXISTS `shortcut_history` (
     `short_url` varchar(255) DEFAULT NULL COMMENT '解析短链',
