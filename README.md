@@ -9,7 +9,9 @@ ghost_sa（鬼策）的结构设计主要考虑方便技术资源不足的中小
 
 # 贡献列表
 
-https://github.com/phillip2019/ 规范了程序结构，提供beacon兼容，主流程优化等
+https://github.com/phillip2019/ 规范了程序结构，提供beacon兼容，主流程优化等。
+
+https://github.com/toddlerya/ 提供了62进制编码的算法实现。
 
 # 介绍：
 
