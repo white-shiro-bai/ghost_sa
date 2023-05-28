@@ -9,15 +9,13 @@ from flask import request,jsonify,Response,redirect
 import traceback
 import time
 import urllib.parse
-import base64
 import json
 import os
 from component.db_func import insert_event,get_long_url_from_short, insert_noti_temple,insert_shortcut_history,check_long_url,insert_shortcut,show_shortcut,count_shortcut,show_check,insert_properties,insert_user_db,show_project,read_mobile_ad_list,count_mobile_ad_list,read_mobile_ad_src_list,check_mobile_ad_url,insert_mobile_ad_list,distinct_id_query,insert_shortcut_read,query_access_control,query_access_control_exclude,get_access_control_event,get_access_control_detail,get_access_control_detail_count,update_access_control,get_status_codes
 from geoip.geo import get_addr,get_asn
-import gzip
 from component.api_tools import insert_device,encode_urlutm,insert_user,recall_dsp,return_dsp_utm,gen_token,tag_name,user_info
 from configs.export import write_to_log
-from component.shorturl import get_suoim_short_url
+from component.shorturl import get_ghost_sa_short_url
 from configs import admin
 import time
 if admin.use_kafka is True:
@@ -162,20 +160,20 @@ def get_long(short_url):
         return '您查询的解析不存在'
 
 def shortit():
-    if 'org_url' in request.form:
-        org_url = request.form.get('org_url').replace(' ','')
-        expired_at = int(time.mktime(time.strptime(request.form.get('expired_at','2038-01-19'), "%Y-%m-%d")))
+    if get_url_params(params='org_url') :
+        org_url = get_url_params(params='org_url').strip()
+        expired_at = int(time.mktime(time.strptime(get_url_params('expired_at','2038-01-19'), "%Y-%m-%d")))
         if expired_at <= int(time.time()):
             returnjson = {'result':'error','error':'不允许创建过期时间早于当前时间的短链接'}
             return jsonify(returnjson)
-        project = request.form.get('project',None)
-        src = request.form.get('src','suoim')
-        submitter = request.form.get('submitter',None)
-        utm_source = request.form.get('utm_source',None)
-        utm_medium = request.form.get('utm_medium',None)
-        utm_campaign = request.form.get('utm_campaign',None)
-        utm_content = request.form.get('utm_content',None)
-        utm_term = request.form.get('utm_term',None)
+        project = get_url_params('project',None)
+        src = get_url_params('src','ghost_sa')
+        submitter = get_url_params('submitter',None)
+        utm_source = get_url_params('utm_source',None)
+        utm_medium = get_url_params('utm_medium',None)
+        utm_campaign = get_url_params('utm_campaign',None)
+        utm_content = get_url_params('utm_content',None)
+        utm_term = get_url_params('utm_term',None)
         url_addon = encode_urlutm(utm_source=utm_source,utm_medium=utm_medium,utm_campaign=utm_campaign,utm_content=utm_content,utm_term=utm_term)
         if '?' in org_url:
             longurl = org_url+'&'+url_addon
@@ -186,10 +184,11 @@ def shortit():
             returnjson = {'result':urlstatus,'urllist':urllist}
             return jsonify(returnjson)
         else:
+            src_short_url_dec = 0
             check_short_status = 'success'
             while check_short_status == 'success':
-                if src =='suoim':
-                    src_short_url,status = get_suoim_short_url(long_url=longurl)
+                if src =='suoim' or src =='ghost_sa' or src == 'weibo':
+                    src_short_url,status,src_short_url_dec = get_ghost_sa_short_url()
                 else:
                     return jsonify({'result':'error','urllist':'src:'+src+'不存在'})
                 if status == 'ok':
@@ -198,7 +197,7 @@ def shortit():
                         continue
                     break
             short_url = src_short_url.split('/')[-1]
-            insert_count = insert_shortcut(project=project,short_url=short_url,long_url=longurl,expired_at=expired_at,src=src,src_short_url=src_short_url,submitter=submitter,utm_source=utm_source,utm_medium=utm_medium,utm_campaign=utm_campaign,utm_content=utm_content,utm_term=utm_term)
+            insert_count = insert_shortcut(project=project,short_url=short_url,short_url_dec=src_short_url_dec,long_url=longurl,expired_at=expired_at,src=src,src_short_url=src_short_url,submitter=submitter,utm_source=utm_source,utm_medium=utm_medium,utm_campaign=utm_campaign,utm_content=utm_content,utm_term=utm_term)
             print('已插入短连接解析地址'+str(insert_count))
             urllist,urlstatus = check_long_url(long_url=longurl)
             returnjson = {'result':'created_success','urllist':urllist}

@@ -3,7 +3,7 @@
 #Date: 2021-09-18 16:29:59
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2023-05-05 10:12:37
+#LastEditTime: 2023-05-27 17:18:05
 #FilePath: \ghost_sa_github_cgq\component\url_tools.py
 #
 import sys
@@ -17,6 +17,7 @@ import urllib
 import base64
 import json
 import gzip
+import string
 
 def sa_decode(params):
     de64 = base64.b64decode(urllib.parse.unquote(params).encode('utf-8'))
@@ -133,3 +134,15 @@ def get_req_info():
     elif get_url_params('http_referer') and get_url_params('http_referer')!= '$http_referer' :
         referrer = get_url_params('http_referer')[0:2047]
     return {'remark':remark,'User_Agent':User_Agent,'Host':Host,'Connection':Connection,'Pragma':Pragma,'Cache_Control':Cache_Control,'Accept':Accept,'Accept_Encoding':Accept_Encoding,'Accept_Language':Accept_Language,'ua_platform':ua_platform,'ua_browser':ua_browser,'ua_version':ua_version,'ua_language':ua_language,'url':url,'ip':ip,'ip_city':ip_city,'ip_is_good':ip_is_good,'ip_asn':ip_asn,'ip_asn_is_good':ip_asn_is_good,'referrer':referrer}
+
+def is62hex(text):
+    text = str(text)
+    for i in text:
+        if i not in string.hexdigits + string.ascii_letters :
+            return 0,i
+    return 1,None
+
+if __name__ == '__main__':
+    test_is62hex = ['4325','f3442','CD3432f','234_8342','dfsad-32','23F*B',4321543]
+    for i in test_is62hex:
+        print(i, is62hex(i))
