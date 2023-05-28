@@ -3,7 +3,7 @@
 #Date: 2023-05-27 15:03:45
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2023-05-27 20:14:16
+#LastEditTime: 2023-05-28 15:15:49
 #FilePath: \ghost_sa_github_cgq\tools\update_shortcut.py
 #
 import sys
@@ -106,6 +106,8 @@ def update_history(short_url):
         update_shortdec(short_url=short_url,short_url_dec=dec)
         # print(short_url,'已被转换为',dec)
         success_count += 1
+        if success_count%200 == 0:
+            print('已完成转换',success_count)
 
 
 if __name__ == "__main__":
