@@ -3,12 +3,17 @@
 #Date: 2021-09-18 16:29:59
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2022-02-19 17:37:45
-#FilePath: \ghost_sa_github\configs\admin.py
+#LastEditTime: 2023-07-23 15:35:15
+#FilePath: \ghost_sa_github_cgq\configs\admin.py
 #
 
 #Database
-database_type = 'tidb' # type for database. 'tidb' support from tidb(https://docs.pingcap.com/zh/tidb/stable/?utm_source=ghost_sa),tested from tidb v3.0.0 to v5.1.1 and newer. 'mysql' support mysql from v5.7 to v8 and newer. #! WARNING: Do not use Ghost_sa with mysql in a production deployment , it runs very slow.
+database_type = 'tidb' # type for database. 'tidb' support from tidb(https://docs.pingcap.com/zh/tidb/stable/?utm_source=ghost_sa),tested from tidb v3.0.0 to v5.1.1 and newer. 'mysql' support mysql from v5.7 to v8 and newer.'tidb-serverless' support tidb_serverless #! WARNING: Do not use Ghost_sa with mysql in a production deployment , it runs very slow.
+
+serverless_system = 'RedHat' # this setting only effect 'tidb-serverless' mode,it can support 'MacOS','Debian','RedHat','Alpine','OpenSUSE'，'Windows'.'Debian' include Debian / Ubuntu / Arch and 'RedHat' include RedHat / Fedora / CentOS / Mageia.
+
+ca_local = {'MacOS':'/etc/ssl/cert.pem','Debian':'/etc/ssl/certs/ca-certificates.crt','RedHat':'/etc/pki/tls/certs/ca-bundle.crt','Alpine':'/etc/ssl/cert.pem','OpenSUSE':'/etc/ssl/ca-bundle.pem','Windows':'C:/Users/Administrator/Downloads/cacert.pem'} 
+
 
 #Bot Identify
 bot_list = ['spider','googlebot','adsbot-google','baiduboxapp','bingpreview','bingbot'] # If there any string in User_Agent,the request will be set remark as 'spider' ,no matter what the original remark is . Maintain bot list in lower case.
