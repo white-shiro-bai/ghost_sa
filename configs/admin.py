@@ -12,7 +12,7 @@ database_type = 'tidb' # type for database. 'tidb' support from tidb(https://doc
 
 serverless_system = 'RedHat' # this setting only effect 'tidb-serverless' mode,it can support 'MacOS','Debian','RedHat','Alpine','OpenSUSE'，'Windows'.'Debian' include Debian / Ubuntu / Arch and 'RedHat' include RedHat / Fedora / CentOS / Mageia.
 
-ca_local = {'MacOS':'/etc/ssl/cert.pem','Debian':'/etc/ssl/certs/ca-certificates.crt','RedHat':'/etc/pki/tls/certs/ca-bundle.crt','Alpine':'/etc/ssl/cert.pem','OpenSUSE':'/etc/ssl/ca-bundle.pem','Windows':'C:/Users/Administrator/Downloads/cacert.pem'} 
+ca_local = {'MacOS':'/etc/ssl/cert.pem','Debian':'/etc/ssl/certs/ca-certificates.crt','RedHat':'/etc/pki/tls/certs/ca-bundle.crt','Alpine':'/etc/ssl/cert.pem','OpenSUSE':'/etc/ssl/ca-bundle.pem','Windows':'cacert.pem'} 
 
 
 #Bot Identify
