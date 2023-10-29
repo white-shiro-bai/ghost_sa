@@ -28,6 +28,13 @@ import hashlib
 
 
 def insert_data(project,data_decode,User_Agent,Host,Connection,Pragma,Cache_Control,Accept,Accept_Encoding,Accept_Language,ip,ip_city,ip_asn,url,referrer,remark,ua_platform,ua_browser,ua_version,ua_language,ip_is_good,ip_asn_is_good,created_at=None,updated_at=None,use_kafka=admin.use_kafka):
+    if 'properties' in data_decode :
+        # 感谢shenhongbin7854提交代码解决上报内容中包含超出utf8的emoji内容时，会报错的问题。https://github.com/shenhongbin7854
+        # 这里会把超出utf8的emoji替换为??。不使用直接抹去的方法，是为了保留占位。
+        # 在这里处理，而不是在数据库操作时处理，是为了尽可能保证埋点处理的一致性。数据库操作有的不是用key的标准方式写进去的，会有漏掉。而且这样处理也能尽可能保留其他的非埋点业务的错误能够暴露。
+        for key in data_decode['properties'].keys():
+            if type(data_decode['properties'][key]) == str:
+                data_decode['properties'][key] = data_decode['properties'][key].encode('utf-8',"replace").decode('utf-8')
     start_time = time.time()
     jsondump = json.dumps(data_decode,ensure_ascii=False)
     if '_track_id' in data_decode:

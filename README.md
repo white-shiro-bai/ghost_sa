@@ -13,6 +13,8 @@ https://github.com/phillip2019/ 规范了程序结构，提供beacon兼容，主
 
 https://github.com/toddlerya/ 提供了62进制编码的算法实现。
 
+https://github.com/shenhongbin7854 提供了异常emoji的测试案例和解决办法。
+
 # 介绍：
 
 ghost_sa(鬼策)可以理解为不带前端界面的神策服务端。
