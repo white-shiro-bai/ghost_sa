@@ -3,7 +3,7 @@
 #Date: 2021-09-18 16:29:59
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2023-05-27 17:18:05
+#LastEditTime: 2023-11-05 16:21:08
 #FilePath: \ghost_sa_github_cgq\component\url_tools.py
 #
 import sys
@@ -20,7 +20,7 @@ import gzip
 import string
 
 def sa_decode(params):
-    de64 = base64.b64decode(urllib.parse.unquote(params).encode('utf-8'))
+    de64 = base64.b64decode(urllib.parse.unquote(params))
     try:
         pending_data = json.loads(gzip.decompress(de64))
         return pending_data
