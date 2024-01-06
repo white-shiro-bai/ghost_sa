@@ -411,6 +411,7 @@ class device_cache:
         print('插入或更新device'+str(count)+'条')
 
     def insert_device(self,project,data_decode,user_agent,accept_language,ip,ip_city,ip_is_good,ip_asn,ip_asn_is_good,ua_platform,ua_browser,ua_version,ua_language,created_at=None,updated_at=None):
+        #this is class input
         #replace insert funcion from api_tools
         self.insert_data_income = {'project':project,'data_decode':data_decode,'user_agent':user_agent,'accept_language':accept_language,'ip':ip,'ip_city':ip_city,'ip_asn':ip_asn,'ip_is_good':ip_is_good,'ip_asn_is_good':ip_asn_is_good,'ua_browser':ua_browser,'ua_platform':ua_platform,'ua_language':ua_language,'ua_version':ua_version,'created_at':created_at if created_at else int(time.time()),'updated_at':updated_at if created_at else int(time.time())}
         distinct_status = self.check_distinct_id()
@@ -442,20 +443,31 @@ class device_cache:
             self.pending_data[self.insert_data_income['project']] = {}
         if self.insert_data_income['data_decode']['distinct_id'] not in self.pending_data[self.pending_data[self.insert_data_income['project']]]:
             self.pending_data[self.insert_data_income['project']][self.insert_data_income['data_decode']['distinct_id']] = {}
+        #if there is not distinct_id in ram,init it before update
         self.update_ram()
+        #check throller and trans to db.
+        if self.check_mem < admin.combine_device_memory :
+            pass
+        else:
+            #dump memory
+            pass
         
     def update_ram(self):
-        decode_list = ['user_agent','accept_language','ip','ip_city','ip_is_good','ip_asn','ip_asn_is_good','ua_platform','ua_browser','ua_version','ua_language','created_at','updated_at']
+        decode_list = ['user_agent','accept_language','ip','ip_city','ip_is_good','ip_asn','ip_asn_is_good','ua_platform','ua_browser','ua_version','ua_language','updated_at']
         device_properties_list = {
-            'fix':{'distinct_id'},
-            'latest':{'lib','device_id'},
-            'first':{}
-            'manufacturer','model','os','os_version','ua_platform','ua_browser','ua_version','ua_language','screen_width','screen_height','network_type','user_agent','accept_language','ip','ip_city','ip_asn','wifi','app_version','carrier','referrer','referrer_host','bot_name','browser','browser_version','is_login_id','screen_orientation','gps_latitude','gps_longitude','first_visit_time','first_referrer','first_referrer_host','first_browser_language','first_browser_charset','first_search_keyword','first_traffic_source_type','utm_content','utm_campaign','utm_medium','utm_term','utm_source','latest_utm_content','latest_utm_campaign','latest_utm_medium','latest_utm_term','latest_utm_source','latest_referrer','latest_referrer_host','latest_search_keyword','latest_traffic_source_type','created_at','updated_at'
+            'fix':['distinct_id'],
+            'latest_lib':['lib'],
+            'latest_properties':['lib','device_id','manufacturer','model','os','os_version','ua_platform','ua_browser','ua_version','ua_language','screen_width','screen_height','network_type','user_agent','accept_language','ip','ip_city','ip_asn','wifi','app_version','carrier','referrer','referrer_host','bot_name','browser','browser_version','is_login_id','screen_orientation','gps_latitude','gps_longitude','latest_utm_campaign','latest_utm_medium','latest_utm_term','latest_utm_source','latest_referrer','latest_referrer_host','latest_search_keyword','latest_traffic_source_type','updated_at'],
+            'first':['first_visit_time','first_referrer','first_referrer_host','first_browser_language','first_browser_charset','first_search_keyword','first_traffic_source_type','utm_content','utm_campaign','utm_medium','utm_term','utm_source','latest_utm_content','created_at']
             }
         for decode_item in decode_list:
             if decode_item not in self.pending_data[self.insert_project][self.insert_data_decode['distinct_id']] or self.insert_data_decode[decode_item] != '' :
                 self.pending_data[self.insert_project][self.insert_data_decode['distinct_id']][decode_item] = self.insert_data_decode[decode_item]
-        if 'created_at' not in self.pending_data[self.insert_project][self.insert_data_decode['distinct_id']] or self.insert
+        if 'created_at' not in self.pending_data[self.insert_project][self.insert_data_decode['distinct_id']] or self.insert_data_decode['created_at'] < self.pending_data[self.insert_project][self.insert_data_decode['distinct_id']]['created_at'] :
+            self.pending_data[self.insert_project][self.insert_data_decode['distinct_id']]['created_at'] = self.insert_data_decode['created_at']
+        for latest in device_properties_list['latest_properties']:
+            if latest not in self.pending_data
+
 
 
 
