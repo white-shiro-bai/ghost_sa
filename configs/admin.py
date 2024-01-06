@@ -3,9 +3,16 @@
 #Date: 2021-09-18 16:29:59
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2023-07-23 15:35:15
+#LastEditTime: 2024-01-06 18:44:17
 #FilePath: \ghost_sa_github_cgq\configs\admin.py
 #
+
+#batch_send_deduplication
+batch_send_deduplication = True #skip same track_id ,distinct_id , lib , all_json['time'] data insert into event table in max_timeout.
+batch_send_max_memory = 100000000 #unit byte。default is 100000000(1G), if thread use memory exceed setting , delete oldest catch.
+batch_send_max_memory_gap = 30 #frequency what memory occupied chech. default is 30 seconds , tiny value provide accurate but cost more interrupt , huge value have better performace but lead more risk on OOM. Data lost is annoying even it can be recovery by event table. this value should be smaller then batch_send_max_window.
+batch_send_max_window = 300 #unit seconds。default is 300(every 5 minutes). Force insert device table after window since last insert if max_memory or gap not trigger insert.
+batch_send_max_distinct_id = 10000 #unit keys. default is 10000.if cached distinct id reach the limit , insert all cache into table first.
 
 #Database
 database_type = 'tidb' # type for database. 'tidb' support from tidb(https://docs.pingcap.com/zh/tidb/stable/?utm_source=ghost_sa),tested from tidb v3.0.0 to v5.1.1 and newer. 'mysql' support mysql from v5.7 to v8 and newer.'tidb-serverless' support tidb_serverless #! WARNING: Do not use Ghost_sa with mysql in a production deployment , it runs very slow.
