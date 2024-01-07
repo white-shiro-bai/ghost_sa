@@ -3,7 +3,7 @@
 #Date: 2024-01-06 19:33:58
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-01-07 20:56:46
+#LastEditTime: 2024-01-07 22:33:18
 #FilePath: \ghost_sa_github_cgq\component\local_cache.py
 #
 import sys
@@ -28,24 +28,25 @@ class batch_send_deduplication():
         if self.batch_send_deduplication is False :
             return 'go'
         else :
-            if not track_id or track_id == 0 or track_id =='0':
+            if not track_id or track_id == 0 or track_id =='0' or not time13 or time13 == 0:
                 return 'go'
-            elif track_id and track_id !=0 and track_id != '0':
+            elif track_id and track_id !=0 and track_id != '0' and time13 and time13 !=0:
                 batch_key = project + distinct_id
-                if batch_key in self.cache.keys() and track_id in self.cache[batch_key]['track_ids'] :
+                trackey = str(track_id) + str(time13)
+                if batch_key in self.cache.keys() and trackey in self.cache[batch_key]['track_ids'] :
                     return 'skip'
                 else:
-                    self.insert(batch_key=batch_key,track_id=track_id,time13=time13)
+                    self.insert(batch_key=batch_key,trackey=trackey,time13=time13)
                     return 'go'
 
-    def insert(self,batch_key,track_id,time13):
+    def insert(self,batch_key,trackey,time13):
         if batch_key in self.cache.keys():
-            self.cache[batch_key]['track_ids'].append(track_id)
+            self.cache[batch_key]['track_ids'].append(trackey)
             if time13 >= self.cache[batch_key]['time13']:
                 self.cache[batch_key]['time13'] = time13
         else:
             self.cache[batch_key] = {}
-            self.cache[batch_key]['track_ids'] = [track_id]
+            self.cache[batch_key]['track_ids'] = [trackey]
             self.cache[batch_key]['time13'] = time13
 
     def clean_expired(self):
@@ -74,7 +75,7 @@ if __name__ == '__main__':
         else:
             distinct_id = str(i)
             track_id = i+1
-        print(i,distinct_id,track_id,obj.query(project = 'test_me',distinct_id=distinct_id,track_id=track_id,time13=int(round(time.time() * 1000))))
+        print(i,distinct_id,track_id,obj.query(project = 'test_me',distinct_id=distinct_id,track_id=track_id,time13=int(round(time.time()) * 1000)))
     for i in range(10):
         if i%2 == 0:
             distinct_id = str(i+1)
@@ -85,7 +86,7 @@ if __name__ == '__main__':
         else:
             distinct_id = str(i)
             track_id = i+1
-        print(i,distinct_id,track_id,obj.query(project = 'test_me',distinct_id=distinct_id,track_id=track_id,time13=int(round(time.time() * 1000))))
+        print(i,distinct_id,track_id,obj.query(project = 'test_me',distinct_id=distinct_id,track_id=track_id,time13=int(round(time.time()) * 1000)))
     obj.clean_expired()
     time.sleep(10)
     obj.clean_expired()
@@ -99,4 +100,4 @@ if __name__ == '__main__':
         else:
             distinct_id = str(i)
             track_id = i+1
-        print(i,distinct_id,track_id,obj.query(project = 'test_me',distinct_id=distinct_id,track_id=track_id,time13=int(round(time.time() * 1000))))
+        print(i,distinct_id,track_id,obj.query(project = 'test_me',distinct_id=distinct_id,track_id=track_id,time13=int(round(time.time()) * 1000)))
