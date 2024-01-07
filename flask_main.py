@@ -14,6 +14,7 @@ from flask_cors import CORS
 from flask import Flask,Response
 import sys
 import os
+from component.local_cache import batch_send_deduplication
 
 
 app = Flask(__name__)
@@ -26,7 +27,10 @@ def return_error(code=0):
     if admin.use_bbhj is True:
         return f"""<html><script type="text/javascript" src="//qzonestyle.gtimg.cn/qzone/hybrid/app/404/search_children.js" charset="utf-8" homePageUrl="{admin.bbhj_url}" homePageName="{pagename}"></script></html>"""
 
+# app.config.from_object(batch_send_deduplication())
+# @app.before_request
 
+batch_cache = batch_send_deduplication()
 
 @app.errorhandler(404)
 def miss(e):
