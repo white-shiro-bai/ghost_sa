@@ -3,7 +3,7 @@
 #Date: 2022-03-13 00:19:41
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-01-06 21:04:55
+#LastEditTime: 2024-01-13 19:30:26
 #FilePath: \ghost_sa_github_cgq\component\public_func.py
 #
 import sys
@@ -21,7 +21,7 @@ def show_my_memory():
 
 def show_obj_size(obj):
     #获取对象的内存占用，单位byte
-    return int(sys.getsizeof(obj))
+    return int(asizeof.asizeof(obj))
 
 def key_counter(group={},keytype='',key=''):
     if keytype not in group:

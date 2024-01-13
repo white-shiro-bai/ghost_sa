@@ -14,11 +14,14 @@ from flask_cors import CORS
 from flask import Flask,Response
 import sys
 import os
-from component.local_cache import batch_send_deduplication
+
 
 
 app = Flask(__name__)
 CORS(app)
+
+
+
 
 def return_error(code=0):
     pagename = str(code) + '  '+admin.bbhj_keyword
@@ -27,10 +30,15 @@ def return_error(code=0):
     if admin.use_bbhj is True:
         return f"""<html><script type="text/javascript" src="//qzonestyle.gtimg.cn/qzone/hybrid/app/404/search_children.js" charset="utf-8" homePageUrl="{admin.bbhj_url}" homePageName="{pagename}"></script></html>"""
 
-# app.config.from_object(batch_send_deduplication())
 # @app.before_request
 
-batch_cache = batch_send_deduplication()
+
+
+# @app.teardown_appcontext
+# def close_scheduler(*args):
+#     print(args)
+#     batch_send_scheduler.shutdown()
+
 
 @app.errorhandler(404)
 def miss(e):
@@ -56,6 +64,14 @@ def favicon():
         returnimage = f.read()
     return Response(returnimage, mimetype="image/gif")
 
+
+#功能测试
+@app.route('/a')
+def test():
+    from component.api import batch_cache
+    for i in range(10):
+        batch_cache.query(project='test_me',distinct_id=str(i),track_id=123,time13=1698573153331)
+    return str(batch_cache.cache)
 
 #项目管理
 app.add_url_rule('/show_project_list', view_func=show_project_list, methods=['POST'])#查询已有项目信息
