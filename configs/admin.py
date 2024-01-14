@@ -3,17 +3,17 @@
 #Date: 2021-09-18 16:29:59
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-01-13 20:00:41
+#LastEditTime: 2024-01-14 20:47:36
 #FilePath: \ghost_sa_github_cgq\configs\admin.py
 #
 
 #batch_send_deduplication
 batch_send_deduplication_mode = 'ram' #skip same track_id ,distinct_id , lib , all_json['time'] data insert into event table in max_timeout. default
-# 'none' is disable.
-# 'ram' mode keep cache in flask_app and not share cache in multi instance .
-# 'consumer' mode do nothing in flask_app. comsumer.py will do deduplication job . It is the most safety way.
-# 'db' mode user db to share cache with multi instance , it support big scale.
-# 'redis' mode use redis to share cache with multi instance , it support both speed and scale. 
+        # 'none' is disable.
+        # 'ram' mode keep cache in flask_app and not share cache in multi instance .
+        # 'consumer' mode do nothing in flask_app. comsumer.py will do deduplication job . It is the most safety way.
+        # 'db' mode user db to share cache with multi instance , it support big scale.
+        # 'redis' mode use redis to share cache with multi instance , it support both speed and scale. 
 batch_send_max_memory_limit  = 20000000 #unit byte。default is 20000000(200M), if thread use memory exceed setting , delete oldest catch.
 batch_send_max_memory_gap = 10 #unit seconds. frequency what memory occupied chech. default is 30 seconds , tiny value provide accurate but cost more interrupt , huge value have better performace but lead more risk on OOM. Data lost is annoying even it can be recovery by event table. this value should be smaller then batch_send_max_window.
 batch_send_max_batch_key_limit = 200000 #unit item. batch_key = distinct_id+lib . cache clean will apply when size of batch_key meet limit nomatter max memory limit.
@@ -45,7 +45,7 @@ admin_do_not_track_code = 'dntmode' #cdn模式不参与记录密码
 
 # 是否使用Kafka
 
-use_kafka = False #True时，数据写入kafka。False时，直接插入数据库
+use_kafka = True #True时，数据写入kafka。False时，直接插入数据库
 
 # 是否开启properties表
 

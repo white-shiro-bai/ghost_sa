@@ -3,7 +3,7 @@
 #Date: 2022-03-13 00:19:41
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-01-14 14:14:56
+#LastEditTime: 2024-01-14 16:38:44
 #FilePath: \ghost_sa_github_cgq\component\api_req.py
 #
 import sys
@@ -43,3 +43,25 @@ def get_json_from_postjson(url,data,ua=admin.who_am_i):
     except Exception:
       error = traceback.format_exc()
       write_to_log(filename='api_req',defname='get_json_from_postjson',result=error)
+
+def get_anyting_from_postjson(url,data,ua=admin.who_am_i):
+    headers = {
+        'User-agent': ua
+    }
+    try:
+        req = requests.post(url=url,headers=headers,json=data)
+        return req
+    except Exception:
+      error = traceback.format_exc()
+      write_to_log(filename='api_req',defname='get_json_from_postjson',result=error)
+
+def get_anyting_from_get(url,ua=admin.who_am_i):
+    headers = {
+        'User-agent': ua
+    }
+    try:
+        req = requests.get(url=url,headers=headers)
+        return req
+    except Exception:
+      error = traceback.format_exc()
+      write_to_log(filename='api_req',defname='get_json_from_api',result=error)
