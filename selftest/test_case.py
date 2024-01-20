@@ -3,7 +3,7 @@
 #Date: 2023-05-27 21:19:00
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-01-20 20:09:31
+#LastEditTime: 2024-01-20 20:29:43
 #FilePath: \ghost_sa_github_cgq\selftest\test_case.py
 #
 import sys
@@ -34,6 +34,13 @@ def test_useragent_generate():
 
 
 def batch_send_deduplication(project='test_me',url='http://127.0.0.1:5000/' ,remark = 'normal'):
+#[root@ghost_sa ghost_test]# python3 selftest/test_case.py test19
+# batch_send_deduplication执行完毕，用时： 33194
+# 应收到请求数据: 2773 ,如开启去重，应包含正常数据: 1040 ,应包含特殊规则数据: 867 ,如果开启去重，实际去重数量应为: 866 ,如果未开启去重，插入数据应为 1906
+# (('test21', '"track_id一致，上报时间戳不一致，多次重复都应该保留"', 867), ('test21', '"正常重复数据，重复写入只记1条"', 1906)) <-- 未开启去重且允许爬虫
+# (('test16', '"track_id一致，上报时间戳不一致，多次重复都应该保留"', 867), ('test16', '"正常重复数据，重复写入只记1条"', 1040)) <-- 开启去重写允许爬虫
+# (('test20', '"track_id一致，上报时间戳不一致，多次重复都应该保留"', 842), ('test20', 正常重复数据，重复写入只记1条"', 1015)) <-- 开启去重且不允许爬虫
+
     ipbase_list = test_ip_generate()
     useragent_list = test_useragent_generate()
     send_count = 0 # 实际发送条数，如果不开去重，应该与这个一致
@@ -128,33 +135,3 @@ if __name__ == '__main__':
     remark2 = sys.argv[1] if sys.argv[1] else 'normal'
     batch_send_deduplication(project='test_app',url='http://localhost:8000/',remark = remark2)
 
-
-# sql_note
-# SELECT
-# 	JSON_EXTRACT( all_json, '$."规则"' ) AS rule,count(*) 
-# FROM
-# 	test_app 
-# WHERE
-# 	JSON_EXTRACT( all_json, '$."time"' ) >= 1705236533043 
-# 	AND JSON_EXTRACT( all_json, '$."time"' ) <= 1705236647839 
-# GROUP BY
-# 	rule;
-	
-# select track_id,GROUP_CONCAT(distinct JSON_EXTRACT( all_json, '$."规则"' )) as rule
-
-# FROM
-# 	test_app 
-# WHERE
-# 	JSON_EXTRACT( all_json, '$."time"' ) >= 1705236533043 
-# 	AND JSON_EXTRACT( all_json, '$."time"' ) <= 1705236647839 
-# 	GROUP BY track_id
-# 	having rule = '"track_id一致，上报时间戳不一致，多次重复都应该保留"'
-# 	order by track_id ;
-	
-# select track_id
-# FROM
-# 	test_app 
-# WHERE
-# 	JSON_EXTRACT( all_json, '$."time"' ) >= 1705236533043 
-# 	AND JSON_EXTRACT( all_json, '$."time"' ) <= 1705236647839 
-# 	GROUP BY track_id;
