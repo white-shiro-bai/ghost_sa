@@ -3,12 +3,12 @@
 #Date: 2021-09-18 16:29:59
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-01-14 20:47:36
+#LastEditTime: 2024-01-20 20:17:02
 #FilePath: \ghost_sa_github_cgq\configs\admin.py
 #
 
 #batch_send_deduplication
-batch_send_deduplication_mode = 'ram' #skip same track_id ,distinct_id , lib , all_json['time'] data insert into event table in max_timeout. default
+batch_send_deduplication_mode = 'none' #skip same track_id ,distinct_id , lib , all_json['time'] data insert into event table in max_timeout. default
         # 'none' is disable.
         # 'ram' mode keep cache in flask_app and not share cache in multi instance .
         # 'consumer' mode do nothing in flask_app. comsumer.py will do deduplication job . It is the most safety way.
