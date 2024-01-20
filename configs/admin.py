@@ -31,7 +31,7 @@ ca_local = {'MacOS':'/etc/ssl/cert.pem','Debian':'/etc/ssl/certs/ca-certificates
 
 #Bot Identify
 bot_list = ['spider','googlebot','adsbot-google','baiduboxapp','bingpreview','bingbot'] # If there any string in User_Agent,the request will be set remark as 'spider' ,no matter what the original remark is . Maintain bot list in lower case.
-
+bot_override = True # allow insert into event table with specific remark if no_bot=admin_password otherwise remark force to spider. 
 
 # 身份识别
 who_am_i = 'ghost_sa' #向外发送回调请求时的UA识别

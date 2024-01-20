@@ -3,7 +3,7 @@
 #Date: 2021-09-18 16:29:59
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2023-11-05 16:21:08
+#LastEditTime: 2024-01-20 20:21:44
 #FilePath: \ghost_sa_github_cgq\component\url_tools.py
 #
 import sys
@@ -79,7 +79,8 @@ def get_req_info():
     if get_url_params('user_agent'):
         User_Agent = get_url_params('user_agent')
     if User_Agent and User_Agent !='' and any([pt in User_Agent.lower() for pt in admin.bot_list]):
-        remark = 'spider'
+        if admin.bot_override is False or get_url_params('no_bot') != admin.admin_password : # mark spider if not allow override or password is wrong.
+            remark = 'spider'
     Host = request.headers.get('Host') #: 10.16.5.241:5000
     if get_url_params('host'):
         Host = get_url_params('host')
