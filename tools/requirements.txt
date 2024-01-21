@@ -9,3 +9,4 @@ pymysql
 geoip2
 kafka-python
 apscheduler
+redis

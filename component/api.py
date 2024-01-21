@@ -25,7 +25,7 @@ from trigger import trigger
 from component.qrcode import gen_qrcode
 from component.url_tools import get_url_params,get_req_info,sa_decode
 import hashlib
-from component.local_cache import batch_cache
+from component.batch_send import batch_cache
 
 def insert_data(project,data_decode,User_Agent,Host,Connection,Pragma,Cache_Control,Accept,Accept_Encoding,Accept_Language,ip,ip_city,ip_asn,url,referrer,remark,ua_platform,ua_browser,ua_version,ua_language,ip_is_good,ip_asn_is_good,created_at=None,updated_at=None,use_kafka=admin.use_kafka):
     if 'properties' in data_decode :
