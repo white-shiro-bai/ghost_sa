@@ -3,7 +3,7 @@
 #Date: 2024-01-21 14:24:35
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-01-21 18:51:08
+#LastEditTime: 2024-01-23 09:15:26
 #FilePath: \ghost_sa_github_cgq\configs\redis_connect.py
 #
 import sys
@@ -23,8 +23,11 @@ def redis_db_conn(datebase_number=None):
 
 if  __name__ == '__main__':
     import time
-    redis_db_conn(datebase_number=1).set('test10s', 'd',ex = 1)
-    redis_db_conn(datebase_number=1).set('test10s', 'e',ex = 10)
+    r =redis_db_conn(datebase_number=0)
     for i in range(12):
-        print (i,redis_db_conn(datebase_number=1).get('test10s'))
+        req = r.set('test10s', 'd',ex = 10 , nx = True)
+        print(req)
+    # redis_db_conn(datebase_number=1).set('test10s', 'e',ex = 10)
+    for i in range(12):
+        print (i,r.get('test10s'))
         time.sleep(1)

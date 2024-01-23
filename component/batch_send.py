@@ -3,7 +3,7 @@
 #Date: 2024-01-06 19:33:58
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-01-21 20:10:57
+#LastEditTime: 2024-01-23 09:19:34
 #FilePath: \ghost_sa_github_cgq\component\batch_send.py
 #
 import sys
@@ -48,19 +48,20 @@ class batch_send_deduplication():
                 elif self.batch_send_deduplication_mode == 'redis':
                     res = self.redis_query()
                     if  res :
-                        write_to_log(filename='redis',defname='log',result='skip:'+self.batch_key+self.trackey+str(self.track_id) +','+str(res))
+                        write_to_log(filename='redis',defname='log',result='skip:'+self.batch_key+','+self.trackey+','+str(self.track_id) +','+str(res))
                         return 'skip'
                 else:
                     print('query not support mode')
                 self.insert()
-                write_to_log(filename='redis',defname='log',result='go:'+self.batch_key+self.trackey+str(self.track_id) )
+                write_to_log(filename='redis',defname='log',result='go:'+self.batch_key+','+self.trackey+','+str(self.track_id) )
                 return 'go'
 
     def insert(self):
         if self.batch_send_deduplication_mode =='ram':
             self.ram_insert()
         elif self.batch_send_deduplication_mode =='redis':
-            self.redis_insert()
+            pass
+            # self.redis_insert()
         else:
             print('insert not support mode')
 
@@ -85,13 +86,16 @@ class batch_send_deduplication():
         self.batch_redis_conn.set(name=self.batch_key+self.trackey, value=self.time13, ex=self.batch_send_max_window*60)
         # self.batch_redis_conn.sadd(self.batch_key, self.trackey)
     def redis_query(self):
-        res = self.batch_redis_conn.get(name=self.batch_key+self.trackey)
+        res = self.batch_redis_conn.set(name=self.batch_key+self.trackey, value=self.time13, ex=self.batch_send_max_window*60 , nx= True)
+        if res == True:
+            return None
+        return 'skip'
         # if res == '1':
         #     return 'go'
         # else:
         #     return None
         # res = self.batch_redis_conn.sismember(self.batch_key, self.trackey)
-        return res
+        # return res
 
     def ram_clean(self):
         keys_count = len(self.cache.keys())

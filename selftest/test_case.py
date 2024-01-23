@@ -3,7 +3,7 @@
 #Date: 2023-05-27 21:19:00
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-01-21 19:28:14
+#LastEditTime: 2024-01-23 22:52:43
 #FilePath: \ghost_sa_github_cgq\selftest\test_case.py
 #
 import sys
@@ -50,12 +50,13 @@ def batch_send_deduplication(project='test_me',url='http://127.0.0.1:5000/' ,rem
     time_start = int(time.time()*1000)
     send_mode = ['post','get']
     send_zip = ['yes','no']
-    with ThreadPoolExecutor(max_workers=10) as worker:
+    with ThreadPoolExecutor(max_workers=50) as worker:
         for j in range(0,len(useragent_list)):
             indepent_count += 1
             j_count = 0
-            time13 = int(time.time()*100000)
+            time13 = int(time.time()*1000)
             j_rule_count = -1
+            # time.sleep(0.000002)
             for i in range(1,4):
                 if (j+1)%i == 0:
                     j_count += 1
@@ -75,7 +76,7 @@ def batch_send_deduplication(project='test_me',url='http://127.0.0.1:5000/' ,rem
                     ip = ipbase_list[0][1]
                     user_agent = useragent_list[j][2]
                     lib = useragent_list[j][1]
-                    time132 = int(time.time()*100000)
+                    time132 = int(time.time()*1000)+j_count
                     worker.submit(send_tracking_data,project=project,distinct_id='batch_send_deduplication'+str(j),url=url,lib=lib,ip=ip,user_agent=user_agent,other_value={'ua字典行数':j,'行计数':indepent_count-1,'应含独立行数':indepent_count,'累计行数':send_count,'本行重复次数':j_count,'本行应该去除数':j_rule_count,'本行不应该去重数':j_count-j_rule_count,'规则':'track_id一致，上报时间戳不一致，多次重复都应该保留'},track_id=j,time13=time132,remark=remark,no_bot=no_bot)
                 if i == 3:
                     send_duplicate_count = send_duplicate_count+j_rule_count
