@@ -3,7 +3,7 @@
 #Date: 2023-05-27 21:19:00
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-01-23 22:52:43
+#LastEditTime: 2024-01-27 20:59:13
 #FilePath: \ghost_sa_github_cgq\selftest\test_case.py
 #
 import sys
@@ -56,7 +56,7 @@ def batch_send_deduplication(project='test_me',url='http://127.0.0.1:5000/' ,rem
             j_count = 0
             time13 = int(time.time()*1000)
             j_rule_count = -1
-            # time.sleep(0.000002)
+            # time.sleep(0.0002)
             for i in range(1,4):
                 if (j+1)%i == 0:
                     j_count += 1
@@ -89,7 +89,7 @@ def batch_send_deduplication(project='test_me',url='http://127.0.0.1:5000/' ,rem
             remark,JSON_EXTRACT( all_json, '$."规则"' ) AS rule,count(*),count(distinct track_id)
             FROM
             {db} 
-            where remark = '{remark}'
+            where remark like '%{remark}%'
             GROUP BY
                 remark,rule
             order by remark,rule ;""".format(remark=remark,db=project)
@@ -136,4 +136,5 @@ if __name__ == '__main__':
     remark2 = sys.argv[1] if sys.argv[1] else 'normal'
     no_bot = sys.argv[2] if sys.argv[2] else ''
     batch_send_deduplication(project='test_app',url='http://192.168.193.28:8000/',remark = remark2, no_bot = no_bot)
+    # batch_send_deduplication(project='test_app',url='http://127.0.0.1:8000/',remark = remark2, no_bot = no_bot)
 
