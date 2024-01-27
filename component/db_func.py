@@ -10,6 +10,7 @@ from component.db_op import do_tidb_exe,do_tidb_select
 from configs.export import write_to_log
 from configs import admin
 from component.public_value import get_display_day,getdate
+import json
 
 def tidb_write(sql):
     if admin.database_type == 'tidb':
@@ -21,6 +22,10 @@ def tidb_write(sql):
     return sp+sql
 
 def insert_event(table,alljson,track_id,distinct_id,lib,event,type_1,User_Agent,Host,Connection,Pragma,Cache_Control,Accept,Accept_Encoding,Accept_Language,ip,ip_city,ip_asn,url,referrer,ua_platform,ua_browser,ua_version,ua_language,remark='normal',created_at=None):
+    pending_data = json.loads(alljson)
+    insert_time = int(time.time())
+    pending_data['db_time'] = insert_time
+    jsondump = json.dumps(pending_data,ensure_ascii=False)
     if created_at is None:
         timenow = int(time.time())
         date = time.strftime("%Y-%m-%d", time.localtime())
@@ -30,7 +35,7 @@ def insert_event(table,alljson,track_id,distinct_id,lib,event,type_1,User_Agent,
         date = time.strftime("%Y-%m-%d", time.localtime(created_at))
         hour = int(time.strftime("%H", time.localtime(created_at)))
     sql = """insert HIGH_PRIORITY into `{table}` (`all_json`,`track_id`,`distinct_id`,`lib`,`event`,`type`,`created_at`,`date`,`hour`,`user_agent`,`host`,`connection`,`pragma`,`cache_control`,`accept`,`accept_encoding`,`accept_language`,`ip`,`ip_city`,`ip_asn`,`url`,`referrer`,`remark`,`ua_platform`,`ua_browser`,`ua_version`,`ua_language`) values (%(alljson)s,%(track_id)s,%(distinct_id)s,%(lib)s,%(event)s,%(type)s,%(created_at)s,%(date)s,%(hour)s,%(User_Agent)s,%(Host)s,%(Connection)s,%(Pragma)s,%(Cache_Control)s,%(Accept)s,%(Accept_Encoding)s,%(Accept_Language)s,%(ip)s,%(ip_city)s,%(ip_asn)s,%(url)s,%(referrer)s,%(remark)s,%(ua_platform)s,%(ua_browser)s,%(ua_version)s,%(ua_language)s)""".format(table=table)
-    key = {'alljson':alljson,'track_id':track_id,'distinct_id':distinct_id,'lib':lib,'event':event,'type':type_1,'created_at':timenow,'date':date,'hour':hour,'User_Agent':User_Agent,'Host':Host,'Connection':Connection,'Pragma':Pragma,'Cache_Control':Cache_Control,'Accept':Accept,'Accept_Encoding':Accept_Encoding,'Accept_Language':Accept_Language,'ip':ip,'ip_city':ip_city,'ip_asn':ip_asn,'url':url,'referrer':referrer,'remark':remark,'ua_platform':ua_platform,'ua_browser':ua_browser,'ua_version':ua_version,'ua_language':ua_language}
+    key = {'alljson':jsondump,'track_id':track_id,'distinct_id':distinct_id,'lib':lib,'event':event,'type':type_1,'created_at':timenow,'date':date,'hour':hour,'User_Agent':User_Agent,'Host':Host,'Connection':Connection,'Pragma':Pragma,'Cache_Control':Cache_Control,'Accept':Accept,'Accept_Encoding':Accept_Encoding,'Accept_Language':Accept_Language,'ip':ip,'ip_city':ip_city,'ip_asn':ip_asn,'url':url,'referrer':referrer,'remark':remark,'ua_platform':ua_platform,'ua_browser':ua_browser,'ua_version':ua_version,'ua_language':ua_language}
     result = do_tidb_exe(sql=sql, args=key)
     if result[1] == 0:
         write_to_log(filename='db_func',defname='insert_event',result=result[0]+sql+str(key))
