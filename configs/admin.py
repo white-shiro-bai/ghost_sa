@@ -3,12 +3,33 @@
 #Date: 2021-09-18 16:29:59
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2023-07-23 15:35:15
+#LastEditTime: 2024-01-28 19:31:49
 #FilePath: \ghost_sa_github_cgq\configs\admin.py
 #
 
+#batch_send_deduplication
+batch_send_deduplication_mode = 'consumer' #skip same track_id ,distinct_id , lib , all_json['time'] data insert into event table in max_timeout. default
+        # 'none' is disable.
+        # 'ram' mode keep cache in flask_app and not share cache in multi instance .
+        # 'consumer' mode do nothing in flask_app. comsumer.py will do deduplication job . It is the most safety way.
+        # 'redis' mode use redis to share cache with multi instance , it support both speed and scale.
+        # 'tidb6.5+' mode require tidb version >=6.5.  use db to share cache with multi instance , it support big scale.
+        # 'tidb6.4-' mode support almost mysql protocol db. use db to share cache with multi instance , it support big scale.
+        # 'mysql' mode support mysql 5.7+ . use inno-db engine to share cache with multi instance , it support big scale.
+        # 'mysql-memory' mode support mysql 5.7+ . use mysql memory engine to share cache with multi instance , it support big scale.
+batch_send_deduplication_insert = 'remark' #'skip' or 'remark' duplication data.
+        # 'remark' is default setting, both normal and duplication date will insert into database . duplication data will be add aa "du-" chart before original remark. for example, normal data will insert as remark = 'normal', duplication date will insert as remark = 'du-normal' . 'remark' mode provide one more chance to verify data. 
+        # 'skip' will skip duplication data and no record left.
+# batch_send_deduplication_at = 'consumer' #consumer
+batch_send_max_memory_limit  = 20000000 #unit byte。default is 20000000(200M), if thread use memory exceed setting , delete oldest catch.
+batch_send_max_memory_gap = 60 #unit seconds. frequency what memory occupied chech. default is 30 seconds , tiny value provide accurate but cost more interrupt , huge value have better performace but lead more risk on OOM. Data lost is annoying even it can be recovery by event table. this value should be smaller then batch_send_max_window.
+batch_send_max_batch_key_limit = 200000 #unit item. batch_key = distinct_id+lib . cache clean will apply when size of batch_key meet limit nomatter max memory limit.
+batch_send_max_window = 60 #unit minutes. batch cache expired window. affect on ram and redis. default is 60 minutes. batch_key in cache that not update in window will be delete when batch_send_max_memory_limit or batch_send_max batch_key_limit reached.
+batch_send_redis_db_number = 1 # redis database number .
+
+
 #Database
-database_type = 'tidb' # type for database. 'tidb' support from tidb(https://docs.pingcap.com/zh/tidb/stable/?utm_source=ghost_sa),tested from tidb v3.0.0 to v5.1.1 and newer. 'mysql' support mysql from v5.7 to v8 and newer.'tidb-serverless' support tidb_serverless #! WARNING: Do not use Ghost_sa with mysql in a production deployment , it runs very slow.
+database_type = 'redis' # type for database. 'tidb' support from tidb(https://docs.pingcap.com/zh/tidb/stable/?utm_source=ghost_sa),tested from tidb v3.0.0 to v5.1.1 and newer. 'mysql' support mysql from v5.7 to v8 and newer.'tidb-serverless' support tidb_serverless #! WARNING: Do not use Ghost_sa with mysql in a production deployment , it runs very slow.
 
 serverless_system = 'RedHat' # this setting only effect 'tidb-serverless' mode,it can support 'MacOS','Debian','RedHat','Alpine','OpenSUSE'，'Windows'.'Debian' include Debian / Ubuntu / Arch and 'RedHat' include RedHat / Fedora / CentOS / Mageia.
 
@@ -17,7 +38,7 @@ ca_local = {'MacOS':'/etc/ssl/cert.pem','Debian':'/etc/ssl/certs/ca-certificates
 
 #Bot Identify
 bot_list = ['spider','googlebot','adsbot-google','baiduboxapp','bingpreview','bingbot'] # If there any string in User_Agent,the request will be set remark as 'spider' ,no matter what the original remark is . Maintain bot list in lower case.
-
+bot_override = True # allow insert into event table with specific remark if no_bot=admin_password otherwise remark force to spider. 
 
 # 身份识别
 who_am_i = 'ghost_sa' #向外发送回调请求时的UA识别
@@ -31,11 +52,11 @@ admin_do_not_track_code = 'dntmode' #cdn模式不参与记录密码
 
 # 是否使用Kafka
 
-use_kafka = False #True时，数据写入kafka。False时，直接插入数据库
+use_kafka = True #True时，数据写入kafka。False时，直接插入数据库
 
 # 是否开启properties表
 
-use_properties = True #True时，会插入properties表，这个表不是必须的，只是方便提取数据时快速找到埋点里包含的变量。
+use_properties = False #True时，会插入properties表，这个表不是必须的，只是方便提取数据时快速找到埋点里包含的变量。
 
 #IP地址转化
 #IP_Address dictionary
