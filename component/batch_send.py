@@ -3,7 +3,7 @@
 #Date: 2024-01-06 19:33:58
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-01-28 14:02:06
+#LastEditTime: 2024-01-28 15:13:27
 #FilePath: \ghost_sa_github_cgq\component\batch_send.py
 #
 import sys
@@ -24,49 +24,53 @@ class batch_send_deduplication():
         self.batch_send_max_memory_gap=batch_send_max_memory_gap
         self.batch_send_max_window=batch_send_max_window
 
-        if self.batch_send_deduplication_mode in ('redis','consumer'):
+        if self.batch_send_deduplication_mode in ('redis'):
             from configs.redis_connect import redis_db_conn
             self.batch_redis_conn = redis_db_conn(datebase_number=admin.batch_send_redis_db_number)
-        print('batch_send初始化结束')
+            write_to_log(filename='batch_send',defname='init',result='完成使用redis去重初始化')
+        elif self.batch_send_deduplication_mode in ('none'):
+            write_to_log(filename='batch_send',defname='init',result='未开启去重功能')
+        elif self.batch_send_deduplication_mode in ('ram'):
+            write_to_log(filename='batch_send',defname='init',result='使用ram去重初始化完成')
+        elif self.batch_send_deduplication_mode in ('consumer'):
+            write_to_log(filename='batch_send',defname='init',result='消费者去重模式初始化完成')
     
     def query(self,project='',distinct_id='',track_id=0,time13=0,source='api'):
-        self.project = project
-        self.distinct_id = distinct_id
-        self.track_id = track_id
-        self.time13 = time13
-        print(self.project,self.distinct_id,self.track_id,self.time13,len(self.cache.keys()))
+        # self.project = project
+        # self.distinct_id = distinct_id
+        # self.track_id = track_id
+        # self.time13 = time13
         if (source == 'api' and self.batch_send_deduplication_mode == 'consumer') or self.batch_send_deduplication_mode == 'none' :
             return 'go'
         else :
-            if not self.track_id or self.track_id  == 0 or self.track_id  =='0' or not self.time13 or self.time13 == 0:
+            if not track_id or track_id  == 0 or track_id  =='0' or not time13 or time13 == 0:
                 return 'go'
-            elif self.track_id and self.track_id !=0 and self.track_id != '0' and self.time13 and self.time13 !=0:
-                self.batch_key = self.project + self.distinct_id
-                self.trackey = str(self.track_id) + str(self.time13)
-                write_to_log(filename='batch_send',defname='query',result='batch_key:'+self.batch_key+',trackey:'+self.trackey)
+            elif track_id and track_id !=0 and track_id != '0' and time13 and time13 !=0:
+                batch_key = project + distinct_id
+                trackey = str(track_id) + str(time13)
+                combinekey=batch_key+trackey
+                # write_to_log(filename='batch_send',defname='query',result='batch_key:'+batch_key+',trackey:'+trackey)
                 if self.batch_send_deduplication_mode in ('ram','consumer'):
-                    res = self._ram_query()
+                    res = self._ram_query(batch_key=batch_key,trackey=trackey,time13=time13)
                     if res :
-                        write_to_log(filename='batch_send',defname='query',result='skip:'+'batch_key:'+self.batch_key+',trackey:'+self.trackey+' ,'+str(res))
+                        # write_to_log(filename='batch_send',defname='query',result='skip:'+'batch_key:'+batch_key+',trackey:'+trackey+' ,'+str(res))
                         return 'skip'
                 # elif self.batch_send_deduplication_mode == 'redis':
                 elif self.batch_send_deduplication_mode in ('redis'):
-                    res = self._redis_query()
-                    if  res :
+                    res = self._redis_query(combinekey=combinekey,time13=time13)
+                    if res :
                         return 'skip'
                 else:
                     write_to_log(filename='batch_send',defname='query',result='query not support mode')
-                self._insert()
-                write_to_log(filename='batch_send',defname='query',result='go:'+self.batch_key+','+self.trackey )
+                self._insert(batch_key=batch_key,trackey=trackey,time13=time13)
+                # write_to_log(filename='batch_send',defname='query',result='go:'+batch_key+','+trackey )
                 return 'go'
 
-    def _insert(self):
-        if self.batch_send_deduplication_mode =='ram':
-            self._ram_insert()
+    def _insert(self,batch_key,trackey,time13):
+        if self.batch_send_deduplication_mode in ('ram','consumer'):
+            self._ram_insert(batch_key=batch_key,trackey=trackey,time13=time13)
         elif self.batch_send_deduplication_mode =='redis':
             pass
-        elif self.batch_send_deduplication_mode =='consumer':
-            self._ram_insert()
         else:
             write_to_log(filename='batch_send',defname='query',result='insert not support mode')
 
@@ -74,27 +78,27 @@ class batch_send_deduplication():
         if self.batch_send_deduplication_mode in ('ram','consumer'):
             self._ram_clean()
 
-    def _ram_insert(self):
-        if self.batch_key in self.cache.keys():
-            self.cache[self.batch_key]['track_ids'].append(self.trackey)
-            if self.time13 >= self.cache[self.batch_key]['time13']:
-                self.cache[self.batch_key]['time13'] = self.time13
+    def _ram_insert(self,batch_key,trackey,time13):
+        if batch_key in self.cache.keys():
+            self.cache[batch_key]['track_ids'].append(trackey)
+            if time13 >= self.cache[batch_key]['time13']:
+                self.cache[batch_key]['time13'] = time13
         else:
-            self.cache[self.batch_key] = {}
-            self.cache[self.batch_key]['track_ids'] = [self.trackey]
-            self.cache[self.batch_key]['time13'] = self.time13
+            self.cache[batch_key] = {}
+            self.cache[batch_key]['track_ids'] = [trackey]
+            self.cache[batch_key]['time13'] = time13
 
-    def _ram_query(self):
-        return self.batch_key in self.cache.keys() and self.trackey in self.cache[self.batch_key]['track_ids']
+    def _ram_query(self,batch_key,trackey,time13):
+        req = None
+        if batch_key in self.cache.keys() and trackey in self.cache[batch_key]['track_ids']:
+            req = True
+        return req
 
-    def _redis_insert(self):
-        self.batch_redis_conn.set(name=self.batch_key+self.trackey, value=self.time13, ex=self.batch_send_max_window*60)
-        # self.batch_redis_conn.sadd(self.batch_key, self.trackey)
-    def _redis_query(self):
-        res = self.batch_redis_conn.set(name=self.batch_key+self.trackey, value=self.time13, ex=self.batch_send_max_window*60 , nx= True)
+    def _redis_query(self,combinekey,time13):
+        res = self.batch_redis_conn.set(name=combinekey, value=time13, ex=self.batch_send_max_window*60 , nx= True)
         if res == True:
             return None
-        return 'skip'
+        return 'key in redis'
         # if res == '1':
         #     return 'go'
         # else:
