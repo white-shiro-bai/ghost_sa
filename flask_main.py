@@ -20,7 +20,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 app = Flask(__name__)
 CORS(app)
 
-if admin.batch_send_deduplication_mode in ('ram'):
+if admin.batch_send_deduplication_mode in ('ram','tidb6.4-'):
     batch_send_scheduler = BackgroundScheduler()
     batch_send_scheduler.add_job(batch_cache.clean_expired, 'interval', seconds=admin.batch_send_max_memory_gap)
     batch_send_scheduler.start()

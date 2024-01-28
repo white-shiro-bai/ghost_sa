@@ -1101,7 +1101,7 @@ WHERE
     and EVENT IN ( {event} )  {add_on_where}
 ORDER BY
 {sort} {way} limit {page},{length}""".format(project=project,startdate=startdate,enddate=enddate,sort=sort,way=way,event=event,page=page*length,length=length,add_on_where=add_on_where)
-    print(sql)
+    # print(sql)
     result = do_tidb_select(sql=sql,retrycount=0)
     result0 = []
     for row in result[0]:
@@ -1110,6 +1110,28 @@ ORDER BY
 
 def update_access_control(**kwargs):
     sql="""update access_control set status={status_id_target},updated_at = UNIX_TIMESTAMP(CURRENT_TIMESTAMP) where project='{project}' and event='{event}' and type={type_id} and status={status_id_source} and date='{date}' and hour= {hour} and `key`='{key}'  limit 1""".format_map(kwargs)
-    print(sql)
+    # print(sql)
     result  = do_tidb_exe(sql=sql,retrycount=0)
     return result
+
+
+def insert_deduplication_key(project,distinct_id,track_id,sdk_time13):
+    sql = 'insert HIGH_PRIORITY into `deduplication_key` (`project`,`distinct_id`,`track_id`,`sdk_time13`,`created_at`) values ( %(project)s,%(distinct_id)s,%(track_id)s,%(sdk_time13)s,CURRENT_TIMESTAMP)'
+    key = {'project': project, 'distinct_id': distinct_id, 'track_id': track_id, 'sdk_time13':sdk_time13 }
+    return do_tidb_exe(sql=sql, args=key,retrycount=0,skip_mysql_code=1062)[1]
+
+def delete_deduplication_key(expired_time):
+    sql = '''delete from `deduplication_key` where created_at <= "{expired_time}" limit 5000;'''.format(expired_time=expired_time)
+    deleted = 5000
+    while deleted>0:
+        req = do_tidb_exe(sql=sql)
+        deleted = req[1]
+    return deleted
+
+def count_deduplication_key():
+    sql = '''select count(1) from `deduplication_key`'''
+    return do_tidb_select(sql=sql)[0][0][0]
+
+if __name__ == "__main__":
+    print(delete_deduplication_key(expired_time='2024-01-28 17:28:50'))
+    print(count_deduplication_key())

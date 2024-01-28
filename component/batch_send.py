@@ -3,16 +3,17 @@
 #Date: 2024-01-06 19:33:58
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-01-28 15:13:27
+#LastEditTime: 2024-01-28 18:57:37
 #FilePath: \ghost_sa_github_cgq\component\batch_send.py
 #
 import sys
 sys.path.append('./')
 from component.public_func import show_obj_size
+from component.db_func import insert_deduplication_key,delete_deduplication_key,count_deduplication_key
+from component.public_value import current_timestamp10,get_time_str
 from configs import admin
 import time
 from configs.export import write_to_log
-
 
 class batch_send_deduplication():
     def __init__(self,batch_send_deduplication_mode=admin.batch_send_deduplication_mode,batch_send_max_memory_limit=admin.batch_send_max_memory_limit,batch_send_max_batch_key_limit=admin.batch_send_max_batch_key_limit,batch_send_max_memory_gap=admin.batch_send_max_memory_gap,batch_send_max_window=admin.batch_send_max_window):
@@ -34,12 +35,10 @@ class batch_send_deduplication():
             write_to_log(filename='batch_send',defname='init',result='使用ram去重初始化完成')
         elif self.batch_send_deduplication_mode in ('consumer'):
             write_to_log(filename='batch_send',defname='init',result='消费者去重模式初始化完成')
-    
+        elif self.batch_send_deduplication_mode in ('tidb6.5+','tidb6.4-','mysql','mysql-memory'):
+            write_to_log(filename='batch_send',defname='init',result='使用数据库去重初始化完成')
+
     def query(self,project='',distinct_id='',track_id=0,time13=0,source='api'):
-        # self.project = project
-        # self.distinct_id = distinct_id
-        # self.track_id = track_id
-        # self.time13 = time13
         if (source == 'api' and self.batch_send_deduplication_mode == 'consumer') or self.batch_send_deduplication_mode == 'none' :
             return 'go'
         else :
@@ -60,6 +59,10 @@ class batch_send_deduplication():
                     res = self._redis_query(combinekey=combinekey,time13=time13)
                     if res :
                         return 'skip'
+                elif self.batch_send_deduplication_mode in ('tidb6.5+','tidb6.4-','mysql','mysql-memory'):
+                    res = self._db_query(project=project,distinct_id=distinct_id,track_id=track_id,time13=time13)
+                    if res :
+                        return 'skip'
                 else:
                     write_to_log(filename='batch_send',defname='query',result='query not support mode')
                 self._insert(batch_key=batch_key,trackey=trackey,time13=time13)
@@ -71,12 +74,16 @@ class batch_send_deduplication():
             self._ram_insert(batch_key=batch_key,trackey=trackey,time13=time13)
         elif self.batch_send_deduplication_mode =='redis':
             pass
+        elif self.batch_send_deduplication_mode in ('tidb6.5+','tidb6.4-','mysql','mysql-memory'):
+            pass
         else:
-            write_to_log(filename='batch_send',defname='query',result='insert not support mode')
+            write_to_log(filename='batch_send',defname='_insert',result='insert not support mode')
 
     def clean_expired(self):
         if self.batch_send_deduplication_mode in ('ram','consumer'):
             self._ram_clean()
+        elif self.batch_send_deduplication_mode in ('tidb6.4-'):
+            self._db_clean()
 
     def _ram_insert(self,batch_key,trackey,time13):
         if batch_key in self.cache.keys():
@@ -99,12 +106,11 @@ class batch_send_deduplication():
         if res == True:
             return None
         return 'key in redis'
-        # if res == '1':
-        #     return 'go'
-        # else:
-        #     return None
-        # res = self.batch_redis_conn.sismember(self.batch_key, self.trackey)
-        # return res
+
+    def _db_query(self,project,distinct_id,track_id,time13):
+        if insert_deduplication_key(project=project,distinct_id=distinct_id,track_id=track_id,sdk_time13=time13) == 1:
+            return None
+        return 'key in db'
 
     def _ram_clean(self):
         keys_count = len(self.cache.keys())
@@ -114,20 +120,26 @@ class batch_send_deduplication():
             '; keys count:'+ str(keys_count) + \
             '; keys limit:'+ str(self.batch_send_max_batch_key_limit) + \
             '; expired window:'+ str(self.batch_send_max_window*60*1000)
-        write_to_log(filename='batch_send',defname='batch_send_deduplication',result=cache_status)
+        write_to_log(filename='batch_send',defname='_ram_clean',result=cache_status)
 
         if cache_size >= self.batch_send_max_memory_limit or keys_count >= self.batch_send_max_batch_key_limit:
-            write_to_log(filename='batch_send',defname='batch_send_deduplication',result='exec_clean')
+            write_to_log(filename='batch_send',defname='_ram_clean',result='exec_clean start')
             timenow13 = int(round(time.time() * 1000))
             for key in list(self.cache.keys()):
                 if self.cache[key]['time13'] + (self.batch_send_max_window*60*1000) < timenow13:
                     del self.cache[key]
             cache_size_after_clean = show_obj_size(self.cache)
-            write_to_log(filename='batch_send',defname='batch_send_deduplication',result='cache size after clean:'+str(cache_size_after_clean))
+            write_to_log(filename='batch_send',defname='_ram_clean',result='cache size after clean:'+str(cache_size_after_clean))
             print(self.cache)
             if cache_size_after_clean >= self.batch_send_max_memory_limit:
                 self.cache = {}
-                write_to_log(filename='batch_send',defname='batch_send_deduplication',result='!warning cache size after clean is still too large,clean all. please scale up batch_send_max_memory_limit or scale down expired window.')
+                write_to_log(filename='batch_send',defname='_ram_clean',result='!warning cache size after clean is still too large,clean all. please scale up batch_send_max_memory_limit or scale down expired window.')
+
+    def _db_clean(self):
+        beforeclean_size = count_deduplication_key()
+        delete_deduplication_key(expired_time=get_time_str(inttime=current_timestamp10()-admin.batch_send_max_window*60))
+        afterclean_size = count_deduplication_key()
+        write_to_log(filename='batch_send',defname='_db_clean',result='duplication_key before clean:'+str(beforeclean_size)+', after clean:'+str(afterclean_size))
 
 
 batch_cache = batch_send_deduplication()

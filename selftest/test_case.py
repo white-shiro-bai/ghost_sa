@@ -3,7 +3,7 @@
 #Date: 2023-05-27 21:19:00
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-01-27 20:59:13
+#LastEditTime: 2024-01-28 16:51:11
 #FilePath: \ghost_sa_github_cgq\selftest\test_case.py
 #
 import sys
@@ -135,6 +135,6 @@ if __name__ == '__main__':
     # batch_send_deduplication(project='test_app',url='http://192.168.193.28:8000/')
     remark2 = sys.argv[1] if sys.argv[1] else 'normal'
     no_bot = sys.argv[2] if sys.argv[2] else ''
-    batch_send_deduplication(project='test_app',url='http://192.168.193.28:8000/',remark = remark2, no_bot = no_bot)
+    batch_send_deduplication(project='test_me',url='http://192.168.193.28:8000/',remark = remark2, no_bot = no_bot)
     # batch_send_deduplication(project='test_app',url='http://127.0.0.1:8000/',remark = remark2, no_bot = no_bot)
 
