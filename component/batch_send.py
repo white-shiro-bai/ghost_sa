@@ -3,7 +3,7 @@
 #Date: 2024-01-06 19:33:58
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-01-27 20:02:08
+#LastEditTime: 2024-01-28 14:02:06
 #FilePath: \ghost_sa_github_cgq\component\batch_send.py
 #
 import sys
@@ -43,20 +43,21 @@ class batch_send_deduplication():
             elif self.track_id and self.track_id !=0 and self.track_id != '0' and self.time13 and self.time13 !=0:
                 self.batch_key = self.project + self.distinct_id
                 self.trackey = str(self.track_id) + str(self.time13)
-                # if self.batch_send_deduplication_mode in ('ram','consumer'):
-                if self.batch_send_deduplication_mode in ('ram'):
-                    if self._ram_query() :
+                write_to_log(filename='batch_send',defname='query',result='batch_key:'+self.batch_key+',trackey:'+self.trackey)
+                if self.batch_send_deduplication_mode in ('ram','consumer'):
+                    res = self._ram_query()
+                    if res :
+                        write_to_log(filename='batch_send',defname='query',result='skip:'+'batch_key:'+self.batch_key+',trackey:'+self.trackey+' ,'+str(res))
                         return 'skip'
                 # elif self.batch_send_deduplication_mode == 'redis':
-                elif self.batch_send_deduplication_mode in ('redis','consumer'):
+                elif self.batch_send_deduplication_mode in ('redis'):
                     res = self._redis_query()
                     if  res :
-                        # write_to_log(filename='redis',defname='log',result='skip:'+self.batch_key+','+self.trackey+','+str(self.track_id) +','+str(res))
                         return 'skip'
                 else:
-                    print('query not support mode')
+                    write_to_log(filename='batch_send',defname='query',result='query not support mode')
                 self._insert()
-                # write_to_log(filename='redis',defname='log',result='go:'+self.batch_key+','+self.trackey+','+str(self.track_id) )
+                write_to_log(filename='batch_send',defname='query',result='go:'+self.batch_key+','+self.trackey )
                 return 'go'
 
     def _insert(self):
@@ -65,13 +66,12 @@ class batch_send_deduplication():
         elif self.batch_send_deduplication_mode =='redis':
             pass
         elif self.batch_send_deduplication_mode =='consumer':
-            pass
-            # self.redis_insert()
+            self._ram_insert()
         else:
-            print('insert not support mode')
+            write_to_log(filename='batch_send',defname='query',result='insert not support mode')
 
     def clean_expired(self):
-        if self.batch_send_deduplication_mode =='ram':
+        if self.batch_send_deduplication_mode in ('ram','consumer'):
             self._ram_clean()
 
     def _ram_insert(self):
