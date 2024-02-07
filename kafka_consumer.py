@@ -3,7 +3,7 @@
 #Date: 2022-10-06 16:15:40
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-01-28 13:17:57
+#LastEditTime: 2024-02-07 22:56:24
 #FilePath: \ghost_sa_github_cgq\kafka_consumer.py
 #
 import sys
@@ -20,7 +20,6 @@ import traceback
 from configs.export import write_to_log
 sys.path.append("./")
 sys.setrecursionlimit(10000000)
-from concurrent.futures import ThreadPoolExecutor,ProcessPoolExecutor
 from configs import admin
 if admin.access_control_commit_mode =='kafka_consumer':
     from component.access_control import access_control
@@ -32,6 +31,7 @@ if admin.batch_send_deduplication_mode == 'consumer':
     batch_send_scheduler.add_job(batch_cache.clean_expired, 'interval', seconds=admin.batch_send_max_memory_gap)
     batch_send_scheduler.start()
 import time
+from component.public_func import multi_thread_pool
 
 
 
@@ -39,9 +39,9 @@ def use_kafka():
     results = get_message_from_kafka()
     # for result in results:
     #     do_insert(result)
-    with ThreadPoolExecutor(max_workers=9) as worker:
-        for result in results:
-            worker.submit(do_insert,result)
+    mtp = multi_thread_pool(admin.consumer_workers)
+    for result in results:
+        mtp.submit(do_insert,result)
 
 def do_insert(msg):
     try:

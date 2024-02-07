@@ -3,7 +3,7 @@
 #Date: 2022-03-13 00:19:41
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-01-14 15:42:17
+#LastEditTime: 2024-02-07 22:53:36
 #FilePath: \ghost_sa_github_cgq\component\public_func.py
 #
 import sys
@@ -16,6 +16,14 @@ import json
 import gzip
 import urllib.parse
 import base64
+from concurrent.futures import ThreadPoolExecutor
+import queue
+
+
+class multi_thread_pool(ThreadPoolExecutor):
+    def __init__(self,max_workers=None, thread_name_prefix=''):
+        super(multi_thread_pool,self).__init__(max_workers,thread_name_prefix)
+        self._work_queue = queue.Queue(maxsize = max_workers)
 
 def show_my_memory():
     #获取整个程序的内存占用，单位byte
