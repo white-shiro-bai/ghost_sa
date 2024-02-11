@@ -3,7 +3,7 @@
 #Date: 2022-10-06 16:15:40
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-02-07 22:56:24
+#LastEditTime: 2024-02-11 18:31:38
 #FilePath: \ghost_sa_github_cgq\kafka_consumer.py
 #
 import sys
@@ -30,28 +30,26 @@ if admin.batch_send_deduplication_mode == 'consumer':
     batch_send_scheduler = BackgroundScheduler()
     batch_send_scheduler.add_job(batch_cache.clean_expired, 'interval', seconds=admin.batch_send_max_memory_gap)
     batch_send_scheduler.start()
-import time
 from component.public_func import multi_thread_pool
-
-
-
 def use_kafka():
     results = get_message_from_kafka()
-    # for result in results:
-    #     do_insert(result)
     mtp = multi_thread_pool(admin.consumer_workers)
     for result in results:
-        mtp.submit(do_insert,result)
+        mtp.submit(do_insert,msg=result.value.decode('utf-8'),offset=result.offset)
 
-def do_insert(msg):
+def do_insert(msg,offset):
     try:
-        group= json.loads(msg.value.decode('utf-8'))['group'] if "group" in json.loads(msg.value.decode('utf-8')) else None
-        data = json.loads(msg.value.decode('utf-8'))['data']
-        data['data_decode']['kafka_offset'] = msg.offset
+        group= json.loads(msg)['group'] if "group" in json.loads(msg) else None
+        data = json.loads(msg)['data']
         if group == 'event_track':
+            data['data_decode']['kafka_offset'] = offset
             req = 'go'
             if admin.batch_send_deduplication_mode == 'consumer':
-                req = batch_cache.query(project=data['project'],distinct_id=data['data_decode']['distinct_id'],track_id=data['data_decode']['_track_id'],time13=data['data_decode']['time'],source='consumer')
+                req = batch_cache.query(project=data['project'],
+                distinct_id=data['data_decode']['distinct_id'],
+                track_id=data['data_decode']['_track_id'] if '_track_id' in data['data_decode'] else 0,
+                time13=data['data_decode']['time'] if 'time' in data['data_decode'] else 0,
+                source='consumer')
             if admin.batch_send_deduplication_mode != 'consumer' or req == 'go':
                 insert_data(project=data['project'], data_decode=data['data_decode'], User_Agent=data['User_Agent'], Host=data['Host'], Connection=data['Connection'], Pragma=data['Pragma'], Cache_Control=data['Cache_Control'], Accept=data['Accept'], Accept_Encoding=data['Accept_Encoding'], Accept_Language=data['Accept_Language'], ip=data['ip'], ip_city=data['ip_city'],
                 ip_asn=data['ip_asn'], url=data['url'], referrer=data['referrer'], remark=data['remark'], ua_platform=data['ua_platform'], ua_browser=data['ua_browser'], ua_version=data['ua_version'], ua_language=data['ua_language'], ip_is_good=data['ip_is_good'], ip_asn_is_good=data['ip_asn_is_good'], created_at=data['created_at'], updated_at=data['updated_at'], use_kafka=False)

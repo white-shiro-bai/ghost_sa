@@ -8,3 +8,4 @@ xmltodict==0.12.0
 geoip2
 apscheduler
 redis
+pympler
