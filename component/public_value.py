@@ -145,7 +145,7 @@ def get_display_day(start_day, calc):
     return str(display_day)
 
 
-def current_timestamp():
+def current_timestamp10():
     t = time.time()
     return int(t)
 
@@ -261,5 +261,6 @@ if __name__ == '__main__':
     #     hours.append(i)
     # print(hours)
     # while True:
-    print(get_next_time(timer='* 15 * * 4'))
+    # print(get_next_time(timer='* 15 * * 4'))
     # print(get_time_array_from_nlp('tomorrow 9:13'))
+    print(get_time_str(inttime=current_timestamp10()+60*60))
