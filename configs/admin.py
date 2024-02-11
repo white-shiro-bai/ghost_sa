@@ -3,7 +3,7 @@
 #Date: 2021-09-18 16:29:59
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-01-28 19:31:49
+#LastEditTime: 2024-02-07 22:47:25
 #FilePath: \ghost_sa_github_cgq\configs\admin.py
 #
 
@@ -53,6 +53,8 @@ admin_do_not_track_code = 'dntmode' #cdn模式不参与记录密码
 # 是否使用Kafka
 
 use_kafka = True #True时，数据写入kafka。False时，直接插入数据库
+consumer_workers = 9 #使用kafka时，消费者的数量。标准部署tidb，9个效果比较好。请根据数据库压力调节。不是越大越好。
+
 
 # 是否开启properties表
 
