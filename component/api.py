@@ -177,16 +177,20 @@ def debug_datas():
         for data_decode in datas_decode:
                 pending_data_list_all.append(data_decode)
     #增加入库功能
-    for pending_data in pending_data_list_all:
-            if admin.user_ip_first is True:
-                if 'properties' in pending_data and admin.user_ip_key in pending_data['properties'] and pending_data['properties'][admin.user_ip_key]:
-                    user_ip = pending_data['properties'][admin.user_ip_key]
-                    if len(user_ip) - len(user_ip.replace('.','')) == 3:
-                        ip_is_good = get_addr(user_ip)[1] # to aviod internal ip address, double check ips are valid for city name lookup. such as avoid like QA_Client --> Internal Network --> QA_Server --> Internet --> Ghost_SA
-                        if ip_is_good == 1:
-                            req_info['ip'] = user_ip
-                            req_info['ip_city'],req_info['ip_is_good'] = get_addr(user_ip)
-                            req_info['ip_asn'],req_info['ip_asn_is_good'] = get_asn(user_ip)
+    write = request.args.get('dryrun',None)
+    if not write:
+        write = request.headers.get('Dry-Run',None)
+    if project:
+        for pending_data in pending_data_list_all:
+                if admin.user_ip_first is True:
+                    if 'properties' in pending_data and admin.user_ip_key in pending_data['properties'] and pending_data['properties'][admin.user_ip_key]:
+                        user_ip = pending_data['properties'][admin.user_ip_key]
+                        if len(user_ip) - len(user_ip.replace('.','')) == 3:
+                            ip_is_good = get_addr(user_ip)[1] # to aviod internal ip address, double check ips are valid for city name lookup. such as avoid like QA_Client --> Internal Network --> QA_Server --> Internet --> Ghost_SA
+                            if ip_is_good == 1:
+                                req_info['ip'] = user_ip
+                                req_info['ip_city'],req_info['ip_is_good'] = get_addr(user_ip)
+                                req_info['ip_asn'],req_info['ip_asn_is_good'] = get_asn(user_ip)
 
     return_json = {'00--IMPORTANT--INFORMATION--00':'ghost_sa的debug接口与神策官方功能有差异，\r不提供上报合法性判断，但无论上报正确与否，\r都会返回请求的全部信息，便于项目部署和二开。\r使用debug功能时，建议关闭debug模式，\r手动修改上报地址中的sa.gif为debug以获取更好的体验。\r更多信息可以看https://',\
     '10_org_headers_0desc':'这部分是ghost收到的原始header，可以看到WAF，SLB等前序中间件对header的修改。',\
