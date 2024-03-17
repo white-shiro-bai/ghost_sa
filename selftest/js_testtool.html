@@ -1,0 +1,74 @@
+<!--
+ * @Date: 2024-02-10 14:09:45
+ * @Author: unknowwhite@outlook.com
+ * @WeChat: Ben_Xiaobai
+ * @LastEditTime: 2024-03-17 16:54:04
+ * @FilePath: \ghost_sa_github_cgq\selftest\js_testtool.html
+-->
+<html>
+<head>
+    <title>测试埋点上报</title>
+    <script charset='UTF-8' src="https://static.sensorsdata.cn/sdk/1.26.7/sensorsdata.min.js"></script>
+    <script>
+        var sensors = window['sensorsDataAnalytic201505'];
+        sensors.init({
+            server_url: 'http://127.0.0.1:8000/sa.gif?project=test_me&remark=dev_ben_image_single',
+            is_track_single_page: true, // 单页面配置，默认开启，若页面中有锚点设计，需要将该配置删除，否则触发锚点会多触发 $pageview 事件
+            use_client_time: true,
+            send_type:'beacon', //这个地方与原版不同，没有采用beacon方式。因为不同的移动端对beacon的支持不一致
+            // batch_send : true, 
+            show_log : true,
+            debug_mode :true,
+            debug_mode_upload : true,
+            heatmap: {
+                //是否开启点击图，default 表示开启，自动采集 $WebClick 事件，可以设置 'not_collect' 表示关闭。
+                clickmap: 'default',
+                //是否开启触达图，not_collect 表示关闭，不会自动采集 $WebStay 事件，可以设置 'default' 表示开启。
+                scroll_notice_map: 'default'
+            },
+            source_channel: ["tpName", "sa_utm"],
+            //子配置项 true 表示采集,false 表示不采集,未设置的参数取默认值。
+            preset_properties: {
+                //是否采集 $latest_utm 最近一次广告系列相关参数，默认值 true。
+                latest_utm: true,
+                //是否采集 $latest_traffic_source_type 最近一次流量来源类型，默认值 true。
+                latest_traffic_source_type: true,
+                //是否采集 $latest_search_keyword 最近一次搜索引擎关键字，默认值 true。
+                latest_search_keyword: true,
+                //是否采集 $latest_referrer 最近一次前向地址，默认值 true。
+                latest_referrer: true,
+                //是否采集 $latest_referrer_host 最近一次前向地址，1.14.8 以下版本默认是true，1.14.8 及以上版本默认是 false，需要手动设置为 true 开启。
+                latest_referrer_host: true,
+                //是否采集 $latest_landing_page 最近一次落地页地址，默认值 true。
+                latest_landing_page: true,
+                //是否采集 $url 页面地址作为公共属性，1.16.5 以下版本默认是 false，1.16.5 及以上版本默认是 true。
+                url: true,
+                //是否采集 $title 页面标题作为公共属性，1.16.5 以下版本默认是 false，1.16.5 及以上版本默认是 true。
+                title: true,
+            }
+        });
+        sensors.quick('autoTrack'); //用于采集 $pageview 事件。
+    </script>
+</head>
+
+<body>
+    请选择如下功能<br>
+    <button id="refreshButton1">刷新页面（1秒后，所有方式不报错）</button>  <br>
+    <button id="refreshButton0">刷新页面（不等待，image方式触发报错）</button>  <br>
+    <button id="mb4">点这个按钮上报点击，老版本会报错✨☀👉</button>  <br>
+    <button id="nofunc">点这个按钮上报点击，老版本不报错</button>  <br>
+  
+    <script>  
+        document.getElementById('refreshButton1').addEventListener('click', function() {  
+            // 设置一个1秒的延迟（1000毫秒）  
+            setTimeout(function() {  
+                window.location.reload();  
+            }, 1000);  
+        });  
+        document.getElementById('refreshButton0').addEventListener('click', function() {  
+             window.location.reload();
+        });  
+    </script>  
+
+</body>
+</html>

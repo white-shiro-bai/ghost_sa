@@ -108,7 +108,7 @@ def insert_data(project,data_decode,User_Agent,Host,Connection,Pragma,Cache_Cont
         insert_message_to_kafka(key=distinct_id ,msg=msg)
     print(time.time()-start_time)
 
-def get_data():
+def get_data(debug_mode = 'off' ):
     bitimage1 = os.path.join('image','43byte.gif')
     with open(bitimage1, 'rb') as f:
         returnimage = f.read()
@@ -147,6 +147,67 @@ def decode_sa_data():
         return jsonify({'decode':sa_decode(get_url_params('data'))})
     except:
         return '解码失败：\n'+get_url_params('data')
+
+def debug_datas():
+    if request.method == 'OPTIONS':
+        return 'OK'
+    project = request.args.get('project',None)
+    headers = {}
+    ip = request.remote_addr
+    for key, value in request.headers.items():
+        headers[key] = value
+    req_info = get_req_info()
+    org_form = {}
+    for key, value in request.form.items():
+        org_form[key] = value
+    org_args = {}
+    for key, value in request.args.items():
+        org_args[key] = value
+    org_json = {}
+    if request.json:
+        org_json = request.json
+    data_decode = {}
+    datas_decode = {}
+    pending_data_list_all = []
+    if get_url_params('data'):
+        data_decode = sa_decode(get_url_params('data'))
+        pending_data_list_all.append(sa_decode(get_url_params('data')))
+    if get_url_params('data_list'):
+        datas_decode = sa_decode(get_url_params('data_list'))
+        for data_decode in datas_decode:
+                pending_data_list_all.append(data_decode)
+    #增加入库功能
+    for pending_data in pending_data_list_all:
+            if admin.user_ip_first is True:
+                if 'properties' in pending_data and admin.user_ip_key in pending_data['properties'] and pending_data['properties'][admin.user_ip_key]:
+                    user_ip = pending_data['properties'][admin.user_ip_key]
+                    if len(user_ip) - len(user_ip.replace('.','')) == 3:
+                        ip_is_good = get_addr(user_ip)[1] # to aviod internal ip address, double check ips are valid for city name lookup. such as avoid like QA_Client --> Internal Network --> QA_Server --> Internet --> Ghost_SA
+                        if ip_is_good == 1:
+                            req_info['ip'] = user_ip
+                            req_info['ip_city'],req_info['ip_is_good'] = get_addr(user_ip)
+                            req_info['ip_asn'],req_info['ip_asn_is_good'] = get_asn(user_ip)
+
+    return_json = {'00--IMPORTANT--INFORMATION--00':'ghost_sa的debug接口与神策官方功能有差异，\r不提供上报合法性判断，但无论上报正确与否，\r都会返回请求的全部信息，便于项目部署和二开。\r使用debug功能时，建议关闭debug模式，\r手动修改上报地址中的sa.gif为debug以获取更好的体验。\r更多信息可以看https://',\
+    '10_org_headers_0desc':'这部分是ghost收到的原始header，可以看到WAF，SLB等前序中间件对header的修改。',\
+    '10_org_headers_1data':headers,\
+    '20_org_ip_0desc':'这部分是ghost收到的原始ip。',\
+    '20_org_ip_1data':ip,\
+    '30_fix_headers_0desc':'这部分是经过ghost_sa处理的header结果，是入库数据的依据。',\
+    '30_fix_headers_1data':req_info,\
+    '40_org_args_0desc':'这部分是原始上报的url args。',\
+    '40_org_args_1data':org_args,\
+    '50_org_form_0desc':'这部分是原始上报的data form。',\
+    '50_org_form_1data':org_form,\
+    '60_org_json_0desc':'这部分时原始上报的raw-json数据',\
+    '60_org_json_1data':org_json,\
+    '70_org_data_decode_0desc':'这部分是从data部分解出来的埋点数据',\
+    '70_org_data_decode_1data':data_decode,\
+    '80_org_datas_decode_0desc':'这部分是从datas部分解出来的埋点数据',\
+    '80_org_datas_decode_1data':datas_decode\
+    }
+    import pprint
+    return pprint.pformat(return_json)
 
 def get_datas():
     try:
