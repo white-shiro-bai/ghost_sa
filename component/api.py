@@ -22,8 +22,8 @@ if admin.use_kafka is True:
     from component.kafka_op import insert_message_to_kafka
 import re
 from trigger import trigger
-from component.qrcode import gen_qrcode
-from component.url_tools import get_url_params,get_req_info,sa_decode
+from component.pic_tools import gen_qrcode,gen_text_img
+from component.url_tools import get_url_params,get_req_info,sa_decode,force_to_bool
 import hashlib
 from component.batch_send import batch_cache
 
@@ -108,7 +108,7 @@ def insert_data(project,data_decode,User_Agent,Host,Connection,Pragma,Cache_Cont
         insert_message_to_kafka(key=distinct_id ,msg=msg)
     print(time.time()-start_time)
 
-def get_data():
+def get_data(debug_mode = 'off' ):
     bitimage1 = os.path.join('image','43byte.gif')
     with open(bitimage1, 'rb') as f:
         returnimage = f.read()
@@ -147,6 +147,85 @@ def decode_sa_data():
         return jsonify({'decode':sa_decode(get_url_params('data'))})
     except:
         return '解码失败：\n'+get_url_params('data')
+
+def debug_datas():
+    return_json = {'00--IMPORTANT--INFORMATION--00':'ghost_sa的debug接口与神策官方功能有差异，\r不提供上报合法性判断，但无论上报正确与否，\r都会返回请求的全部信息，便于项目部署和二开。\r使用debug功能时，建议关闭debug模式，\r手动修改上报地址中的sa.gif为debug以获取更好的体验。\r更多信息可以看https://github.com/white-shiro-bai/ghost_sa/wiki/Debug%E6%A8%A1%E5%BC%8F%E7%9A%84%E6%94%AF%E6%8C%81%E5%92%8C%E5%8E%9F%E7%90%86。'}
+    if request.method == 'OPTIONS':
+        return 'OK'
+    project = request.args.get('project',None)
+    headers = {}
+    ip = request.remote_addr
+    for key, value in request.headers.items():
+        headers[key] = value
+    req_info = get_req_info()
+    org_form = {}
+    for key, value in request.form.items():
+        org_form[key] = value
+    org_args = {}
+    for key, value in request.args.items():
+        org_args[key] = value
+    org_json = {}
+    try:
+        org_json = request.json
+    except:
+        org_json = {}
+    play_load_str = ''
+    if 'text/plain' in request.headers.get('CONTENT-TYPE', ''):
+        play_load_str = request.data.decode('utf-8')
+    data_decode_single = {}
+    datas_decode = {}
+    pending_data_list_all = []
+    if get_url_params('data'):
+        data_decode_single = sa_decode(get_url_params('data'))
+        pending_data_list_all.append(sa_decode(get_url_params('data')))
+    if get_url_params('data_list'):
+        datas_decode = sa_decode(get_url_params('data_list'))
+        for data_decode in datas_decode:
+                pending_data_list_all.append(data_decode)
+    #增加入库功能
+    write = force_to_bool(get_url_params('dryrun',None))
+    if not write and 'Dry-Run' in headers:
+        write = force_to_bool(headers['Dry-Run'])
+    if not project:
+        return_json['01_result_0desc'] = '没有提供project参数'
+    if write and project:
+        for pending_data in pending_data_list_all:
+            if admin.user_ip_first is True:
+                if 'properties' in pending_data and admin.user_ip_key in pending_data['properties'] and pending_data['properties'][admin.user_ip_key]:
+                    user_ip = pending_data['properties'][admin.user_ip_key]
+                    if len(user_ip) - len(user_ip.replace('.','')) == 3:
+                        ip_is_good = get_addr(user_ip)[1] # to aviod internal ip address, double check ips are valid for city name lookup. such as avoid like QA_Client --> Internal Network --> QA_Server --> Internet --> Ghost_SA
+                        if ip_is_good == 1:
+                            req_info['ip'] = user_ip
+                            req_info['ip_city'],req_info['ip_is_good'] = get_addr(user_ip)
+                            req_info['ip_asn'],req_info['ip_asn_is_good'] = get_asn(user_ip)
+                            return_json['01_result_0desc'] = '使用埋点里上报的IP入库:' + user_ip
+            insert_data(project=project,data_decode=pending_data,User_Agent=req_info['User_Agent'],Host=req_info['Host'],Connection=req_info['Connection'],Pragma=req_info['Pragma'],Cache_Control=req_info['Cache_Control'],Accept=req_info['Accept'],Accept_Encoding=req_info['Accept_Encoding'],Accept_Language=req_info['Accept_Language'],ip=req_info['ip'],ip_city=req_info['ip_city'],ip_asn=req_info['ip_asn'],url=req_info['url'],referrer=req_info['referrer'],remark=req_info['remark'],ua_platform=req_info['ua_platform'],ua_browser=req_info['ua_browser'],ua_version=req_info['ua_version'],ua_language=req_info['ua_language'],ip_is_good=req_info['ip_is_good'],ip_asn_is_good=req_info['ip_asn_is_good'],use_kafka=False)
+    return_json['02_dryrun_0desc'] = '是否开启写入，debug模式默认不开启。如需写入，请按SDK方法开启写入，或在url上增加dryrun=true的参数。'
+    return_json['02_dryrun_1data'] = write
+    return_json['10_org_headers_0desc'] = '这部分是ghost收到的原始header，可以看到WAF，SLB等前序中间件对header的修改。'
+    return_json['10_org_headers_1data'] = headers
+    return_json['20_org_ip_0desc'] = '这部分是ghost收到的原始ip。'
+    return_json['20_org_ip_1data'] = ip
+    return_json['30_fix_headers_0desc'] = '这部分是经过ghost_sa处理的header结果，是入库数据的依据。'
+    return_json['30_fix_headers_1data'] = req_info
+    return_json['40_org_args_0desc'] = '这部分是原始上报的url args。'
+    return_json['40_org_args_1data'] = org_args
+    return_json['50_org_form_0desc'] = '这部分是原始上报的data form。'
+    return_json['50_org_form_1data'] = org_form
+    return_json['60_org_json_0desc'] = '这部分时原始上报的raw-json数据'
+    return_json['60_org_json_1data'] = org_json
+    return_json['70_org_raw_0desc'] = '这部分时原始上报的request.data'
+    return_json['70_org_raw_1data'] = play_load_str
+    return_json['80_org_data_decode_0desc'] = '这部分是从data部分解出来的埋点数据'
+    return_json['80_org_data_decode_1data'] = data_decode_single
+    return_json['90_org_datas_decode_0desc'] = '这部分是从datas部分解出来的埋点数据'
+    return_json['90_org_datas_decode_1data'] = datas_decode
+    import pprint
+    return_text = pprint.pformat(return_json)
+    if headers['Accept'] and headers['Accept'].find('image')>-1:
+        return Response(gen_text_img(return_text), mimetype="image/gif")
+    return return_text
 
 def get_datas():
     try:
