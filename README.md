@@ -167,10 +167,16 @@ https://space.bilibili.com/920446/channel/detail?cid=124583&utm_source=github&ut
 
 5.重启 /flash_main.py。后续再请求生成短链，就不依赖任何第三方接口了。如果仍然希望使用第三方接口生成短链，可以在 /component/shorturl.py 中添加。
 
-# 近期工作调整，没有太多时间开发，更新维护不会停的，但是顺序可能会有点变化。
+# Roadmap
+
+2024优先会开发两个功能：
+
+1.性能优化，可选内存缓存，减少update数量，提升幅度至少20倍。用一点点稳定性换大幅的性能提高。
+
+2.deeplink功能的开发，短链可以识别自己所在的环境，直接拉起app或小程序。
 
 
-重构2.0版本，可能延期
+其他功能也在排，陆续做
 
 计划合并部分 https://github.com/phillip2019/ghost_sa 代码：
 
@@ -178,13 +184,9 @@ https://space.bilibili.com/920446/channel/detail?cid=124583&utm_source=github&ut
 
 支持Hadoop，clickhouse等其他类型数据库
 
-计划改进：
-
 支持oCPC广告位管理分发功能，支持第三方回调及第三方监测（如秒针)，简单的效果管理，支持静默广告功能（如刷公众号，刷阅读量，刷SEO等）
 
 时间戳精度提高到16位
-
-可选内存缓存，减少update数量，提高性能
 
 ghost_console（管理端）功能补齐
 

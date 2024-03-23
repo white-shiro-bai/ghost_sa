@@ -2,7 +2,7 @@
  * @Date: 2024-02-10 14:09:45
  * @Author: unknowwhite@outlook.com
  * @WeChat: Ben_Xiaobai
- * @LastEditTime: 2024-03-17 16:54:04
+ * @LastEditTime: 2024-03-23 19:29:48
  * @FilePath: \ghost_sa_github_cgq\selftest\js_testtool.html
 -->
 <html>
@@ -15,11 +15,11 @@
             server_url: 'http://127.0.0.1:8000/sa.gif?project=test_me&remark=dev_ben_image_single',
             is_track_single_page: true, // 单页面配置，默认开启，若页面中有锚点设计，需要将该配置删除，否则触发锚点会多触发 $pageview 事件
             use_client_time: true,
-            send_type:'beacon', //这个地方与原版不同，没有采用beacon方式。因为不同的移动端对beacon的支持不一致
+            // send_type:'beacon', 
             // batch_send : true, 
             show_log : true,
-            debug_mode :true,
-            debug_mode_upload : true,
+            // debug_mode :true,
+            // debug_mode_upload : true,
             heatmap: {
                 //是否开启点击图，default 表示开启，自动采集 $WebClick 事件，可以设置 'not_collect' 表示关闭。
                 clickmap: 'default',

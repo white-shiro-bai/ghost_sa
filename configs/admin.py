@@ -3,7 +3,7 @@
 #Date: 2021-09-18 16:29:59
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-02-07 22:47:25
+#LastEditTime: 2024-03-23 19:30:36
 #FilePath: \ghost_sa_github_cgq\configs\admin.py
 #
 
@@ -35,6 +35,8 @@ serverless_system = 'RedHat' # this setting only effect 'tidb-serverless' mode,i
 
 ca_local = {'MacOS':'/etc/ssl/cert.pem','Debian':'/etc/ssl/certs/ca-certificates.crt','RedHat':'/etc/pki/tls/certs/ca-bundle.crt','Alpine':'/etc/ssl/cert.pem','OpenSUSE':'/etc/ssl/ca-bundle.pem','Windows':'cacert.pem'} 
 
+#pic_tools
+font = './fonts/NotoSerifCJKsc-Regular.otf' #Font file path for pic_tools.
 
 #Bot Identify
 bot_list = ['spider','googlebot','adsbot-google','baiduboxapp','bingpreview','bingbot'] # If there any string in User_Agent,the request will be set remark as 'spider' ,no matter what the original remark is . Maintain bot list in lower case.
