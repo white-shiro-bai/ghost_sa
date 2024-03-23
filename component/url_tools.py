@@ -3,7 +3,7 @@
 #Date: 2021-09-18 16:29:59
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-01-20 20:21:44
+#LastEditTime: 2024-03-23 15:19:35
 #FilePath: \ghost_sa_github_cgq\component\url_tools.py
 #
 import sys
@@ -29,6 +29,13 @@ def sa_decode(params):
         return pending_data
 
 
+def force_to_bool(key):
+    if any(pt == str(key).lower() for pt in ['true','yes','1','on']):
+        return True
+    elif any(pt == str(key).lower() for pt in ['false','no','0','off']):
+        return False
+    else:
+        return False
 
 def get_url_params(params,default=None,log_error=False):
     # Extract params from any type of request as possible as support. 
