@@ -223,7 +223,7 @@ def debug_datas():
     return_json['90_org_datas_decode_1data'] = datas_decode
     import pprint
     return_text = pprint.pformat(return_json)
-    if headers['Accept'] and headers['Accept'].find('image')>-1:
+    if 'Accept' in headers  and headers['Accept'].find('image')>-1:
         return Response(gen_text_img(return_text), mimetype="image/gif")
     return return_text
 
