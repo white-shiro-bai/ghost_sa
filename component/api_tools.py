@@ -393,7 +393,13 @@ class device_cache:
         self.start_time = int(time.time())
         self.check_mem_start = int(time.time())
         self.my_memory = 0
-        self.pending_data = {}
+        self.cached_data = {}
+        self.request_info = ['user_agent','accept_language','ip','ip_city','ip_is_good','ip_asn','ip_asn_is_good','ua_platform','ua_browser','ua_version','ua_language','updated_at']
+        self.device_properties_list = {'first':[]}
+        self.device_properties_list['fix'] = ['distinct_id']
+        self.device_properties_list['latest_properties'] = ['lib','device_id','manufacturer','model','os','os_version','ua_platform','ua_browser','ua_version','ua_language','screen_width','screen_height','network_type','user_agent','accept_language','ip','ip_city','ip_asn','wifi','app_version','carrier','referrer','referrer_host','bot_name','browser','browser_version','is_login_id','screen_orientation','gps_latitude','gps_longitude','latest_utm_campaign','latest_utm_medium','latest_utm_term','latest_utm_source','latest_referrer','latest_referrer_host','latest_search_keyword','latest_traffic_source_type','updated_at'],
+        if admin.device_update_mode in ['first_sight','latest_sight']:
+            self.device_properties_list['first'] = ['first_visit_time','first_referrer','first_referrer_host','first_browser_language','first_browser_charset','first_search_keyword','first_traffic_source_type','utm_content','utm_campaign','utm_medium','utm_term','utm_source','latest_utm_content','created_at']
 
     def check_mem(self):
         #check memory occupied.
@@ -413,60 +419,79 @@ class device_cache:
     def insert_device(self,project,data_decode,user_agent,accept_language,ip,ip_city,ip_is_good,ip_asn,ip_asn_is_good,ua_platform,ua_browser,ua_version,ua_language,created_at=None,updated_at=None):
         #this is class input
         #replace insert funcion from api_tools
-        self.insert_data_income = {'project':project,'data_decode':data_decode,'user_agent':user_agent,'accept_language':accept_language,'ip':ip,'ip_city':ip_city,'ip_asn':ip_asn,'ip_is_good':ip_is_good,'ip_asn_is_good':ip_asn_is_good,'ua_browser':ua_browser,'ua_platform':ua_platform,'ua_language':ua_language,'ua_version':ua_version,'created_at':created_at if created_at else int(time.time()),'updated_at':updated_at if created_at else int(time.time())}
-        distinct_status = self.check_distinct_id()
-        #force to insert into device if there is a brand new disticnt_id
-        if distinct_status == 'nowhere':
-            self.insert_device_data()
-        elif distinct_status in ('in_mem','in_device'):
-            self.traffic()
+        insert_data_income = {'project':project,'data_decode':data_decode,'user_agent':user_agent,'accept_language':accept_language,'ip':ip,'ip_city':ip_city,'ip_asn':ip_asn,'ip_is_good':ip_is_good,'ip_asn_is_good':ip_asn_is_good,'ua_browser':ua_browser,'ua_platform':ua_platform,'ua_language':ua_language,'ua_version':ua_version,'created_at':created_at if created_at else int(time.time()),'updated_at':updated_at if created_at else int(time.time())}
+        if 'distinct_id' in insert_data_income['data_decode'] and insert_data_income['data_decode']['distinct_id'] != '' and insert_data_income['project'] != '':
+            #这里要求了必须有distinct_id，所以后续步骤都不需要再判断，都假定distinct_id有值。
+            distinct_id = insert_data_income['data_decode']['distinct_id']
+            distinct_status = self.check_distinct_id(distinct_id=distinct_id,project=insert_data_income['project'])
+            #force to insert into device if there is a brand new disticnt_id
+            if distinct_status == 'nowhere':
+                self.insert_device_data(insert_data_income=insert_data_income)
+            elif distinct_status in ('in_mem','in_device'):
+                self._ram_traffic(insert_data_income=insert_data_income)
+        else:
+            return 'no_project_or_distinct_id'
 
 
-    def check_distinct_id(self):
-        if 'distinct_id' in self.insert_data_income['data_decode'] and self.insert_data_income['data_decode']['distinct_id'] != '':
-            #check ram first
-            if self.insert_data_income['project'] in self.pending_data and self.self.insert_data_income['data_decode']['distinct_id'] in self.pending_data[self.insert_data_income['project']]:
+    def check_distinct_id(self,distinct_id,project):
+        if project in self.cached_data and distinct_id in self.cached_data['project']:
                 #已经在缓存中，继续加缓存
                 return 'in_mem'
-            elif check_distinct_id_in_device(project=self.insert_data_income['project'],distinct_id=self.self.insert_data_income['data_decode']['distinct_id']) >= 1:
-                #检查是否在device表里已有
-                return 'in_device'
-            else:
-                return 'nowhere'
+        elif check_distinct_id_in_device(project=project,distinct_id=distinct_id) >= 1:
+            #检查是否在device表里已有
+            return 'in_device'
         else:
-            return 'no_distinct_id'
+            return 'nowhere'
 
 
-    def traffic(self):
+    def _ram_traffic(self,insert_data_income):
         #create and update pending insert data to ram data after check distinct_id is already in device table.
-        if self.insert_data_income['project'] not in self.pending_data :
-            self.pending_data[self.insert_data_income['project']] = {}
-        if self.insert_data_income['data_decode']['distinct_id'] not in self.pending_data[self.pending_data[self.insert_data_income['project']]]:
-            self.pending_data[self.insert_data_income['project']][self.insert_data_income['data_decode']['distinct_id']] = {}
+        if insert_data_income['project'] not in self.cached_data :
+            self.cached_data[self.insert_data_income['project']] = {}
+        if insert_data_income['data_decode']['distinct_id'] not in self.cached_data[insert_data_income['project']]:
+            self.cached_data[insert_data_income['project']][insert_data_income['data_decode']['distinct_id']] = {}
         #if there is not distinct_id in ram,init it before update
-        self.update_ram()
+        self.update_ram(insert_data_income=insert_data_income)
         #check throller and trans to db.
         if self.check_mem < admin.combine_device_memory :
             pass
         else:
             #dump memory
             pass
-        
-    def update_ram(self):
-        decode_list = ['user_agent','accept_language','ip','ip_city','ip_is_good','ip_asn','ip_asn_is_good','ua_platform','ua_browser','ua_version','ua_language','updated_at']
-        device_properties_list = {
-            'fix':['distinct_id'],
-            'latest_lib':['lib'],
-            'latest_properties':['lib','device_id','manufacturer','model','os','os_version','ua_platform','ua_browser','ua_version','ua_language','screen_width','screen_height','network_type','user_agent','accept_language','ip','ip_city','ip_asn','wifi','app_version','carrier','referrer','referrer_host','bot_name','browser','browser_version','is_login_id','screen_orientation','gps_latitude','gps_longitude','latest_utm_campaign','latest_utm_medium','latest_utm_term','latest_utm_source','latest_referrer','latest_referrer_host','latest_search_keyword','latest_traffic_source_type','updated_at'],
-            'first':['first_visit_time','first_referrer','first_referrer_host','first_browser_language','first_browser_charset','first_search_keyword','first_traffic_source_type','utm_content','utm_campaign','utm_medium','utm_term','utm_source','latest_utm_content','created_at']
-            }
-        for decode_item in decode_list:
-            if decode_item not in self.pending_data[self.insert_project][self.insert_data_decode['distinct_id']] or self.insert_data_decode[decode_item] != '' :
-                self.pending_data[self.insert_project][self.insert_data_decode['distinct_id']][decode_item] = self.insert_data_decode[decode_item]
-        if 'created_at' not in self.pending_data[self.insert_project][self.insert_data_decode['distinct_id']] or self.insert_data_decode['created_at'] < self.pending_data[self.insert_project][self.insert_data_decode['distinct_id']]['created_at'] :
-            self.pending_data[self.insert_project][self.insert_data_decode['distinct_id']]['created_at'] = self.insert_data_decode['created_at']
+
+
+    def update_ram(self,insert_data_income):
+        #判断每一个直接在request_info里带过来的原始数据
+        update_value = {}
+        for info_item in self.request_info:
+            #当这个值有效时，再进行操作
+            if info_item in insert_data_income and insert_data_income[info_item] != '':
+                #当updated_at 时间小于当前缓存中的时间时，跳过单次循环，不写入更新时间，用来判断这条数据比缓存中的其他数据旧，只有需要补充字段内容的时候，才会使用这条数据。
+                if info_item == 'updated_at' and 'updated_at' in self.cached_data[insert_data_income['project']][insert_data_income['data_decode']['distinct_id']] and insert_data_income[info_item] < self.cached_data[insert_data_income['project']][insert_data_income['data_decode']['distinct_id']]['updated_at']:
+                    continue
+                #不是updated_at的字段正常写入
+                update_value[info_item]=insert_data_income[info_item]
+        properties = insert_data_income['data_decode']['properties'] if 'properties' in insert_data_income['data_decode'] and insert_data_income['data_decode']['properties'] != '' else None
+        #处理以新为主的数据
+        for decode_item in self.device_properties_list['latest_properties']:
+            if '$'+decode_item in properties and properties['$'+decode_item] != '':
+                
+
+
+
+
+
+
+                self.cached_data[insert_data_income['project']][insert_data_income['data_decode']['distinct_id']][info_item] = self.insert_data_income[info_item]
+
+if info_item not in self.cached_data[insert_data_income['project']][insert_data_income['data_decode']['distinct_id']] and 
+
+
+
+        if 'created_at' not in self.cached_data[self.insert_project][self.insert_data_decode['distinct_id']] or self.insert_data_decode['created_at'] < self.cached_data[self.insert_project][self.insert_data_decode['distinct_id']]['created_at'] :
+            self.cached_data[self.insert_project][self.insert_data_decode['distinct_id']]['created_at'] = self.insert_data_decode['created_at']
         for latest in device_properties_list['latest_properties']:
-            if latest not in self.pending_data
+            if latest not in self.cached_data
 
 
 

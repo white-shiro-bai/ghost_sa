@@ -3,21 +3,6 @@
 #Date: 2021-09-18 16:29:59
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#LastEditTime: 2022-10-22 17:30:52
-=======
-#LastEditTime: 2023-07-23 15:35:15
->>>>>>> master
-=======
-#LastEditTime: 2024-02-07 22:47:25
->>>>>>> master
-=======
-#LastEditTime: 2024-03-23 19:30:36
->>>>>>> master
-#FilePath: \ghost_sa_github_cgq\configs\admin.py
-#
 
 #batch_send_deduplication
 batch_send_deduplication_mode = 'consumer' #skip same track_id ,distinct_id , lib , all_json['time'] data insert into event table in max_timeout. default
@@ -64,9 +49,8 @@ combine_device_max_memory_gap = 30 #frequency what memory occupied chech. defaul
 combine_device_max_window = 300 #unit seconds。default is 300(every 5 minutes). Force insert device table after window since last insert if max_memory or gap not trigger insert.
 combine_device_max_distinct_id = 1000 #unit keys. default is 1000.if cached distinct id reach the limit , insert all cache into table first.
 combine_device_multiple_threads = 6 # insert treads. between 2 and 9 is good depend on your database performance.Data insert have retry times to avoid data lost when database busy or connection unstable, 1 is not a good idea at lock table , only 1 thread with retry function can jam the process on a single lock.
-=======
+
 bot_override = True # allow insert into event table with specific remark if no_bot=admin_password otherwise remark force to spider. 
->>>>>>> master
 
 # 身份识别
 who_am_i = 'ghost_sa' #向外发送回调请求时的UA识别
@@ -83,10 +67,22 @@ admin_do_not_track_code = 'dntmode' #cdn模式不参与记录密码
 use_kafka = True #True时，数据写入kafka。False时，直接插入数据库
 consumer_workers = 9 #使用kafka时，消费者的数量。标准部署tidb，9个效果比较好。请根据数据库压力调节。不是越大越好。
 
+#Performance and Feature
+
+fast_mode = 'fast' # 'original','fast','boost'。original mode is start from ghost_sa earliest version, update all data in db tables. fast mode is use memory to cache data, and update data into db tables. boost mode write data like fast mode, but close all trys to enhance performance, it fastest but may cause data lost at abnormal data collection request.
 
 # 是否开启properties表
-
 use_properties = False #True时，会插入properties表，这个表不是必须的，只是方便提取数据时快速找到埋点里包含的变量。
+
+#Device Table
+device_source_update_mode = 'restrict' #'restrict','first_sight','latest_sight'。this setting control device first source column update mode .
+# 'restrict' mode is limit update device table only when the row insert first time no matter value , it suite for a brand new project,restrict mode will log the real first source.
+# 'first_sight' mode is update device table when the column is empty and income data is valued ,it useful to patch all source , it is the default mode of 2.0 ghost_sa .
+# 'latest_sight' mode is update column no matter the status when income data is valued, it the mode of 1.0 ghost_sa.
+
+# device_latest_info_update_mode = 'restrict' #'restrict','latest_sight'。this setting control device latest info column update mode .
+# # 'restrict' mode is limit update device table only when the row insert first time no matter value , it suite for a brand new project,restrict mode will log the real latest info.
+
 
 #IP地址转化
 #IP_Address dictionary
