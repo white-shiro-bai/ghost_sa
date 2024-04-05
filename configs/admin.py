@@ -37,7 +37,18 @@ font = './fonts/NotoSerifCJKsc-Regular.otf' #Font file path for pic_tools.
 
 #Bot Identify
 bot_list = ['spider','googlebot','adsbot-google','baiduboxapp','bingpreview','bingbot'] # If there any string in User_Agent,the request will be set remark as 'spider' ,no matter what the original remark is . Maintain bot list in lower case.
-<<<<<<< HEAD
+
+
+
+#Device Table
+device_source_update_mode = 'restrict' #'restrict','first_sight','latest_sight'。this setting control device first source column update mode .
+# 'restrict' mode is limit update device table only when the row insert first time no matter value , it suite for a brand new project,restrict mode will log the real first source.
+# 'first_sight' mode is update device table when the column is empty and income data is valued ,it useful to patch all source , it is the default mode of 2.0 ghost_sa .
+# 'latest_sight' mode is update column no matter the status when income data is valued, it the mode of 1.0 ghost_sa.
+
+device_latest_info_update_mode = 'restrict' #'restrict','latest_sight'。this setting control device latest info column update mode .
+# 'restrict' mode is limit update device table latest column only when the source is real latest data 
+# 'latest_sight' mode is update latest cloumn as latest_sight if newer data is blank.
 
 #Info skip
 unrecognized_info_skip = ['url的domain解析失败','取值异常','未取到值,直接打开','未取到值','未取到值_非http的url','取值异常_referrer异常_','hostname解析异常','未知搜索引擎', 'url_host取值异常','获取url异常','url解析失败'] #unrecognized utm and other info list. Utm and info will update to {project}_device if they not in this list.
@@ -74,14 +85,7 @@ fast_mode = 'fast' # 'original','fast','boost'。original mode is start from gho
 # 是否开启properties表
 use_properties = False #True时，会插入properties表，这个表不是必须的，只是方便提取数据时快速找到埋点里包含的变量。
 
-#Device Table
-device_source_update_mode = 'restrict' #'restrict','first_sight','latest_sight'。this setting control device first source column update mode .
-# 'restrict' mode is limit update device table only when the row insert first time no matter value , it suite for a brand new project,restrict mode will log the real first source.
-# 'first_sight' mode is update device table when the column is empty and income data is valued ,it useful to patch all source , it is the default mode of 2.0 ghost_sa .
-# 'latest_sight' mode is update column no matter the status when income data is valued, it the mode of 1.0 ghost_sa.
 
-# device_latest_info_update_mode = 'restrict' #'restrict','latest_sight'。this setting control device latest info column update mode .
-# # 'restrict' mode is limit update device table only when the row insert first time no matter value , it suite for a brand new project,restrict mode will log the real latest info.
 
 
 #IP地址转化
