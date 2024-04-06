@@ -51,7 +51,7 @@ device_latest_info_update_mode = 'restrict' #'restrict','latest_sight'。this se
 # 'latest_sight' mode is update latest cloumn as latest_sight if newer data is blank.
 
 #Info skip
-unrecognized_info_skip = ['url的domain解析失败','取值异常','未取到值,直接打开','未取到值','未取到值_非http的url','取值异常_referrer异常_','hostname解析异常','未知搜索引擎', 'url_host取值异常','获取url异常','url解析失败'] #unrecognized utm and other info list. Utm and info will update to {project}_device if they not in this list.
+unrecognized_info_skip = ['url的domain解析失败','取值异常','未取到值,直接打开','未取到值','未取到值_非http的url','取值异常_referrer异常_','hostname解析异常','未知搜索引擎', 'url_host取值异常','获取url异常','url解析失败','NULL','Null','null','None'] #unrecognized utm and other info list. Utm and info will update to {project}_device if they not in this list.
 
 #Performance Enchance
 combine_device_type = 'original' # 'original' mode is fit for tidb , every event can update device table. As the reason original mode leads a low performance in None tidb environment , but it provide a stateless compatibility. 'memcache_once' mode use memory to cache device update and combine the same info except update time,finally each distinct_id have a row.'memcache_session' mode use memory to cache device update with a session id and detect idle time,data will be insert to device table with session id which each session have a row.

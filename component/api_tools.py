@@ -396,10 +396,10 @@ class device_cache:
         self.cached_data = {}
         self.request_info = ['user_agent','accept_language','ip','ip_city','ip_is_good','ip_asn','ip_asn_is_good','ua_platform','ua_browser','ua_version','ua_language','updated_at']
         self.device_properties_list = {'first':[]}
-        self.device_properties_list['fix'] = ['distinct_id']
-        self.device_properties_list['latest_properties'] = ['lib','device_id','manufacturer','model','os','os_version','ua_platform','ua_browser','ua_version','ua_language','screen_width','screen_height','network_type','user_agent','accept_language','ip','ip_city','ip_asn','wifi','app_version','carrier','referrer','referrer_host','bot_name','browser','browser_version','is_login_id','screen_orientation','gps_latitude','gps_longitude','latest_utm_campaign','latest_utm_medium','latest_utm_term','latest_utm_source','latest_referrer','latest_referrer_host','latest_search_keyword','latest_traffic_source_type','updated_at'],
+        self.device_properties_list['fix'] = ['distinct_id','project']
+        self.device_properties_list['latest_properties'] = ['lib','device_id','manufacturer','model','os','os_version','ua_platform','ua_browser','ua_version','ua_language','screen_width','screen_height','network_type','user_agent','accept_language','wifi','app_version','carrier','bot_name','browser','browser_version','is_login_id','screen_orientation','latitude','longitude','referrer','referrer_host','latest_utm_campaign','latest_utm_medium','latest_utm_term','latest_utm_source','latest_utm_content','latest_referrer','latest_referrer_host','latest_search_keyword','latest_traffic_source_type','updated_at'],
         if admin.device_source_update_mode in ['first_sight','latest_sight']:
-            self.device_properties_list['first'] = ['first_visit_time','first_referrer','first_referrer_host','first_browser_language','first_browser_charset','first_search_keyword','first_traffic_source_type','utm_content','utm_campaign','utm_medium','utm_term','utm_source','latest_utm_content','created_at']
+            self.device_properties_list['first'] = ['first_visit_time','first_referrer','first_referrer_host','first_browser_language','first_browser_charset','first_search_keyword','first_traffic_source_type','utm_content','utm_campaign','utm_medium','utm_term','utm_source','created_at']
 
     def check_mem(self):
         #check memory occupied.
@@ -410,37 +410,61 @@ class device_cache:
             self.check_mem_start = int(time.time())
             return self.my_memory
 
-    def etl(self):
+    def _etl(self,insert_data_income):
         #insertdata to ramdate.
+        #这里统一把device表不需要的空值和错值都去掉了。后续操作就不需要判断空值了
+        etld = {}
+        etld['project'] = insert_data_income['project']
+        etld['distinct_id'] = insert_data_income['data_decode']['distinct_id']
+        for info_item in self.request_info:
+            if info_item in insert_data_income and insert_data_income[info_item] and insert_data_income[info_item] != '':
+                etld[info_item]=insert_data_income[info_item]
+        properties = insert_data_income['data_decode']['properties'] if 'properties' in insert_data_income['data_decode'] and insert_data_income['data_decode']['properties'] != '' else None
+        for decode_item in self.device_properties_list['latest_properties']:
+            if '$'+decode_item in properties and properties['$'+decode_item] and properties['$'+decode_item] != '':
+                etld[decode_item] = properties['$'+decode_item]
+        if 'lib' not in etld :
+            if 'lib' in insert_data_income['data_decode'] and '$lib' in insert_data_income['data_decode']['lib'] and insert_data_income['data_decode']['lib']['$lib'] != '':
+                etld['lib'] = insert_data_income['data_decode']['lib']['$lib']
+        for first_item in self.device_properties_list['first']:
+            if '$'+first_item in properties and properties['$'+first_item] and properties['$'+first_item] != '':
+                etld[first_item] = properties['$'+first_item]
+        for item in etld:
+            if etld[item] in admin.unrecognized_info_skip:
+                del etld[item]
+        return etld
         
 
-    def insert_device_data(self,project,distinct_id,device_id,manufacturer,model,os,os_version,screen_width,screen_height,network_type,user_agent,accept_language,ip,ip_city,ip_asn,wifistr,app_version,carrier,referrer,referrer_host,bot_name,browser,browser_version,is_login_idstr,screen_orientation,gps_latitude,gps_longitude,first_visit_time,first_referrer,first_referrer_host,first_browser_language,first_browser_charset,first_search_keyword,first_traffic_source_type,utm_content,utm_campaign,utm_medium,utm_term,utm_source,latest_utm_content,latest_utm_campaign,latest_utm_medium,latest_utm_term,latest_utm_source,latest_referrer,latest_referrer_host,latest_search_keyword,latest_traffic_source_type,update_content,ua_platform,ua_browser,ua_version,ua_language,lib,created_at,updated_at):
-        #insert data into db
-        count = insert_devicedb(table=project,distinct_id=distinct_id,device_id=device_id,manufacturer=manufacturer,model=model,os=os,os_version=os_version,screen_width=screen_width,screen_height=screen_height,network_type=network_type,user_agent=user_agent,accept_language=accept_language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,wifi=wifistr,app_version=app_version,carrier=carrier,referrer=referrer,referrer_host=referrer_host,bot_name=bot_name,browser=browser,browser_version=browser_version,is_login_id=is_login_idstr,screen_orientation=screen_orientation,gps_latitude=gps_latitude,gps_longitude=gps_longitude,first_visit_time=first_visit_time,first_referrer=first_referrer,first_referrer_host=first_referrer_host,first_browser_language=first_browser_language,first_browser_charset=first_browser_charset,first_search_keyword=first_search_keyword,first_traffic_source_type=first_traffic_source_type,utm_content=utm_content,utm_campaign=utm_campaign,utm_medium=utm_medium,utm_term=utm_term,utm_source=utm_source,latest_utm_content=latest_utm_content,latest_utm_campaign=latest_utm_campaign,latest_utm_medium=latest_utm_medium,latest_utm_term=latest_utm_term,latest_utm_source=latest_utm_source,latest_referrer=latest_referrer,latest_referrer_host=latest_referrer_host,latest_search_keyword=latest_search_keyword,latest_traffic_source_type=latest_traffic_source_type,update_content=update_content,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,lib=lib,created_at=created_at,updated_at=updated_at)
-        print('插入或更新device'+str(count)+'条')
 
     def insert_device(self,project,data_decode,user_agent,accept_language,ip,ip_city,ip_is_good,ip_asn,ip_asn_is_good,ua_platform,ua_browser,ua_version,ua_language,created_at=None,updated_at=None):
         #this is class input
         #replace insert funcion from api_tools
-        insert_data_income = {'project':project,'data_decode':data_decode,'user_agent':user_agent,'accept_language':accept_language,'ip':ip,'ip_city':ip_city,'ip_asn':ip_asn,'ip_is_good':ip_is_good,'ip_asn_is_good':ip_asn_is_good,'ua_browser':ua_browser,'ua_platform':ua_platform,'ua_language':ua_language,'ua_version':ua_version,'created_at':created_at if created_at else int(time.time()),'updated_at':updated_at if created_at else int(time.time())}
-        #delete unrecognized info to keep null value in device_table.
-        if 'properties' in insert_data_income['data_decode'] and insert_data_income['data_decode']['properties'] != ''
-            for properties_key in insert_data_income['data_decode']['properties']:
-                if insert_data_income['data_decode']['properties'][properties_key] in admin.unrecognized_info_skip:
-                    del insert_data_income['data_decode']['properties'][properties_key]
+        insert_data_income = {'project':project,'data_decode':data_decode,'user_agent':user_agent,'accept_language':accept_language,'ip':ip,'ip_city':ip_city,'ip_asn':ip_asn,'ip_is_good':ip_is_good,'ip_asn_is_good':ip_asn_is_good,'ua_browser':ua_browser,'ua_platform':ua_platform,'ua_language':ua_language,'ua_version':ua_version,'created_at':created_at if created_at else int(time.time()),'updated_at':updated_at if updated_at else int(time.time())}
         #这里要求了必须有distinct_id，所以后续步骤都不需要再判断，都假定distinct_id有值。
         if 'distinct_id' in insert_data_income['data_decode'] and insert_data_income['data_decode']['distinct_id'] != '' and insert_data_income['project'] != '':
-            distinct_id = insert_data_income['data_decode']['distinct_id']
-            distinct_status = self.check_distinct_id(distinct_id=distinct_id,project=insert_data_income['project'])
+            etld_data = self._etl(insert_data_income=insert_data_income)
+            distinct_status = self.check_distinct_id(project=etld_data['project'],distinct_id=etld_data['distinct_id'])
             #force to insert into device if there is a brand new disticnt_id
             if distinct_status == 'nowhere':
-                self.insert_device_data(insert_data_income=insert_data_income)
+                self.insert_device_data(etld_data=etld_data)
             elif distinct_status in ('in_mem','in_device'):
-                self._ram_traffic(insert_data_income=insert_data_income)
+                self._ram_traffic(etld_data=etld_data)
         else:
             return 'no_project_or_distinct_id'
 
+    def insert_device_data(self,etld_data):
+        for item in etld_data:
+            if item not in ['distinct_id','project']:
+                if item in self.device_properties_list['first'] and admin.device_source_update_mode in ['first_sight','latest_sight']:
+                    update_content = update_content +''',{item}=if({item} is null,%(item)s,null)'''.format(item=item)
+        gps_latitude=latitude
+        gps_longitude=longitude
+        #insert data into db
+        count = insert_devicedb(table=project,distinct_id=distinct_id,device_id=device_id,manufacturer=manufacturer,model=model,os=os,os_version=os_version,screen_width=screen_width,screen_height=screen_height,network_type=network_type,user_agent=user_agent,accept_language=accept_language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,wifi=wifistr,app_version=app_version,carrier=carrier,referrer=referrer,referrer_host=referrer_host,bot_name=bot_name,browser=browser,browser_version=browser_version,is_login_id=is_login_idstr,screen_orientation=screen_orientation,gps_latitude=gps_latitude,gps_longitude=gps_longitude,first_visit_time=first_visit_time,first_referrer=first_referrer,first_referrer_host=first_referrer_host,first_browser_language=first_browser_language,first_browser_charset=first_browser_charset,first_search_keyword=first_search_keyword,first_traffic_source_type=first_traffic_source_type,utm_content=utm_content,utm_campaign=utm_campaign,utm_medium=utm_medium,utm_term=utm_term,utm_source=utm_source,latest_utm_content=latest_utm_content,latest_utm_campaign=latest_utm_campaign,latest_utm_medium=latest_utm_medium,latest_utm_term=latest_utm_term,latest_utm_source=latest_utm_source,latest_referrer=latest_referrer,latest_referrer_host=latest_referrer_host,latest_search_keyword=latest_search_keyword,latest_traffic_source_type=latest_traffic_source_type,update_content=update_content,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,lib=lib,created_at=created_at,updated_at=updated_at)
+        print('插入或更新device'+str(count)+'条')
+
     def _update_device(self,project,distinct_id,data):
+
         pass
 
     def check_distinct_id(self,distinct_id,project):
@@ -454,14 +478,14 @@ class device_cache:
             return 'nowhere'
 
 
-    def _ram_traffic(self,insert_data_income):
+    def _ram_traffic(self,etld_data):
         #create and update pending insert data to ram data after check distinct_id is already in device table.
-        if insert_data_income['project'] not in self.cached_data :
-            self.cached_data[self.insert_data_income['project']] = {}
-        if insert_data_income['data_decode']['distinct_id'] not in self.cached_data[insert_data_income['project']]:
-            self.cached_data[insert_data_income['project']][insert_data_income['data_decode']['distinct_id']] = {}
+        if etld_data['project'] not in self.cached_data :
+            self.cached_data[etld_data['project']] = {}
+        if etld_data['distinct_id'] not in self.cached_data[etld_data['project']]:
+            self.cached_data[etld_data['project']][etld_data['distinct_id']] = {}
         #if there is not distinct_id in ram,init it before update
-        self._update_ram(insert_data_income=insert_data_income)
+        self._update_ram(etld_data=etld_data)
         #check throller and trans to db.
         if self.check_mem < admin.combine_device_memory :
             self.dump()
@@ -470,61 +494,46 @@ class device_cache:
             pass
 
 
-    def _update_ram(self,insert_data_income):
+    def _update_ram(self,etld_data):
         #判断每一个直接在request_info里带过来的原始数据
-        update_value = {}
-        for info_item in self.request_info:
-            #当这个值有效时，再进行操作
-            if info_item in insert_data_income and insert_data_income[info_item] != '':
-                #当updated_at 时间小于当前缓存中的时间时，跳过单次循环，不写入更新时间，用来判断这条数据比缓存中的其他数据旧，只有需要补充字段内容的时候，才会使用这条数据。
-                if info_item == 'updated_at' and 'updated_at' in self.cached_data[insert_data_income['project']][insert_data_income['data_decode']['distinct_id']] and insert_data_income[info_item] < self.cached_data[insert_data_income['project']][insert_data_income['data_decode']['distinct_id']]['updated_at']:
-                    continue
-                #不是updated_at的字段正常写入
-                update_value[info_item]=insert_data_income[info_item]
-        properties = insert_data_income['data_decode']['properties'] if 'properties' in insert_data_income['data_decode'] and insert_data_income['data_decode']['properties'] != '' else None
-        #处理以新为主的数据
-        for decode_item in self.device_properties_list['latest_properties']:
-            if '$'+decode_item in properties and properties['$'+decode_item] != '':
-                update_value[decode_item] = properties['$'+decode_item]
-        #patch lib if not in properties.
-        if 'lib' not in update_value :
-            if 'lib' in insert_data_income['data_decode'] and '$lib' in insert_data_income['data_decode']['lib'] and insert_data_income['data_decode']['lib']['$lib'] != '':
-                update_value['lib'] = insert_data_income['data_decode']['lib']['$lib']
-        if 'updated_at' in update_value:
+        # update_value = {}
+
+        if 'updated_at' in self.cached_data[etld_data['project']][etld_data['distinct_id']] and self.cached_data[etld_data['project']][etld_data['distinct_id']]['updated_at'] < etld_data['updated_at']:
             #日期比较新的情况，处理以新为主的数据
-            for latest_item in update_value:
-                if latest_item not in self.cached_data[insert_data_income['project']][insert_data_income['data_decode']['distinct_id']] or update_value[latest_item] != self.cached_data[insert_data_income['project']][insert_data_income['data_decode']['distinct_id']][latest_item]:
-                    #把最后信息状态写入缓存
-                    self.cached_data[insert_data_income['project']][insert_data_income['data_decode']['distinct_id']][latest_item] = update_value[latest_item]
+            #处理以新为主的数据
+            for info_item in self.request_info:
+                self.cached_data[etld_data['project']][etld_data['distinct_id']][info_item] = etld_data[info_item]
+            for decode_item in self.device_properties_list['latest_properties']:
+                    self.cached_data[etld_data['project']][etld_data['distinct_id']][decode_item] = etld_data[decode_item]
             #处理以初次为主的数据，这里只处理有的就可以，因为在init里判断了，如果是严格模式，first列表不会初始化
             for first_item in self.device_properties_list['first']:
-                if '$'+first_item in properties and first_item not in self.cached_data[insert_data_income['project']][insert_data_income['data_decode']['distinct_id']]:
+                if first_item in etld_data and first_item not in self.cached_data[etld_data['project']][etld_data['distinct_id']]:
                     #把最后信息状态写入缓存
-                    self.cached_data[insert_data_income['project']][insert_data_income['data_decode']['distinct_id']][first_item] = update_value['$'+first_item]
+                    self.cached_data[etld_data['project']][etld_data['distinct_id']][first_item] = etld_data[first_item]
         else:
             #日期比较旧的情况，且最后一次的更新模式是以最后一次感知到为准，则更新。
             if admin.device_latest_info_update_mode =='latest_sight':
-                for latest_item in update_value:
-                    if latest_item not in self.cached_data[insert_data_income['project']][insert_data_income['data_decode']['distinct_id']]:
+                for latest_item in self.device_properties_list['latest_properties']:
+                    if latest_item not in self.cached_data[etld_data['project']][etld_data['distinct_id']] and latest_item in etld_data:
                         #把最后信息状态写入缓存
-                        self.cached_data[insert_data_income['project']][insert_data_income['data_decode']['distinct_id']][latest_item] = update_value[latest_item]
+                        self.cached_data[etld_data['project']][etld_data['distinct_id']][latest_item] = etld_data[latest_item]
             #第一次的数据，如果比现存的更早，则更新。
-            if 'created_at' in insert_data_income and insert_data_income['created_at'] and 'created_at' in self.cached_data[insert_data_income['project']][insert_data_income['data_decode']['distinct_id']] and self.cached_data[insert_data_income['project']][insert_data_income['data_decode']['distinct_id']]['created_at'] > insert_data_income['created_at']:
+            if 'created_at' in etld_data and etld_data['created_at'] and 'created_at' in self.cached_data[etld_data['project']][etld_data['distinct_id']] and self.cached_data[etld_data['project']][etld_data['distinct_id']]['created_at'] > etld_data['created_at']:
                 #更新created_at到更早的时间
-                self.cached_data[insert_data_income['project']][insert_data_income['data_decode']['distinct_id']]['created_at'] = insert_data_income['created_at']
+                self.cached_data[etld_data['project']][etld_data['distinct_id']]['created_at'] = etld_data['created_at']
                 for first_item in self.device_properties_list['first']:
-                    if '$'+first_item in properties and (first_item not in self.cached_data[insert_data_income['project']][insert_data_income['data_decode']['distinct_id']] or self.cached_data[insert_data_income['project']][insert_data_income['data_decode']['distinct_id']][first_item] != update_value['$'+first_item]):
+                    if first_item in etld_data and (first_item not in self.cached_data[etld_data['project']][etld_data['distinct_id']] or self.cached_data[etld_data['project']][etld_data['distinct_id']][first_item] != etld_data[first_item]):
                         #把最后信息状态写入缓存
-                        self.cached_data[insert_data_income['project']][insert_data_income['data_decode']['distinct_id']][first_item] = update_value['$'+first_item]
+                        self.cached_data[etld_data['project']][etld_data['distinct_id']][first_item] = etld_data[first_item]
             #如果不比现在的更早，则根据admin.device_source_update_mode来判断是否更新。
             else:
                 #如果更早拿不到数据，但仍然保持以最早感知到的为准。则更新。
                 #这里判断的最早感知，是没错的。在实际数据中，大概率是发生在没有更早的有效信息了。如果是以最后感知到的为准，会在上面updated_at的环节就写入，然后在从ram-->db的过程中判断。
                 if admin.device_source_update_mode == 'first_sight':
                     for first_item in self.device_properties_list['first']:
-                        if '$'+first_item in properties and first_item not in self.cached_data[insert_data_income['project']][insert_data_income['data_decode']['distinct_id']]:
+                        if first_item in etld_data and first_item not in self.cached_data[etld_data['project']][etld_data['distinct_id']]:
                         #把最后信息状态写入缓存
-                            self.cached_data[insert_data_income['project']][insert_data_income['data_decode']['distinct_id']][first_item] = update_value['$'+first_item]
+                            self.cached_data[etld_data['project']][etld_data['distinct_id']][first_item] = etld_data[first_item]
 
 
     def dump(self):
