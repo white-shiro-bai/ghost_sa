@@ -3,7 +3,7 @@
 #Date: 2021-09-18 16:29:59
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-03-23 15:19:35
+#LastEditTime: 2024-04-13 17:06:15
 #FilePath: \ghost_sa_github_cgq\component\url_tools.py
 #
 import sys
@@ -36,6 +36,22 @@ def force_to_bool(key):
         return False
     else:
         return False
+
+def bool_to_str(key):
+    if isinstance(key,bool):
+        if key is True:
+            return 'True'
+        elif key is False:
+            return 'False'
+    elif isinstance(key,str):
+        if key.lower() in ['true','yes','1','on']:
+            return 'True'
+        elif key.lower() in ['false','no','0','off']:
+            return 'False'
+        else:
+            return None
+    else:
+        return None
 
 def get_url_params(params,default=None,log_error=False):
     # Extract params from any type of request as possible as support. 

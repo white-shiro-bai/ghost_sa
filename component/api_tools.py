@@ -10,13 +10,13 @@ from component.db_func import insert_devicedb,insert_user_db,find_recall_url,ins
 from component.api_req import get_json_from_api
 from configs import admin
 import urllib.parse
-import base64
 import json
 import traceback
 from configs.export import write_to_log
 from component.public_value import get_time_array_from_nlp,get_time_str
 import time
 import hashlib
+from url_tools import bool_to_str
 
 def get_properties_value(name,data_decode):
     if '$'+name in data_decode['properties']:
@@ -73,148 +73,148 @@ def insert_user(project,data_decode,created_at=None):
         write_to_log(filename='api_tools',defname='insert_user',result=error)
 
 
-def insert_device(project,data_decode,user_agent,accept_language,ip,ip_city,ip_is_good,ip_asn,ip_asn_is_good,ua_platform,ua_browser,ua_version,ua_language,created_at=None,updated_at=None):
-    try:
-        lib = None
-        if 'lib' in data_decode:
-            if '$lib' in data_decode['lib']:
-                lib = data_decode['lib']['$lib']
-        elif 'properties' in data_decode:
-            if '$lib' in data_decode['properties']:
-                lib = data_decode['properties']['$lib']
-        distinct_id = data_decode['distinct_id']
-        decode_values = ['device_id','manufacturer','model','os','os_version','screen_width','screen_height','network_type','is_first_day','is_first_time','wifi','app_version','carrier','referrer','referrer_host','bot_name','browser','browser_version','is_login_id','screen_orientation','latitude','longitude','utm_content','utm_campaign','utm_medium','utm_term','utm_source','latest_utm_content','latest_utm_campaign','latest_utm_medium','latest_utm_term','latest_utm_source','latest_referrer','latest_referrer_host','latest_search_keyword','latest_traffic_source_type','first_visit_time','first_referrer','first_referrer_host','first_browser_language','first_browser_charset','first_search_keyword','first_traffic_source_type']
-        createVar = globals()
-        for decode_value in decode_values:
-            createVar[decode_value] = get_properties_value(name=decode_value,data_decode=data_decode)
-        update_content=''
-    #修改可能出错的空值
-        if ip_is_good ==0:
-            ip_city = '{}'
-        elif ip_is_good ==1:
-            update_content = update_content +',ip_city=%(ip_city)s'
-        if ip_asn_is_good ==0:
-            ip_asn = '{}'
-        elif ip_asn_is_good ==1:
-            update_content = update_content +',ip_asn=%(ip_asn)s'
-        if wifi == True:
-            wifistr = 'True'
-        elif wifi == False:
-            wifistr = 'False'
-        else:
-            wifistr = None
-        if is_login_id == True:
-            is_login_idstr = 'True'
-        elif is_login_id == False:
-            is_login_idstr = 'False'
-        else:
-            is_login_idstr = None
-    #判断需要更新的值
-        if lib !='' and lib != None:
-            update_content = update_content +',lib=%(lib)s'
-        if device_id !='' and device_id != None:
-            update_content = update_content +',device_id=%(device_id)s'
-        if ua_platform !='' and ua_platform != None:
-            update_content = update_content +',ua_platform=%(ua_platform)s'
-        if ua_browser !='' and ua_browser != None:
-            update_content = update_content +',ua_browser=%(ua_browser)s'
-        if ua_version !='' and ua_version != None:
-            update_content = update_content +',ua_version=%(ua_version)s'
-        if ua_language !='' and ua_language != None:
-            update_content = update_content +',ua_language=%(ua_language)s'
-        if manufacturer !='' and manufacturer != None:
-            update_content = update_content +',manufacturer=%(manufacturer)s'
-        if model !='' and model != None:
-            update_content = update_content +',model=%(model)s'
-        if os !='' and os != None:
-            update_content = update_content +',os=%(os)s'
-        if os_version !='' and os_version != None:
-            update_content = update_content +',os_version=%(os_version)s'
-        if screen_width !='' and screen_width != None:
-            update_content = update_content +',screen_width=%(screen_width)s'
-        if screen_height !='' and screen_height != None:
-            update_content = update_content +',screen_height=%(screen_height)s'
-        if network_type !='' and network_type != None and network_type !='NULL':
-            update_content = update_content +',network_type=%(network_type)s'
-        if user_agent !='' and user_agent != None:
-            update_content = update_content +',user_agent=%(user_agent)s'
-        if accept_language !='' and accept_language != None and accept_language !='None':
-            update_content = update_content +',accept_language=%(accept_language)s'
-        if ip !='' and ip != None:
-            update_content = update_content +',ip=%(ip)s'
-        if wifistr !='' and wifistr != None:
-            update_content = update_content +',wifi=%(wifi)s'
-        if app_version !='' and app_version != None:
-            update_content = update_content +',app_version=%(app_version)s'
-        if carrier !='' and carrier != None:
-            update_content = update_content +',carrier=%(carrier)s'
-        if referrer !='' and referrer != None:
-            update_content = update_content +',referrer=%(referrer)s'
-        if referrer_host !='' and referrer_host != None:
-            update_content = update_content +',referrer_host=%(referrer_host)s'
-        if bot_name !='' and bot_name != None:
-            update_content = update_content +',bot_name=%(bot_name)s'
-        if browser !='' and browser != None:
-            update_content = update_content +',browser=%(browser)s'
-        if browser_version !='' and browser_version != None:
-            update_content = update_content +',browser_version=%(browser_version)s'
-        if is_login_id !='' and is_login_id != None:
-            update_content = update_content +',is_login_id=%(is_login_id)s'
-        if screen_orientation !='' and screen_orientation != None:
-            update_content = update_content +',screen_orientation=%(screen_orientation)s'
-        gps_latitude = latitude
-        if gps_latitude !='' and gps_latitude != None:
-            update_content = update_content +',gps_latitude=%(gps_latitude)s'
-        gps_longitude = longitude
-        if gps_longitude !='' and gps_longitude != None:
-            update_content = update_content +',gps_longitude=%(gps_longitude)s'
-        if first_visit_time !='' and first_visit_time != None:
-            update_content = update_content +',first_visit_time=%(first_visit_time)s'
-        if first_referrer !='' and first_referrer != None and first_referrer != 'url的domain解析失败' :
-            update_content = update_content +',first_referrer=%(first_referrer)s'
-        if first_referrer_host !='' and first_referrer_host != None and first_referrer_host != 'url的domain解析失败':
-            update_content = update_content +',first_referrer_host=%(first_referrer_host)s'
-        if first_browser_language !='' and first_browser_language != None and first_browser_language != 'url的domain解析失败' and first_browser_language !='取值异常' :
-            update_content = update_content +',first_browser_language=%(first_browser_language)s'
-        if first_browser_charset !='' and first_browser_charset != None and first_browser_charset !='url的domain解析失败'and first_browser_charset != '取值异常':
-            update_content = update_content +',first_browser_charset=%(first_browser_charset)s'
-        if first_search_keyword !='' and first_search_keyword != None and first_search_keyword != '未取到值,直接打开'and first_search_keyword != '未取到值':
-            update_content = update_content +',first_search_keyword=%(first_search_keyword)s'
-        if first_traffic_source_type !='' and first_traffic_source_type != None:
-            update_content = update_content +',first_traffic_source_type=%(first_traffic_source_type)s'
-        if utm_content !='' and utm_content != None:
-            update_content = update_content +',utm_content=%(utm_content)s'
-        if utm_campaign !='' and utm_campaign != None:
-            update_content = update_content +',utm_campaign=%(utm_campaign)s'
-        if utm_medium !='' and utm_medium != None:
-            update_content = update_content +',utm_medium=%(utm_medium)s'
-        if utm_term !='' and utm_term != None:
-            update_content = update_content +',utm_term=%(utm_term)s'
-        if utm_source !='' and utm_source != None:
-            update_content = update_content +',utm_source=%(utm_source)s'
-        if latest_utm_content !='' and latest_utm_content != None:
-            update_content = update_content +',latest_utm_content=%(latest_utm_content)s'
-        if latest_utm_campaign !='' and latest_utm_campaign != None:
-            update_content = update_content +',latest_utm_campaign=%(latest_utm_campaign)s'
-        if latest_utm_medium !='' and latest_utm_medium != None:
-            update_content = update_content +',latest_utm_medium=%(latest_utm_medium)s'
-        if latest_utm_term !='' and latest_utm_term != None:
-            update_content = update_content +',latest_utm_term=%(latest_utm_term)s'
-        if latest_utm_source !='' and latest_utm_source != None:
-            update_content = update_content +',latest_utm_source=%(latest_utm_source)s'
-        if latest_referrer !='' and latest_referrer != None and latest_referrer != '取值异常' :
-            update_content = update_content +',latest_referrer=%(latest_referrer)s'
-        if latest_referrer_host !='' and latest_referrer_host != None and latest_referrer_host !='url的domain解析失败'    and latest_referrer_host !='取值异常' :
-            update_content = update_content +',latest_referrer_host=%(latest_referrer_host)s'
-        if latest_search_keyword !='' and latest_search_keyword != None and latest_search_keyword !='未取到值_直接打开' and latest_search_keyword != '未取到值' and latest_search_keyword !='url的domain解析失败'    and latest_search_keyword !='取值异常'    and latest_search_keyword != '未取到值_非http的url' :
-            update_content = update_content +',latest_search_keyword=%(latest_search_keyword)s'
-        if latest_traffic_source_type !='' and latest_traffic_source_type != None and latest_traffic_source_type != 'url的domain解析失败' and latest_traffic_source_type != 'referrer的domain解析失败' and latest_traffic_source_type !='取值异常':
-            update_content = update_content +',latest_traffic_source_type=%(latest_traffic_source_type)s'
-        count = insert_devicedb(table=project,distinct_id=distinct_id,device_id=device_id,manufacturer=manufacturer,model=model,os=os,os_version=os_version,screen_width=screen_width,screen_height=screen_height,network_type=network_type,user_agent=user_agent,accept_language=accept_language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,wifi=wifistr,app_version=app_version,carrier=carrier,referrer=referrer,referrer_host=referrer_host,bot_name=bot_name,browser=browser,browser_version=browser_version,is_login_id=is_login_idstr,screen_orientation=screen_orientation,gps_latitude=gps_latitude,gps_longitude=gps_longitude,first_visit_time=first_visit_time,first_referrer=first_referrer,first_referrer_host=first_referrer_host,first_browser_language=first_browser_language,first_browser_charset=first_browser_charset,first_search_keyword=first_search_keyword,first_traffic_source_type=first_traffic_source_type,utm_content=utm_content,utm_campaign=utm_campaign,utm_medium=utm_medium,utm_term=utm_term,utm_source=utm_source,latest_utm_content=latest_utm_content,latest_utm_campaign=latest_utm_campaign,latest_utm_medium=latest_utm_medium,latest_utm_term=latest_utm_term,latest_utm_source=latest_utm_source,latest_referrer=latest_referrer,latest_referrer_host=latest_referrer_host,latest_search_keyword=latest_search_keyword,latest_traffic_source_type=latest_traffic_source_type,update_content=update_content,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,lib=lib,created_at=created_at,updated_at=updated_at)
-        print('插入或跟新device'+str(count)+'条')
-    except Exception:
-        error = traceback.format_exc()
-        write_to_log(filename='api_tools',defname='insert_device',result=error)
+# def insert_device(project,data_decode,user_agent,accept_language,ip,ip_city,ip_is_good,ip_asn,ip_asn_is_good,ua_platform,ua_browser,ua_version,ua_language,created_at=None,updated_at=None):
+#     try:
+#         lib = None
+#         if 'lib' in data_decode:
+#             if '$lib' in data_decode['lib']:
+#                 lib = data_decode['lib']['$lib']
+#         elif 'properties' in data_decode:
+#             if '$lib' in data_decode['properties']:
+#                 lib = data_decode['properties']['$lib']
+#         distinct_id = data_decode['distinct_id']
+#         decode_values = ['device_id','manufacturer','model','os','os_version','screen_width','screen_height','network_type','is_first_day','is_first_time','wifi','app_version','carrier','referrer','referrer_host','bot_name','browser','browser_version','is_login_id','screen_orientation','latitude','longitude','utm_content','utm_campaign','utm_medium','utm_term','utm_source','latest_utm_content','latest_utm_campaign','latest_utm_medium','latest_utm_term','latest_utm_source','latest_referrer','latest_referrer_host','latest_search_keyword','latest_traffic_source_type','first_visit_time','first_referrer','first_referrer_host','first_browser_language','first_browser_charset','first_search_keyword','first_traffic_source_type']
+#         createVar = globals()
+#         for decode_value in decode_values:
+#             createVar[decode_value] = get_properties_value(name=decode_value,data_decode=data_decode)
+#         update_content=''
+#     #修改可能出错的空值
+#         if ip_is_good ==0:
+#             ip_city = '{}'
+#         elif ip_is_good ==1:
+#             update_content = update_content +',ip_city=%(ip_city)s'
+#         if ip_asn_is_good ==0:
+#             ip_asn = '{}'
+#         elif ip_asn_is_good ==1:
+#             update_content = update_content +',ip_asn=%(ip_asn)s'
+#         if wifi == True:
+#             wifistr = 'True'
+#         elif wifi == False:
+#             wifistr = 'False'
+#         else:
+#             wifistr = None
+#         if is_login_id == True:
+#             is_login_idstr = 'True'
+#         elif is_login_id == False:
+#             is_login_idstr = 'False'
+#         else:
+#             is_login_idstr = None
+#     #判断需要更新的值
+#         if lib !='' and lib != None:
+#             update_content = update_content +',lib=%(lib)s'
+#         if device_id !='' and device_id != None:
+#             update_content = update_content +',device_id=%(device_id)s'
+#         if ua_platform !='' and ua_platform != None:
+#             update_content = update_content +',ua_platform=%(ua_platform)s'
+#         if ua_browser !='' and ua_browser != None:
+#             update_content = update_content +',ua_browser=%(ua_browser)s'
+#         if ua_version !='' and ua_version != None:
+#             update_content = update_content +',ua_version=%(ua_version)s'
+#         if ua_language !='' and ua_language != None:
+#             update_content = update_content +',ua_language=%(ua_language)s'
+#         if manufacturer !='' and manufacturer != None:
+#             update_content = update_content +',manufacturer=%(manufacturer)s'
+#         if model !='' and model != None:
+#             update_content = update_content +',model=%(model)s'
+#         if os !='' and os != None:
+#             update_content = update_content +',os=%(os)s'
+#         if os_version !='' and os_version != None:
+#             update_content = update_content +',os_version=%(os_version)s'
+#         if screen_width !='' and screen_width != None:
+#             update_content = update_content +',screen_width=%(screen_width)s'
+#         if screen_height !='' and screen_height != None:
+#             update_content = update_content +',screen_height=%(screen_height)s'
+#         if network_type !='' and network_type != None and network_type !='NULL':
+#             update_content = update_content +',network_type=%(network_type)s'
+#         if user_agent !='' and user_agent != None:
+#             update_content = update_content +',user_agent=%(user_agent)s'
+#         if accept_language !='' and accept_language != None and accept_language !='None':
+#             update_content = update_content +',accept_language=%(accept_language)s'
+#         if ip !='' and ip != None:
+#             update_content = update_content +',ip=%(ip)s'
+#         if wifistr !='' and wifistr != None:
+#             update_content = update_content +',wifi=%(wifi)s'
+#         if app_version !='' and app_version != None:
+#             update_content = update_content +',app_version=%(app_version)s'
+#         if carrier !='' and carrier != None:
+#             update_content = update_content +',carrier=%(carrier)s'
+#         if referrer !='' and referrer != None:
+#             update_content = update_content +',referrer=%(referrer)s'
+#         if referrer_host !='' and referrer_host != None:
+#             update_content = update_content +',referrer_host=%(referrer_host)s'
+#         if bot_name !='' and bot_name != None:
+#             update_content = update_content +',bot_name=%(bot_name)s'
+#         if browser !='' and browser != None:
+#             update_content = update_content +',browser=%(browser)s'
+#         if browser_version !='' and browser_version != None:
+#             update_content = update_content +',browser_version=%(browser_version)s'
+#         if is_login_id !='' and is_login_id != None:
+#             update_content = update_content +',is_login_id=%(is_login_id)s'
+#         if screen_orientation !='' and screen_orientation != None:
+#             update_content = update_content +',screen_orientation=%(screen_orientation)s'
+#         gps_latitude = latitude
+#         if gps_latitude !='' and gps_latitude != None:
+#             update_content = update_content +',gps_latitude=%(gps_latitude)s'
+#         gps_longitude = longitude
+#         if gps_longitude !='' and gps_longitude != None:
+#             update_content = update_content +',gps_longitude=%(gps_longitude)s'
+#         if first_visit_time !='' and first_visit_time != None:
+#             update_content = update_content +',first_visit_time=%(first_visit_time)s'
+#         if first_referrer !='' and first_referrer != None and first_referrer != 'url的domain解析失败' :
+#             update_content = update_content +',first_referrer=%(first_referrer)s'
+#         if first_referrer_host !='' and first_referrer_host != None and first_referrer_host != 'url的domain解析失败':
+#             update_content = update_content +',first_referrer_host=%(first_referrer_host)s'
+#         if first_browser_language !='' and first_browser_language != None and first_browser_language != 'url的domain解析失败' and first_browser_language !='取值异常' :
+#             update_content = update_content +',first_browser_language=%(first_browser_language)s'
+#         if first_browser_charset !='' and first_browser_charset != None and first_browser_charset !='url的domain解析失败'and first_browser_charset != '取值异常':
+#             update_content = update_content +',first_browser_charset=%(first_browser_charset)s'
+#         if first_search_keyword !='' and first_search_keyword != None and first_search_keyword != '未取到值,直接打开'and first_search_keyword != '未取到值':
+#             update_content = update_content +',first_search_keyword=%(first_search_keyword)s'
+#         if first_traffic_source_type !='' and first_traffic_source_type != None:
+#             update_content = update_content +',first_traffic_source_type=%(first_traffic_source_type)s'
+#         if utm_content !='' and utm_content != None:
+#             update_content = update_content +',utm_content=%(utm_content)s'
+#         if utm_campaign !='' and utm_campaign != None:
+#             update_content = update_content +',utm_campaign=%(utm_campaign)s'
+#         if utm_medium !='' and utm_medium != None:
+#             update_content = update_content +',utm_medium=%(utm_medium)s'
+#         if utm_term !='' and utm_term != None:
+#             update_content = update_content +',utm_term=%(utm_term)s'
+#         if utm_source !='' and utm_source != None:
+#             update_content = update_content +',utm_source=%(utm_source)s'
+#         if latest_utm_content !='' and latest_utm_content != None:
+#             update_content = update_content +',latest_utm_content=%(latest_utm_content)s'
+#         if latest_utm_campaign !='' and latest_utm_campaign != None:
+#             update_content = update_content +',latest_utm_campaign=%(latest_utm_campaign)s'
+#         if latest_utm_medium !='' and latest_utm_medium != None:
+#             update_content = update_content +',latest_utm_medium=%(latest_utm_medium)s'
+#         if latest_utm_term !='' and latest_utm_term != None:
+#             update_content = update_content +',latest_utm_term=%(latest_utm_term)s'
+#         if latest_utm_source !='' and latest_utm_source != None:
+#             update_content = update_content +',latest_utm_source=%(latest_utm_source)s'
+#         if latest_referrer !='' and latest_referrer != None and latest_referrer != '取值异常' :
+#             update_content = update_content +',latest_referrer=%(latest_referrer)s'
+#         if latest_referrer_host !='' and latest_referrer_host != None and latest_referrer_host !='url的domain解析失败'    and latest_referrer_host !='取值异常' :
+#             update_content = update_content +',latest_referrer_host=%(latest_referrer_host)s'
+#         if latest_search_keyword !='' and latest_search_keyword != None and latest_search_keyword !='未取到值_直接打开' and latest_search_keyword != '未取到值' and latest_search_keyword !='url的domain解析失败'    and latest_search_keyword !='取值异常'    and latest_search_keyword != '未取到值_非http的url' :
+#             update_content = update_content +',latest_search_keyword=%(latest_search_keyword)s'
+#         if latest_traffic_source_type !='' and latest_traffic_source_type != None and latest_traffic_source_type != 'url的domain解析失败' and latest_traffic_source_type != 'referrer的domain解析失败' and latest_traffic_source_type !='取值异常':
+#             update_content = update_content +',latest_traffic_source_type=%(latest_traffic_source_type)s'
+#         count = insert_devicedb(table=project,distinct_id=distinct_id,device_id=device_id,manufacturer=manufacturer,model=model,os=os,os_version=os_version,screen_width=screen_width,screen_height=screen_height,network_type=network_type,user_agent=user_agent,accept_language=accept_language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,wifi=wifistr,app_version=app_version,carrier=carrier,referrer=referrer,referrer_host=referrer_host,bot_name=bot_name,browser=browser,browser_version=browser_version,is_login_id=is_login_idstr,screen_orientation=screen_orientation,gps_latitude=gps_latitude,gps_longitude=gps_longitude,first_visit_time=first_visit_time,first_referrer=first_referrer,first_referrer_host=first_referrer_host,first_browser_language=first_browser_language,first_browser_charset=first_browser_charset,first_search_keyword=first_search_keyword,first_traffic_source_type=first_traffic_source_type,utm_content=utm_content,utm_campaign=utm_campaign,utm_medium=utm_medium,utm_term=utm_term,utm_source=utm_source,latest_utm_content=latest_utm_content,latest_utm_campaign=latest_utm_campaign,latest_utm_medium=latest_utm_medium,latest_utm_term=latest_utm_term,latest_utm_source=latest_utm_source,latest_referrer=latest_referrer,latest_referrer_host=latest_referrer_host,latest_search_keyword=latest_search_keyword,latest_traffic_source_type=latest_traffic_source_type,update_content=update_content,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,lib=lib,created_at=created_at,updated_at=updated_at)
+#         print('插入或跟新device'+str(count)+'条')
+#     except Exception:
+#         error = traceback.format_exc()
+#         write_to_log(filename='api_tools',defname='insert_device',result=error)
 
 def encode_urlutm(utm_source,utm_medium,utm_campaign,utm_content,utm_term):
     url_add_on = ''
@@ -394,7 +394,7 @@ class device_cache:
         self.check_mem_start = int(time.time())
         self.my_memory = 0
         self.cached_data = {}
-        self.request_info = ['user_agent','accept_language','ip','ip_city','ip_is_good','ip_asn','ip_asn_is_good','ua_platform','ua_browser','ua_version','ua_language','updated_at']
+        self.request_info = ['user_agent','accept_language','ip','ip_city','ip_is_good','ip_asn','ip_asn_is_good','ua_platform','ua_browser','ua_version','ua_language']
         self.device_properties_list = {'first':[]}
         self.device_properties_list['fix'] = ['distinct_id','project']
         self.device_properties_list['latest_properties'] = ['lib','device_id','manufacturer','model','os','os_version','ua_platform','ua_browser','ua_version','ua_language','screen_width','screen_height','network_type','user_agent','accept_language','wifi','app_version','carrier','bot_name','browser','browser_version','is_login_id','screen_orientation','latitude','longitude','referrer','referrer_host','latest_utm_campaign','latest_utm_medium','latest_utm_term','latest_utm_source','latest_utm_content','latest_referrer','latest_referrer_host','latest_search_keyword','latest_traffic_source_type','updated_at'],
@@ -431,6 +431,7 @@ class device_cache:
                 etld[first_item] = properties['$'+first_item]
         for item in etld:
             if etld[item] in admin.unrecognized_info_skip:
+                #剔除未识别到的值，减少更新时判断的难度，只需要判断空值即可。
                 del etld[item]
         return etld
         
@@ -445,25 +446,112 @@ class device_cache:
             etld_data = self._etl(insert_data_income=insert_data_income)
             distinct_status = self.check_distinct_id(project=etld_data['project'],distinct_id=etld_data['distinct_id'])
             #force to insert into device if there is a brand new disticnt_id
-            if distinct_status == 'nowhere':
-                self.insert_device_data(etld_data=etld_data)
+            if distinct_status == 'nowhere' or admin.fast_mode == 'original':
+                self._insert_device_data(etld_data=etld_data)
             elif distinct_status in ('in_mem','in_device'):
                 self._ram_traffic(etld_data=etld_data)
         else:
             return 'no_project_or_distinct_id'
 
-    def insert_device_data(self,etld_data):
+    def _insert_device_data(self,etld_data):
+        update_content = ''
         for item in etld_data:
-            if item not in ['distinct_id','project']:
-                if item in self.device_properties_list['first'] and admin.device_source_update_mode in ['first_sight','latest_sight']:
-                    update_content = update_content +''',{item}=if({item} is null,%(item)s,null)'''.format(item=item)
-        gps_latitude=latitude
-        gps_longitude=longitude
+            #这里空值不会进列表循环
+            if item in ['distinct_id','project']:
+                #跳过主键
+                continue
+            elif item in self.device_properties_list['first'] :
+                if  admin.device_source_update_mode in ['first_sight']:
+                    #第一次模式只更新空值
+                    update_content = update_content +''',{item}=if({item} is null,%(item)s,{item})'''.format(item=item)
+                elif admin.device_source_update_mode in ['latest_sight']:
+                    #最新模式只要有值就更新
+                    update_content = update_content +''',{item}=%(item)s'''.format(item=item)
+            elif item in self.device_properties_list['latest_properties'] :
+                if  admin.device_latest_info_update_mode in ['latest_sight','restrict']:
+                    #无论是否有值都更新
+                    update_content = update_content +''',{item}=%(item)s'''.format(item=item)
+            elif 'ip_city' in etld_data and etld_data['ip_city'] != '{}' and item in ['ip_city','ip_asn','ip']:
+                update_content = update_content +''',{item}=%(item)s'''.format(item=item)
+
         #insert data into db
-        count = insert_devicedb(table=project,distinct_id=distinct_id,device_id=device_id,manufacturer=manufacturer,model=model,os=os,os_version=os_version,screen_width=screen_width,screen_height=screen_height,network_type=network_type,user_agent=user_agent,accept_language=accept_language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,wifi=wifistr,app_version=app_version,carrier=carrier,referrer=referrer,referrer_host=referrer_host,bot_name=bot_name,browser=browser,browser_version=browser_version,is_login_id=is_login_idstr,screen_orientation=screen_orientation,gps_latitude=gps_latitude,gps_longitude=gps_longitude,first_visit_time=first_visit_time,first_referrer=first_referrer,first_referrer_host=first_referrer_host,first_browser_language=first_browser_language,first_browser_charset=first_browser_charset,first_search_keyword=first_search_keyword,first_traffic_source_type=first_traffic_source_type,utm_content=utm_content,utm_campaign=utm_campaign,utm_medium=utm_medium,utm_term=utm_term,utm_source=utm_source,latest_utm_content=latest_utm_content,latest_utm_campaign=latest_utm_campaign,latest_utm_medium=latest_utm_medium,latest_utm_term=latest_utm_term,latest_utm_source=latest_utm_source,latest_referrer=latest_referrer,latest_referrer_host=latest_referrer_host,latest_search_keyword=latest_search_keyword,latest_traffic_source_type=latest_traffic_source_type,update_content=update_content,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,lib=lib,created_at=created_at,updated_at=updated_at)
+        count = insert_devicedb(table=etld_data['project'],
+        distinct_id=etld_data['distinct_id'],
+        device_id=etld_data['device_id'] if 'device_id' in etld_data else None,
+        manufacturer=etld_data['manufacturer'] if 'manufacturer' in etld_data else None,
+        model=etld_data['model'] if 'model' in etld_data else None,
+        os=etld_data['os'] if 'os' in etld_data else None,
+        os_version=etld_data['os_version'] if 'os_version' in etld_data else None,
+        screen_width=etld_data['screen_width'] if 'screen_width' in etld_data else None,
+        screen_height=etld_data['screen_height'] if 'screen_height' in etld_data else None,
+        network_type=etld_data['network_type'] if 'network_type' in etld_data else None,
+        user_agent=etld_data['user_agent'] if 'user_agent' in etld_data else None,
+        accept_language=etld_data['accept_language'] if 'accept_language' in etld_data else None,
+        ip=etld_data['ip'] if 'ip' in etld_data else None,
+        ip_city=etld_data['ip_city'] if 'ip_city' in etld_data else None,
+        ip_asn=etld_data['ip_asn'] if 'ip_asn' in etld_data else None,
+        wifi=bool_to_str(etld_data['wifi']) if 'wifi' in etld_data else None,
+        app_version=etld_data['app_version'] if 'app_version' in etld_data else None,
+        carrier=etld_data['carrier'] if 'carrier' in etld_data else None,
+        referrer=etld_data['referrer'] if 'referrer' in etld_data else None,
+        referrer_host=etld_data['referrer_host'] if 'referrer_host' in etld_data else None,
+        bot_name=etld_data['bot_name'] if 'bot_name' in etld_data else None,
+        browser=etld_data['browser'] if 'browser' in etld_data else None,
+        browser_version=etld_data['browser_version'] if 'browser_version' in etld_data else None,
+        is_login_id=bool_to_str(etld_data['is_login_id']) if 'is_login_id' in etld_data else None,
+        screen_orientation=etld_data['screen_orientation'] if 'screen_orientation' in etld_data else None,
+        gps_latitude=etld_data['latitude'] if 'latitude' in etld_data else None,
+        gps_longitude=etld_data['longitude'] if 'longitude' in etld_data else None,
+        first_visit_time=etld_data['first_visit_time'] if 'first_visit_time' in etld_data else None,
+        first_referrer=etld_data['first_referrer'] if 'first_referrer' in etld_data else None,
+        first_referrer_host=etld_data['first_referrer_host'] if 'first_referrer_host' in etld_data else None,
+        first_browser_language=etld_data['first_browser_language'] if 'first_browser_language' in etld_data else None,
+        first_browser_charset=etld_data['first_browser_charset'] if 'first_browser_charset' in etld_data else None,
+        first_search_keyword=etld_data['first_search_keyword'] if 'first_search_keyword' in etld_data else None,
+        first_traffic_source_type=etld_data['first_traffic_source_type'] if 'first_traffic_source_type' in etld_data else None,
+        utm_content=etld_data['utm_content'] if 'utm_content' in etld_data else None,
+        utm_campaign=etld_data['utm_campaign'] if 'utm_campaign' in etld_data else None,
+        utm_medium=etld_data['utm_medium'] if 'utm_medium' in etld_data else None,
+        utm_term=etld_data['utm_term'] if 'utm_term' in etld_data else None,
+        utm_source=etld_data['utm_source'] if 'utm_source' in etld_data else None,
+        latest_utm_content=etld_data['latest_utm_content'] if 'latest_utm_content' in etld_data else None,
+        latest_utm_campaign=etld_data['latest_utm_campaign'] if 'latest_utm_campaign' in etld_data else None,
+        latest_utm_medium=etld_data['latest_utm_medium'] if 'latest_utm_medium' in etld_data else None,
+        latest_utm_term=etld_data['latest_utm_term'] if 'latest_utm_term' in etld_data else None,
+        latest_utm_source=etld_data['latest_utm_source'] if 'latest_utm_source' in etld_data else None,
+        latest_referrer=etld_data['latest_referrer'] if 'latest_referrer' in etld_data else None,
+        latest_referrer_host=etld_data['latest_referrer_host'] if 'latest_referrer_host' in etld_data else None,
+        latest_search_keyword=etld_data['latest_search_keyword'] if 'latest_search_keyword' in etld_data else None,
+        latest_traffic_source_type=etld_data['latest_traffic_source_type'] if 'latest_traffic_source_type' in etld_data else None,
+        update_content=update_content,
+        ua_platform=etld_data['ua_platform'] if 'ua_platform' in etld_data else None,
+        ua_browser=etld_data['ua_browser'] if 'ua_browser' in etld_data else None,
+        ua_version=etld_data['ua_version'] if 'ua_version' in etld_data else None,
+        ua_language=etld_data['ua_language'] if 'ua_language' in etld_data else None,
+        lib=etld_data['lib'] if 'lib' in etld_data else None,
+        created_at=etld_data['created_at'] if 'created_at' in etld_data else None,
+        updated_at=etld_data['updated_at'] if 'updated_at' in etld_data else None
+        )
         print('插入或更新device'+str(count)+'条')
 
     def _update_device(self,project,distinct_id,data):
+        update_content = ''
+        for item in data:
+            #这里空值不会进列表循环
+            if item in self.device_properties_list['first'] :
+                if  admin.device_source_update_mode in ['first_sight']:
+                    #第一次模式只更新空值
+                    update_content = update_content +''',{item}=if({item} is null,%(item)s,{item})'''.format(item=item)
+                elif admin.device_source_update_mode in ['latest_sight']:
+                    #最新模式只要有值就更新
+                    update_content = update_content +''',{item}=%(item)s'''.format(item=item)
+            elif item in self.device_properties_list['latest_properties'] :
+                if  admin.device_latest_info_update_mode in ['latest_sight','restrict']:
+                    #无论是否有值都更新
+                    update_content = update_content +''',{item}=%(item)s'''.format(item=item)
+            elif 'ip_city' in etld_data and etld_data['ip_city'] != '{}' and item in ['ip_city','ip_asn','ip']:
+                update_content = update_content +''',{item}=%(item)s'''.format(item=item)
+        
 
         pass
 

@@ -52,6 +52,12 @@ def insert_devicedb(table,distinct_id,device_id,manufacturer,model,os,os_version
     result = do_tidb_exe(sql=tidb_write(sql), args=key)
     return result[1]
 
+def update_devicedb(project,distinct_id,data,update_content):
+    sql = """update {project}_device set {update_content} where distinct_id = '{distinct_id}'""".format(project=project,update_content=update_content,distinct_id=distinct_id)
+    key = data
+    result = do_tidb_exe(sql=sql , args=key)
+    return result[1]
+
 def insert_user_db(project,distinct_id,lib,map_id,original_id,user_id,all_user_profile,update_params,created_at=None,updated_at=None):
     if created_at is None:
         timenow = int(time.time())
@@ -1110,12 +1116,10 @@ def update_access_control(**kwargs):
     result  = do_tidb_exe(sql=sql,retrycount=0)
     return result
 
-<<<<<<< HEAD
 def check_distinct_id_in_device(project,distinct_id):
     sql="""select count(1) from {project}_device where distinct_id = '{distinct_id}' limit 1""".format(project=project,distinct_id=distinct_id)
     result = do_tidb_select(sql=sql,retrycount=0)[0][0]
     return result if result else 0  # if result not found, return 0.  If found, return count.  This is used to filter out duplicate device
-=======
 
 def insert_deduplication_key(project,distinct_id,track_id,sdk_time13):
     sql = 'insert HIGH_PRIORITY into `deduplication_key` (`project`,`distinct_id`,`track_id`,`sdk_time13`,`created_at`) values ( %(project)s,%(distinct_id)s,%(track_id)s,%(sdk_time13)s,CURRENT_TIMESTAMP)'
@@ -1137,4 +1141,3 @@ def count_deduplication_key():
 if __name__ == "__main__":
     print(delete_deduplication_key(expired_time='2024-01-28 17:28:50'))
     print(count_deduplication_key())
->>>>>>> master

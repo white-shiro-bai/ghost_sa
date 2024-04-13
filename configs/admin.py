@@ -38,7 +38,12 @@ font = './fonts/NotoSerifCJKsc-Regular.otf' #Font file path for pic_tools.
 #Bot Identify
 bot_list = ['spider','googlebot','adsbot-google','baiduboxapp','bingpreview','bingbot'] # If there any string in User_Agent,the request will be set remark as 'spider' ,no matter what the original remark is . Maintain bot list in lower case.
 
+#Performance and Feature
 
+fast_mode = 'fast' # 'original','fast','boost'。original mode is start from ghost_sa earliest version, update all data in db tables. fast mode is use memory to cache data, and update data into db tables. boost mode write data like fast mode, but close all trys to enhance performance, it fastest but may cause data lost at abnormal data collection request.
+
+# 是否开启properties表
+use_properties = False #True时，会插入properties表，这个表不是必须的，只是方便提取数据时快速找到埋点里包含的变量。
 
 #Device Table
 device_source_update_mode = 'restrict' #'restrict','first_sight','latest_sight'。this setting control device first source column update mode .
@@ -78,12 +83,7 @@ admin_do_not_track_code = 'dntmode' #cdn模式不参与记录密码
 use_kafka = True #True时，数据写入kafka。False时，直接插入数据库
 consumer_workers = 9 #使用kafka时，消费者的数量。标准部署tidb，9个效果比较好。请根据数据库压力调节。不是越大越好。
 
-#Performance and Feature
 
-fast_mode = 'fast' # 'original','fast','boost'。original mode is start from ghost_sa earliest version, update all data in db tables. fast mode is use memory to cache data, and update data into db tables. boost mode write data like fast mode, but close all trys to enhance performance, it fastest but may cause data lost at abnormal data collection request.
-
-# 是否开启properties表
-use_properties = False #True时，会插入properties表，这个表不是必须的，只是方便提取数据时快速找到埋点里包含的变量。
 
 
 
