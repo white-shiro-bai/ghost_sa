@@ -67,14 +67,6 @@ def favicon():
     return Response(returnimage, mimetype="image/gif")
 
 
-#功能测试
-@app.route('/a')
-def test():
-    from component.api import batch_cache
-    for i in range(10):
-        batch_cache.query(project='test_me',distinct_id=str(i),track_id=123,time13=1698573153331)
-    return str(batch_cache.cache)
-
 #项目管理
 app.add_url_rule('/show_project_list', view_func=show_project_list, methods=['POST'])#查询已有项目信息
 app.add_url_rule('/status_codes', view_func=status_codes, methods=['GET','POST'])#查询状态列表
