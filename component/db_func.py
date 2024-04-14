@@ -56,7 +56,16 @@ def update_devicedb(project,distinct_id,data,update_content):
     sql = """update {project}_device set {update_content} where distinct_id = '{distinct_id}'""".format(project=project,update_content=update_content,distinct_id=distinct_id)
     key = data
     result = do_tidb_exe(sql=sql , args=key)
-    return result[1]
+    if result[1] == 1:
+        return 'success'
+    elif result[0] == 'sql_key_err':
+        return 'sql_key_err'
+    elif result[0] == 'sql_err':
+        return 'sql_err'
+    elif result[1] == 0:
+        return 'no_change'
+    else:
+        return None
 
 def insert_user_db(project,distinct_id,lib,map_id,original_id,user_id,all_user_profile,update_params,created_at=None,updated_at=None):
     if created_at is None:
@@ -81,6 +90,7 @@ def insert_properties(project,lib,remark,event,properties,properties_len,created
     sql = """insert HIGH_PRIORITY into `{table}_properties` (`lib`,`remark`,`event`,`properties`,`properties_len`,`created_at`,`updated_at`,`total_count`,`lastinsert_at`) values ( %(lib)s,%(remark)s,%(event)s,%(properties)s,%(properties_len)s,%(created_at)s,%(updated_at)s,1,%(updated_at)s) ON DUPLICATE KEY UPDATE `properties`=if(properties_len<%(properties_len)s,%(properties)s,properties),`properties_len`=if(properties_len<%(properties_len)s,%(properties_len)s,properties_len),updated_at=if(properties_len<%(properties_len)s,%(updated_at)s,updated_at),total_count=total_count+1,lastinsert_at=%(updated_at)s;""".format(table=project)
     key = {'lib':lib,'remark':remark,'event':event,'properties':properties,'properties_len':properties_len,'created_at':created_at,'updated_at':updated_at}
     result = do_tidb_exe(sql=tidb_write(sql), args=key)
+    return result
 
 
 def get_long_url_from_short(short_url):
@@ -1139,5 +1149,6 @@ def count_deduplication_key():
     return do_tidb_select(sql=sql)[0][0][0]
 
 if __name__ == "__main__":
-    print(delete_deduplication_key(expired_time='2024-01-28 17:28:50'))
-    print(count_deduplication_key())
+    # print(delete_deduplication_key(expired_time='2024-01-28 17:28:50'))
+    # print(count_deduplication_key())
+    print(update_devicedb(project='test_me',distinct_id='batch_send_deduplication0',data={'lib':'test_lib','lib2':'123132','updated_at':1231273861},update_content=''))

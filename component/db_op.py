@@ -3,7 +3,7 @@
 #Date: 2022-03-13 00:19:41
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-01-28 18:32:30
+#LastEditTime: 2024-04-14 15:33:27
 #FilePath: \ghost_sa_github_cgq\component\db_op.py
 #
 import sys
@@ -51,7 +51,7 @@ def _select_tidb(sql, args=None,presql=None):
     return results, result_count
 
 
-def do_tidb_exe(sql,presql=None, args=None, retrycount=5,skip_mysql_code = 0):
+def do_tidb_exe(sql,presql=None, args=None, retrycount=5,skip_mysql_code = 0,retry_sleep_time = 1):
     # 带保护执行库
     if  sql.lower().startswith('update') and "where" not in sql.lower():
         write_to_log(filename='db_op', defname='do_tidb_exe', result=sql+str(args)+'update必须包含where条件才能执行')
@@ -64,17 +64,24 @@ def do_tidb_exe(sql,presql=None, args=None, retrycount=5,skip_mysql_code = 0):
             try:
                 results, result_count , lastest_id = _exe_tidb(sql=sql, args=args,presql=presql)
                 return results, result_count , lastest_id
+            except KeyError:
+                #增加keyerror直接终止，因为keyerror不是数据库层面的，再重试也没用
+                error = traceback.format_exc()
+                write_to_log(filename='db_op', defname='do_tidb_exe', result=sql+str(args)+error)
+                retrycount = -1
+                return 'sql_key_err', 0 , 0
             except Exception:
                 error = traceback.format_exc()
                 if sys.exc_info()[1].args[0] != skip_mysql_code :
+                    #这里只选择了如果不是指定的错误，才写入日志。如果是指定的错误，就只执行重试，不写日志。不终止循环。因为指定错误的同时，通常也会指定重试次数。
                     write_to_log(filename='db_op', defname='do_tidb_exe', result=sql+str(args)+error)
                 retrycount -= 1
-                time.sleep(1)
+                time.sleep(retry_sleep_time)
                     # return do_tidb_exe(sql=sql, args=args, retrycount=retrycount)
         return 'sql_err', 0 , 0 #只在日志里记录错误，不返回错误，避免引用的时候不小心泄露代码。
 
 
-def do_tidb_select(sql,presql=None, args=None, retrycount=5):
+def do_tidb_select(sql,presql=None, args=None, retrycount=5,retry_sleep_time=1):
     # 带保护查询库
     while retrycount >= 0:
         try:
@@ -84,7 +91,7 @@ def do_tidb_select(sql,presql=None, args=None, retrycount=5):
             error = traceback.format_exc()
             write_to_log(filename='db_op', defname='do_tidb_select', result=error)
             retrycount -= 1
-            time.sleep(1)
+            time.sleep(retry_sleep_time)
         return 'sql_err', 0 #只在日志里记录错误，不返回错误，避免引用的时候不小心泄露代码。
 
 if __name__ == "__main__":

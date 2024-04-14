@@ -545,6 +545,7 @@ class device_cache:
         update_content = ''
         for item in data:
             #这里空值不会进列表循环
+            #根据配置，设定更新方式
             if item in self.device_properties_list['first'] :
                 if  admin.device_source_update_mode in ['first_sight']:
                     #第一次模式只更新空值
@@ -560,11 +561,12 @@ class device_cache:
                 if  admin.device_latest_info_update_mode in ['latest_sight','restrict']:
                     #无论是否有值都更新
                     update_content = update_content +''',{item}=%(item)s'''.format(item=item)
+            #处理特殊值
             if item in ['is_login_id','wifi']:
                 data[item] = bool_to_str(data[item])
+        update_content.lstrip(',')
         result = update_devicedb(project=project,distinct_id=distinct_id,data=data,update_content=update_content)
-
-        pass
+        return result
 
     def check_distinct_id(self,distinct_id,project):
         if project in self.cached_data and distinct_id in self.cached_data['project']:
@@ -637,14 +639,23 @@ class device_cache:
 
     def dump(self):
         #dump_ram_to_db
-        count = 0
+        success_count = 0
+        nochange_count = 0
+        error = 0
         for project in self.cached_data:
             for distinct_id in self.cached_data[project]:
                 result = self._update_device(project=project,distinct_id=distinct_id,data=self.cached_data[project][distinct_id])
-                if result == 'success':
-                    count += 1
+                if result in ['success']:
+                    success_count += 1
                     del self.cached_data[project][distinct_id]
-        write_to_log(filename='api_tools', defname='device_cache_dump', result='success_dump:'+str(count))
+                elif result in ['no_change']:
+                    nochange_count += 1
+                    del self.cached_data[project][distinct_id]
+                else :
+                    error += 1
+        if error > 0:
+            write_to_log(filename='api_tools', defname='device_cache_dump', result='success_dump:'+str(success_count)+',no_change_dump:'+str(nochange_count)+',error_dump:'+str(error),level='warning')
+        write_to_log(filename='api_tools', defname='device_cache_dump', result='success_dump:'+str(success_count)+',no_change_dump:'+str(nochange_count)+',error_dump:'+str(error),level='info')
         return 'success'
 
 
