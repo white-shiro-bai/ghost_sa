@@ -6,7 +6,7 @@ sys.path.append("..")
 sys.path.append("./")
 # sys.setrecursionlimt(10000000)
 from component.db_op import do_tidb_select
-from component.db_func import insert_devicedb,insert_user_db,find_recall_url,insert_event,find_recall_history,insert_properties,check_utm,check_distinct_id_in_device
+from component.db_func import insert_devicedb,insert_user_db,find_recall_url,insert_event,find_recall_history,insert_properties,check_utm,check_distinct_id_in_device,update_devicedb
 from component.api_req import get_json_from_api
 from configs import admin
 import urllib.parse
@@ -433,8 +433,12 @@ class device_cache:
             if etld[item] in admin.unrecognized_info_skip:
                 #剔除未识别到的值，减少更新时判断的难度，只需要判断空值即可。
                 del etld[item]
+        if admin.device_latest_info_update_mode in ['restrict']:
+            #最新模式如果为严格模式，就给所有不存在的字段赋空值，防止后续因为null被更新
+            for restrict_item in list(set(self.request_info).union(set(self.device_properties_list['latest_properties']))):
+                if restrict_item not in etld:
+                    etld[restrict_item] = ''
         return etld
-        
 
 
     def insert_device(self,project,data_decode,user_agent,accept_language,ip,ip_city,ip_is_good,ip_asn,ip_asn_is_good,ua_platform,ua_browser,ua_version,ua_language,created_at=None,updated_at=None):
@@ -444,12 +448,15 @@ class device_cache:
         #这里要求了必须有distinct_id，所以后续步骤都不需要再判断，都假定distinct_id有值。
         if 'distinct_id' in insert_data_income['data_decode'] and insert_data_income['data_decode']['distinct_id'] != '' and insert_data_income['project'] != '':
             etld_data = self._etl(insert_data_income=insert_data_income)
-            distinct_status = self.check_distinct_id(project=etld_data['project'],distinct_id=etld_data['distinct_id'])
-            #force to insert into device if there is a brand new disticnt_id
-            if distinct_status == 'nowhere' or admin.fast_mode == 'original':
+            if admin.fast_mode=='original':
                 self._insert_device_data(etld_data=etld_data)
-            elif distinct_status in ('in_mem','in_device'):
-                self._ram_traffic(etld_data=etld_data)
+            else:
+                distinct_status = self.check_distinct_id(project=etld_data['project'],distinct_id=etld_data['distinct_id'])
+                #force to insert into device if there is a brand new disticnt_id
+                if distinct_status == 'nowhere':
+                    self._insert_device_data(etld_data=etld_data)
+                elif distinct_status in ('in_mem','in_device'):
+                    self._ram_traffic(etld_data=etld_data)
         else:
             return 'no_project_or_distinct_id'
 
@@ -467,12 +474,12 @@ class device_cache:
                 elif admin.device_source_update_mode in ['latest_sight']:
                     #最新模式只要有值就更新
                     update_content = update_content +''',{item}=%(item)s'''.format(item=item)
+            elif 'ip_city' in etld_data and etld_data['ip_city'] != '{}' and item in ['ip_city','ip_asn','ip']:
+                update_content = update_content +''',{item}=%(item)s'''.format(item=item)
             elif item in self.device_properties_list['latest_properties'] :
                 if  admin.device_latest_info_update_mode in ['latest_sight','restrict']:
                     #无论是否有值都更新
                     update_content = update_content +''',{item}=%(item)s'''.format(item=item)
-            elif 'ip_city' in etld_data and etld_data['ip_city'] != '{}' and item in ['ip_city','ip_asn','ip']:
-                update_content = update_content +''',{item}=%(item)s'''.format(item=item)
 
         #insert data into db
         count = insert_devicedb(table=etld_data['project'],
@@ -545,13 +552,17 @@ class device_cache:
                 elif admin.device_source_update_mode in ['latest_sight']:
                     #最新模式只要有值就更新
                     update_content = update_content +''',{item}=%(item)s'''.format(item=item)
+            elif 'ip_city' in data and data['ip_city'] != '{}' and item in ['ip_city','ip_asn','ip']:
+                update_content = update_content +''',{item}=%(item)s'''.format(item=item)
+            elif item in ['latitude','longitude']:
+                update_content = update_content +''',gps_{item}=%(item)s'''.format(item=item)
             elif item in self.device_properties_list['latest_properties'] :
                 if  admin.device_latest_info_update_mode in ['latest_sight','restrict']:
                     #无论是否有值都更新
                     update_content = update_content +''',{item}=%(item)s'''.format(item=item)
-            elif 'ip_city' in etld_data and etld_data['ip_city'] != '{}' and item in ['ip_city','ip_asn','ip']:
-                update_content = update_content +''',{item}=%(item)s'''.format(item=item)
-        
+            if item in ['is_login_id','wifi']:
+                data[item] = bool_to_str(data[item])
+        result = update_devicedb(project=project,distinct_id=distinct_id,data=data,update_content=update_content)
 
         pass
 
