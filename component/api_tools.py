@@ -14,6 +14,7 @@ import json
 import traceback
 from configs.export import write_to_log
 from component.public_value import get_time_array_from_nlp,get_time_str
+from component.public_func import show_obj_size
 import time
 import hashlib
 from url_tools import bool_to_str
@@ -387,12 +388,18 @@ class device_cache:
     #check in ram --> update in ram --> check ram status -Y-> dump to db
     #                                                    -N-> next loop
 
-    from component.public_func import show_my_memory
-
-    def __init__(self) -> None:
-        self.start_time = int(time.time())
-        self.check_mem_start = int(time.time())
-        self.my_memory = 0
+    def __init__(self,combine_device_memory = admin.combine_device_memory,
+                 combine_device_max_memory_gap = admin.combine_device_max_memory_gap,
+                 combine_device_max_window = admin.combine_device_max_window,
+                 combine_device_max_distinct_id = admin.combine_device_max_distinct_id,
+                 combine_device_multiple_threads = admin.combine_device_multiple_threads):
+        # self.start_time = int(time.time())
+        self.combine_device_memory = combine_device_memory
+        self.combine_device_max_memory_gap = combine_device_max_memory_gap
+        self.combine_device_max_window = combine_device_max_window
+        self.combine_device_max_distinct_id = combine_device_max_distinct_id
+        self.combine_device_multiple_threads = combine_device_multiple_threads
+        self.check_mem_time = int(time.time())
         self.cached_data = {}
         self.request_info = ['user_agent','accept_language','ip','ip_city','ip_is_good','ip_asn','ip_asn_is_good','ua_platform','ua_browser','ua_version','ua_language']
         self.device_properties_list = {'first':[]}
@@ -401,14 +408,34 @@ class device_cache:
         if admin.device_source_update_mode in ['first_sight','latest_sight']:
             self.device_properties_list['first'] = ['first_visit_time','first_referrer','first_referrer_host','first_browser_language','first_browser_charset','first_search_keyword','first_traffic_source_type','utm_content','utm_campaign','utm_medium','utm_term','utm_source','created_at']
 
-    def check_mem(self):
+    def _check_mem(self):
+        if int(time.time()) - self.check_mem_time > 60:
         #check memory occupied.
-        if int(time.time()-self.check_mem_start) <= admin.combine_device_max_memory_gap and self.projects != {}:
-            return self.my_memory
-        else:
-            self.my_memory = int(self.show_my_memory())
-            self.check_mem_start = int(time.time())
-            return self.my_memory
+            cache_size = show_obj_size(self.cached_data)
+            return cache_size
+
+    # def _ram_clean(self):
+    # keys_count = len(self.cache.keys())
+    # cache_size = show_obj_size(self.cache)
+    # cache_status = 'cache size:' + str(cache_size) + \
+    #     '; batch_send_max_memory_limit:' + str(self.batch_send_max_memory_limit) + \
+    #     '; keys count:'+ str(keys_count) + \
+    #     '; keys limit:'+ str(self.batch_send_max_batch_key_limit) + \
+    #     '; expired window:'+ str(self.batch_send_max_window*60*1000)
+    # write_to_log(filename='batch_send',defname='_ram_clean',result=cache_status)
+
+    # if cache_size >= self.batch_send_max_memory_limit or keys_count >= self.batch_send_max_batch_key_limit:
+    #     write_to_log(filename='batch_send',defname='_ram_clean',result='exec_clean start')
+    #     timenow13 = int(round(time.time() * 1000))
+    #     for key in list(self.cache.keys()):
+    #         if self.cache[key]['time13'] + (self.batch_send_max_window*60*1000) < timenow13:
+    #             del self.cache[key]
+    #     cache_size_after_clean = show_obj_size(self.cache)
+    #     write_to_log(filename='batch_send',defname='_ram_clean',result='cache size after clean:'+str(cache_size_after_clean))
+    #     print(self.cache)
+    #     if cache_size_after_clean >= self.batch_send_max_memory_limit:
+    #         self.cache = {}
+    #         write_to_log(filename='batch_send',defname='_ram_clean',result='!warning cache size after clean is still too large,clean all. please scale up batch_send_max_memory_limit or scale down expired window.')
 
     def _etl(self,insert_data_income):
         #insertdata to ramdate.
@@ -441,14 +468,15 @@ class device_cache:
         return etld
 
 
-    def insert_device(self,project,data_decode,user_agent,accept_language,ip,ip_city,ip_is_good,ip_asn,ip_asn_is_good,ua_platform,ua_browser,ua_version,ua_language,created_at=None,updated_at=None):
+    def insert_device(self,project,data_decode,user_agent,accept_language,ip,ip_city,ip_is_good,ip_asn,ip_asn_is_good,ua_platform,ua_browser,ua_version,ua_language,created_at=None,updated_at=None,use_kafka=False):
         #this is class input
         #replace insert funcion from api_tools
         insert_data_income = {'project':project,'data_decode':data_decode,'user_agent':user_agent,'accept_language':accept_language,'ip':ip,'ip_city':ip_city,'ip_asn':ip_asn,'ip_is_good':ip_is_good,'ip_asn_is_good':ip_asn_is_good,'ua_browser':ua_browser,'ua_platform':ua_platform,'ua_language':ua_language,'ua_version':ua_version,'created_at':created_at if created_at else int(time.time()),'updated_at':updated_at if updated_at else int(time.time())}
         #这里要求了必须有distinct_id，所以后续步骤都不需要再判断，都假定distinct_id有值。
         if 'distinct_id' in insert_data_income['data_decode'] and insert_data_income['data_decode']['distinct_id'] != '' and insert_data_income['project'] != '':
             etld_data = self._etl(insert_data_income=insert_data_income)
-            if admin.fast_mode=='original':
+            if admin.fast_mode=='original' or (not admin.use_kafka and not use_kafka):
+                #两个都为False时，才能判断时不用kafka的模式。只有一个是False时，有可能是consumer触发的。
                 self._insert_device_data(etld_data=etld_data)
             else:
                 distinct_status = self.check_distinct_id(project=etld_data['project'],distinct_id=etld_data['distinct_id'])
