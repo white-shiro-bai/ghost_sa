@@ -476,7 +476,7 @@ class device_cache:
         if 'distinct_id' in insert_data_income['data_decode'] and insert_data_income['data_decode']['distinct_id'] != '' and insert_data_income['project'] != '':
             etld_data = self._etl(insert_data_income=insert_data_income)
             if admin.fast_mode=='original' or (not admin.use_kafka and not use_kafka):
-                #两个都为False时，才能判断时不用kafka的模式。只有一个是False时，有可能是consumer触发的。
+                #两个都为False时，才能判断是不用kafka的模式。只有一个是False时，有可能是consumer触发的。
                 self._insert_device_data(etld_data=etld_data)
             else:
                 distinct_status = self.check_distinct_id(project=etld_data['project'],distinct_id=etld_data['distinct_id'])
@@ -592,7 +592,7 @@ class device_cache:
             #处理特殊值
             if item in ['is_login_id','wifi']:
                 data[item] = bool_to_str(data[item])
-        update_content.lstrip(',')
+        update_content = update_content.lstrip(',')
         result = update_devicedb(project=project,distinct_id=distinct_id,data=data,update_content=update_content)
         return result
 
