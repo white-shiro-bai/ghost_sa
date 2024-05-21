@@ -1,4 +1,4 @@
-pymysql==1.0.2
+pymysql==1.1.1
 kafka-python==2.0.2
 Pillow
 qrcode==6.1
