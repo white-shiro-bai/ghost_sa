@@ -13,7 +13,7 @@ import urllib.parse
 import json
 import traceback
 from configs.export import write_to_log
-from component.public_value import get_time_array_from_nlp,get_time_str
+from component.public_value import get_time_array_from_nlp,get_time_str,current_timestamp10
 from component.public_func import show_obj_size
 import time
 import hashlib
@@ -616,7 +616,7 @@ class device_cache:
         #if there is not distinct_id in ram,init it before update
         self._update_ram(etld_data=etld_data)
         #check throller and trans to db.
-        if self.check_mem < admin.combine_device_memory :
+        if self._check_mem() < admin.combine_device_memory :
             self.dump()
         else:
             #dump memory
@@ -667,22 +667,29 @@ class device_cache:
 
     def dump(self):
         #dump_ram_to_db
-        success_count = 0
-        nochange_count = 0
-        error = 0
+        success_count = 0 #成功更新数量
+        nochange_count = 0 #相比历史无变化数量
+        error = 0 #更新失败数量
+        empty = 0 #仅有空对象的数量（预留以减小数据库查询压力，但最后没有数据更新）
         for project in self.cached_data:
             for distinct_id in self.cached_data[project]:
-                result = self._update_device(project=project,distinct_id=distinct_id,data=self.cached_data[project][distinct_id])
-                if result in ['success']:
-                    success_count += 1
+                if self.cached_data[project][distinct_id] == {}:
+                    empty += 1
                     del self.cached_data[project][distinct_id]
-                elif result in ['no_change']:
-                    nochange_count += 1
-                    del self.cached_data[project][distinct_id]
-                else :
-                    error += 1
+                else:
+                    result = self._update_device(project=project,distinct_id=distinct_id,data=self.cached_data[project][distinct_id])
+                    if result in ['success']:
+                        success_count += 1
+                    elif result in ['no_change']:
+                        nochange_count += 1
+                    else :
+                        error += 1
+                    if 'updated_at' in self.cached_data[project][distinct_id] and self.cached_data[project][distinct_id]['updated_at'] + self.combine_device_max_window < current_timestamp10() and result in ['success','no_change']:
+                        #判断没有新数据进了再删，避免内存里找不到，去数据库里找，占用io。
+                        del self.cached_data[project][distinct_id]
         if error > 0:
             write_to_log(filename='api_tools', defname='device_cache_dump', result='success_dump:'+str(success_count)+',no_change_dump:'+str(nochange_count)+',error_dump:'+str(error),level='warning')
+            return 'success with error'
         write_to_log(filename='api_tools', defname='device_cache_dump', result='success_dump:'+str(success_count)+',no_change_dump:'+str(nochange_count)+',error_dump:'+str(error),level='info')
         return 'success'
 
