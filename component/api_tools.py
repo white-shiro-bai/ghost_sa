@@ -400,6 +400,7 @@ class device_cache:
         self.combine_device_max_distinct_id = combine_device_max_distinct_id
         self.combine_device_multiple_threads = combine_device_multiple_threads
         self.check_mem_time = int(time.time())
+        self.cache_size = 0
         self.cached_data = {}
         self.request_info = ['user_agent','accept_language','ip','ip_city','ip_is_good','ip_asn','ip_asn_is_good','ua_platform','ua_browser','ua_version','ua_language']
         self.device_properties_list = {'first':[]}
@@ -409,10 +410,10 @@ class device_cache:
             self.device_properties_list['first'] = ['first_visit_time','first_referrer','first_referrer_host','first_browser_language','first_browser_charset','first_search_keyword','first_traffic_source_type','utm_content','utm_campaign','utm_medium','utm_term','utm_source','created_at']
 
     def _check_mem(self):
-        if int(time.time()) - self.check_mem_time > 60:
+        if int(time.time()) - self.check_mem_time > self.combine_device_max_memory_gap:
         #check memory occupied.
-            cache_size = show_obj_size(self.cached_data)
-            return cache_size
+            self.cache_size = show_obj_size(self.cached_data)
+        return self.cache_size
 
     # def _ram_clean(self):
     # keys_count = len(self.cache.keys())
@@ -616,11 +617,11 @@ class device_cache:
         #if there is not distinct_id in ram,init it before update
         self._update_ram(etld_data=etld_data)
         #check throller and trans to db.
-        if self._check_mem() < admin.combine_device_memory :
-            self.dump()
-        else:
-            #dump memory
-            pass
+        if self._check_mem() > admin.combine_device_memory :
+            dump_status = self.dump()
+            if dump_status == 'success':
+                self.cache_size = 0
+
 
 
     def _update_ram(self,etld_data):
@@ -667,6 +668,7 @@ class device_cache:
 
     def dump(self):
         #dump_ram_to_db
+        #dump这里执行完，不重置类的内存占用，是为了不锁定dump程序，把定时器执行时，能否由内存占用控制的权限，交给定时器。
         success_count = 0 #成功更新数量
         nochange_count = 0 #相比历史无变化数量
         error = 0 #更新失败数量
