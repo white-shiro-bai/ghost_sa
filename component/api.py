@@ -13,7 +13,7 @@ import json
 import os
 from component.db_func import insert_event,get_long_url_from_short, insert_noti_temple,insert_shortcut_history,check_long_url,insert_shortcut,show_shortcut,count_shortcut,show_check,insert_properties,insert_user_db,show_project,read_mobile_ad_list,count_mobile_ad_list,read_mobile_ad_src_list,check_mobile_ad_url,insert_mobile_ad_list,distinct_id_query,insert_shortcut_read,query_access_control,query_access_control_exclude,get_access_control_event,get_access_control_detail,get_access_control_detail_count,update_access_control,get_status_codes
 from geoip.geo import get_addr,get_asn
-from component.api_tools import insert_device,encode_urlutm,insert_user,recall_dsp,return_dsp_utm,gen_token,tag_name,user_info
+from component.api_tools import encode_urlutm,insert_user,recall_dsp,return_dsp_utm,gen_token,tag_name,user_info,device_cache_instance
 from configs.export import write_to_log
 from component.shorturl import get_ghost_sa_short_url
 from configs import admin
@@ -66,7 +66,11 @@ def insert_data(project,data_decode,User_Agent,Host,Connection,Pragma,Cache_Cont
             if event != 'cdn_mode' or event != 'cdn_mode2' or admin.access_control_cdn_mode_write == 'event' or admin.access_control_cdn_mode_write == 'device' :
                 count = insert_event(table=project,alljson=jsondump,track_id=track_id,distinct_id=distinct_id,lib=lib,event=event,type_1=type_1,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,created_at=created_at)
             if event != 'cdn_mode' or event != 'cdn_mode2' or admin.access_control_cdn_mode_write == 'device':
-                insert_device(project=project,data_decode=data_decode,user_agent=User_Agent,accept_language=Accept_Language,ip=ip,ip_city=ip_city,ip_is_good=ip_is_good,ip_asn=ip_asn,ip_asn_is_good=ip_asn_is_good,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,created_at=created_at)
+                # if admin.use_kafka == False: 
+                    #这里进行两次判断，如果传入的也是False，设定也是False，说明是生产者调用的。
+                device_cache_instance.insert_device(project=project,data_decode=data_decode,user_agent=User_Agent,accept_language=Accept_Language,ip=ip,ip_city=ip_city,ip_is_good=ip_is_good,ip_asn=ip_asn,ip_asn_is_good=ip_asn_is_good,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,created_at=created_at)
+                # elif admin.use_kafka == True:
+                    #如果传入的是False，但是设定是True，说明是消费者传入的。
             properties_key = []
             for keys in data_decode['properties'].keys():
                 properties_key.append(keys)

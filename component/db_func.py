@@ -1129,7 +1129,7 @@ def update_access_control(**kwargs):
 def check_distinct_id_in_device(project,distinct_id):
     sql="""select count(1) from {project}_device where distinct_id = '{distinct_id}' limit 1""".format(project=project,distinct_id=distinct_id)
     result = do_tidb_select(sql=sql,retrycount=0)[0][0]
-    return result if result else 0  # if result not found, return 0.  If found, return count.  This is used to filter out duplicate device
+    return result[0] if result else 0  # if result not found, return 0.  If found, return count.  This is used to filter out duplicate device
 
 def insert_deduplication_key(project,distinct_id,track_id,sdk_time13):
     sql = 'insert HIGH_PRIORITY into `deduplication_key` (`project`,`distinct_id`,`track_id`,`sdk_time13`,`created_at`) values ( %(project)s,%(distinct_id)s,%(track_id)s,%(sdk_time13)s,CURRENT_TIMESTAMP)'

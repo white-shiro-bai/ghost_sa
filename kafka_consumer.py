@@ -3,7 +3,7 @@
 #Date: 2022-10-06 16:15:40
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-02-11 18:31:38
+#LastEditTime: 2024-06-23 18:41:31
 #FilePath: \ghost_sa_github_cgq\kafka_consumer.py
 #
 import sys
@@ -11,7 +11,7 @@ sys.path.append('./')
 # -*- coding: utf-8 -*
 # author: unknowwhite@outlook.com
 # wechat: Ben_Xiaobai
-from component.api import insert_data,insert_installation_track,insert_shortcut_history,insert_shortcut_read
+from component.api import insert_data,insert_installation_track,insert_shortcut_history,insert_shortcut_read,device_cache_instance
 import json
 from component.kafka_op import get_message_from_kafka
 import sys
@@ -29,6 +29,7 @@ if admin.batch_send_deduplication_mode == 'consumer':
     from apscheduler.schedulers.background import BackgroundScheduler
     batch_send_scheduler = BackgroundScheduler()
     batch_send_scheduler.add_job(batch_cache.clean_expired, 'interval', seconds=admin.batch_send_max_memory_gap)
+    batch_send_scheduler.add_job(device_cache_instance.dump, 'interval', seconds=admin.combine_device_max_window)
     batch_send_scheduler.start()
 from component.public_func import multi_thread_pool
 def use_kafka():

@@ -17,7 +17,7 @@ from component.public_value import get_time_array_from_nlp,get_time_str,current_
 from component.public_func import show_obj_size
 import time
 import hashlib
-from url_tools import bool_to_str
+from component.url_tools import bool_to_str
 
 def get_properties_value(name,data_decode):
     if '$'+name in data_decode['properties']:
@@ -72,150 +72,6 @@ def insert_user(project,data_decode,created_at=None):
     except Exception:
         error = traceback.format_exc()
         write_to_log(filename='api_tools',defname='insert_user',result=error)
-
-
-# def insert_device(project,data_decode,user_agent,accept_language,ip,ip_city,ip_is_good,ip_asn,ip_asn_is_good,ua_platform,ua_browser,ua_version,ua_language,created_at=None,updated_at=None):
-#     try:
-#         lib = None
-#         if 'lib' in data_decode:
-#             if '$lib' in data_decode['lib']:
-#                 lib = data_decode['lib']['$lib']
-#         elif 'properties' in data_decode:
-#             if '$lib' in data_decode['properties']:
-#                 lib = data_decode['properties']['$lib']
-#         distinct_id = data_decode['distinct_id']
-#         decode_values = ['device_id','manufacturer','model','os','os_version','screen_width','screen_height','network_type','is_first_day','is_first_time','wifi','app_version','carrier','referrer','referrer_host','bot_name','browser','browser_version','is_login_id','screen_orientation','latitude','longitude','utm_content','utm_campaign','utm_medium','utm_term','utm_source','latest_utm_content','latest_utm_campaign','latest_utm_medium','latest_utm_term','latest_utm_source','latest_referrer','latest_referrer_host','latest_search_keyword','latest_traffic_source_type','first_visit_time','first_referrer','first_referrer_host','first_browser_language','first_browser_charset','first_search_keyword','first_traffic_source_type']
-#         createVar = globals()
-#         for decode_value in decode_values:
-#             createVar[decode_value] = get_properties_value(name=decode_value,data_decode=data_decode)
-#         update_content=''
-#     #修改可能出错的空值
-#         if ip_is_good ==0:
-#             ip_city = '{}'
-#         elif ip_is_good ==1:
-#             update_content = update_content +',ip_city=%(ip_city)s'
-#         if ip_asn_is_good ==0:
-#             ip_asn = '{}'
-#         elif ip_asn_is_good ==1:
-#             update_content = update_content +',ip_asn=%(ip_asn)s'
-#         if wifi == True:
-#             wifistr = 'True'
-#         elif wifi == False:
-#             wifistr = 'False'
-#         else:
-#             wifistr = None
-#         if is_login_id == True:
-#             is_login_idstr = 'True'
-#         elif is_login_id == False:
-#             is_login_idstr = 'False'
-#         else:
-#             is_login_idstr = None
-#     #判断需要更新的值
-#         if lib !='' and lib != None:
-#             update_content = update_content +',lib=%(lib)s'
-#         if device_id !='' and device_id != None:
-#             update_content = update_content +',device_id=%(device_id)s'
-#         if ua_platform !='' and ua_platform != None:
-#             update_content = update_content +',ua_platform=%(ua_platform)s'
-#         if ua_browser !='' and ua_browser != None:
-#             update_content = update_content +',ua_browser=%(ua_browser)s'
-#         if ua_version !='' and ua_version != None:
-#             update_content = update_content +',ua_version=%(ua_version)s'
-#         if ua_language !='' and ua_language != None:
-#             update_content = update_content +',ua_language=%(ua_language)s'
-#         if manufacturer !='' and manufacturer != None:
-#             update_content = update_content +',manufacturer=%(manufacturer)s'
-#         if model !='' and model != None:
-#             update_content = update_content +',model=%(model)s'
-#         if os !='' and os != None:
-#             update_content = update_content +',os=%(os)s'
-#         if os_version !='' and os_version != None:
-#             update_content = update_content +',os_version=%(os_version)s'
-#         if screen_width !='' and screen_width != None:
-#             update_content = update_content +',screen_width=%(screen_width)s'
-#         if screen_height !='' and screen_height != None:
-#             update_content = update_content +',screen_height=%(screen_height)s'
-#         if network_type !='' and network_type != None and network_type !='NULL':
-#             update_content = update_content +',network_type=%(network_type)s'
-#         if user_agent !='' and user_agent != None:
-#             update_content = update_content +',user_agent=%(user_agent)s'
-#         if accept_language !='' and accept_language != None and accept_language !='None':
-#             update_content = update_content +',accept_language=%(accept_language)s'
-#         if ip !='' and ip != None:
-#             update_content = update_content +',ip=%(ip)s'
-#         if wifistr !='' and wifistr != None:
-#             update_content = update_content +',wifi=%(wifi)s'
-#         if app_version !='' and app_version != None:
-#             update_content = update_content +',app_version=%(app_version)s'
-#         if carrier !='' and carrier != None:
-#             update_content = update_content +',carrier=%(carrier)s'
-#         if referrer !='' and referrer != None:
-#             update_content = update_content +',referrer=%(referrer)s'
-#         if referrer_host !='' and referrer_host != None:
-#             update_content = update_content +',referrer_host=%(referrer_host)s'
-#         if bot_name !='' and bot_name != None:
-#             update_content = update_content +',bot_name=%(bot_name)s'
-#         if browser !='' and browser != None:
-#             update_content = update_content +',browser=%(browser)s'
-#         if browser_version !='' and browser_version != None:
-#             update_content = update_content +',browser_version=%(browser_version)s'
-#         if is_login_id !='' and is_login_id != None:
-#             update_content = update_content +',is_login_id=%(is_login_id)s'
-#         if screen_orientation !='' and screen_orientation != None:
-#             update_content = update_content +',screen_orientation=%(screen_orientation)s'
-#         gps_latitude = latitude
-#         if gps_latitude !='' and gps_latitude != None:
-#             update_content = update_content +',gps_latitude=%(gps_latitude)s'
-#         gps_longitude = longitude
-#         if gps_longitude !='' and gps_longitude != None:
-#             update_content = update_content +',gps_longitude=%(gps_longitude)s'
-#         if first_visit_time !='' and first_visit_time != None:
-#             update_content = update_content +',first_visit_time=%(first_visit_time)s'
-#         if first_referrer !='' and first_referrer != None and first_referrer != 'url的domain解析失败' :
-#             update_content = update_content +',first_referrer=%(first_referrer)s'
-#         if first_referrer_host !='' and first_referrer_host != None and first_referrer_host != 'url的domain解析失败':
-#             update_content = update_content +',first_referrer_host=%(first_referrer_host)s'
-#         if first_browser_language !='' and first_browser_language != None and first_browser_language != 'url的domain解析失败' and first_browser_language !='取值异常' :
-#             update_content = update_content +',first_browser_language=%(first_browser_language)s'
-#         if first_browser_charset !='' and first_browser_charset != None and first_browser_charset !='url的domain解析失败'and first_browser_charset != '取值异常':
-#             update_content = update_content +',first_browser_charset=%(first_browser_charset)s'
-#         if first_search_keyword !='' and first_search_keyword != None and first_search_keyword != '未取到值,直接打开'and first_search_keyword != '未取到值':
-#             update_content = update_content +',first_search_keyword=%(first_search_keyword)s'
-#         if first_traffic_source_type !='' and first_traffic_source_type != None:
-#             update_content = update_content +',first_traffic_source_type=%(first_traffic_source_type)s'
-#         if utm_content !='' and utm_content != None:
-#             update_content = update_content +',utm_content=%(utm_content)s'
-#         if utm_campaign !='' and utm_campaign != None:
-#             update_content = update_content +',utm_campaign=%(utm_campaign)s'
-#         if utm_medium !='' and utm_medium != None:
-#             update_content = update_content +',utm_medium=%(utm_medium)s'
-#         if utm_term !='' and utm_term != None:
-#             update_content = update_content +',utm_term=%(utm_term)s'
-#         if utm_source !='' and utm_source != None:
-#             update_content = update_content +',utm_source=%(utm_source)s'
-#         if latest_utm_content !='' and latest_utm_content != None:
-#             update_content = update_content +',latest_utm_content=%(latest_utm_content)s'
-#         if latest_utm_campaign !='' and latest_utm_campaign != None:
-#             update_content = update_content +',latest_utm_campaign=%(latest_utm_campaign)s'
-#         if latest_utm_medium !='' and latest_utm_medium != None:
-#             update_content = update_content +',latest_utm_medium=%(latest_utm_medium)s'
-#         if latest_utm_term !='' and latest_utm_term != None:
-#             update_content = update_content +',latest_utm_term=%(latest_utm_term)s'
-#         if latest_utm_source !='' and latest_utm_source != None:
-#             update_content = update_content +',latest_utm_source=%(latest_utm_source)s'
-#         if latest_referrer !='' and latest_referrer != None and latest_referrer != '取值异常' :
-#             update_content = update_content +',latest_referrer=%(latest_referrer)s'
-#         if latest_referrer_host !='' and latest_referrer_host != None and latest_referrer_host !='url的domain解析失败'    and latest_referrer_host !='取值异常' :
-#             update_content = update_content +',latest_referrer_host=%(latest_referrer_host)s'
-#         if latest_search_keyword !='' and latest_search_keyword != None and latest_search_keyword !='未取到值_直接打开' and latest_search_keyword != '未取到值' and latest_search_keyword !='url的domain解析失败'    and latest_search_keyword !='取值异常'    and latest_search_keyword != '未取到值_非http的url' :
-#             update_content = update_content +',latest_search_keyword=%(latest_search_keyword)s'
-#         if latest_traffic_source_type !='' and latest_traffic_source_type != None and latest_traffic_source_type != 'url的domain解析失败' and latest_traffic_source_type != 'referrer的domain解析失败' and latest_traffic_source_type !='取值异常':
-#             update_content = update_content +',latest_traffic_source_type=%(latest_traffic_source_type)s'
-#         count = insert_devicedb(table=project,distinct_id=distinct_id,device_id=device_id,manufacturer=manufacturer,model=model,os=os,os_version=os_version,screen_width=screen_width,screen_height=screen_height,network_type=network_type,user_agent=user_agent,accept_language=accept_language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,wifi=wifistr,app_version=app_version,carrier=carrier,referrer=referrer,referrer_host=referrer_host,bot_name=bot_name,browser=browser,browser_version=browser_version,is_login_id=is_login_idstr,screen_orientation=screen_orientation,gps_latitude=gps_latitude,gps_longitude=gps_longitude,first_visit_time=first_visit_time,first_referrer=first_referrer,first_referrer_host=first_referrer_host,first_browser_language=first_browser_language,first_browser_charset=first_browser_charset,first_search_keyword=first_search_keyword,first_traffic_source_type=first_traffic_source_type,utm_content=utm_content,utm_campaign=utm_campaign,utm_medium=utm_medium,utm_term=utm_term,utm_source=utm_source,latest_utm_content=latest_utm_content,latest_utm_campaign=latest_utm_campaign,latest_utm_medium=latest_utm_medium,latest_utm_term=latest_utm_term,latest_utm_source=latest_utm_source,latest_referrer=latest_referrer,latest_referrer_host=latest_referrer_host,latest_search_keyword=latest_search_keyword,latest_traffic_source_type=latest_traffic_source_type,update_content=update_content,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,lib=lib,created_at=created_at,updated_at=updated_at)
-#         print('插入或跟新device'+str(count)+'条')
-#     except Exception:
-#         error = traceback.format_exc()
-#         write_to_log(filename='api_tools',defname='insert_device',result=error)
 
 def encode_urlutm(utm_source,utm_medium,utm_campaign,utm_content,utm_term):
     url_add_on = ''
@@ -392,22 +248,40 @@ class device_cache:
                  combine_device_max_memory_gap = admin.combine_device_max_memory_gap,
                  combine_device_max_window = admin.combine_device_max_window,
                  combine_device_max_distinct_id = admin.combine_device_max_distinct_id,
-                 combine_device_multiple_threads = admin.combine_device_multiple_threads):
+                 combine_device_multiple_threads = admin.combine_device_multiple_threads,
+                 use_kafka = admin.use_kafka,
+                 fast_mode = admin.fast_mode,
+                 unrecognized_info_skip = admin.unrecognized_info_skip,
+                 device_latest_info_update_mode = admin.device_latest_info_update_mode):
         # self.start_time = int(time.time())
         self.combine_device_memory = combine_device_memory
         self.combine_device_max_memory_gap = combine_device_max_memory_gap
         self.combine_device_max_window = combine_device_max_window
         self.combine_device_max_distinct_id = combine_device_max_distinct_id
         self.combine_device_multiple_threads = combine_device_multiple_threads
+        self.use_kafka = use_kafka
+        self.fast_mode = fast_mode
+        self.unrecognized_info_skip = unrecognized_info_skip
+        self.device_latest_info_update_mode = device_latest_info_update_mode
         self.check_mem_time = int(time.time())
         self.cache_size = 0
         self.cached_data = {}
         self.request_info = ['user_agent','accept_language','ip','ip_city','ip_is_good','ip_asn','ip_asn_is_good','ua_platform','ua_browser','ua_version','ua_language']
         self.device_properties_list = {'first':[]}
         self.device_properties_list['fix'] = ['distinct_id','project']
-        self.device_properties_list['latest_properties'] = ['lib','device_id','manufacturer','model','os','os_version','ua_platform','ua_browser','ua_version','ua_language','screen_width','screen_height','network_type','user_agent','accept_language','wifi','app_version','carrier','bot_name','browser','browser_version','is_login_id','screen_orientation','latitude','longitude','referrer','referrer_host','latest_utm_campaign','latest_utm_medium','latest_utm_term','latest_utm_source','latest_utm_content','latest_referrer','latest_referrer_host','latest_search_keyword','latest_traffic_source_type','updated_at'],
+        self.device_properties_list['latest_properties'] = ['lib','device_id','manufacturer','model','os','os_version','ua_platform','ua_browser','ua_version','ua_language','screen_width','screen_height','network_type','user_agent','accept_language','wifi','app_version','carrier','bot_name','browser','browser_version','is_login_id','screen_orientation','latitude','longitude','referrer','referrer_host','latest_utm_campaign','latest_utm_medium','latest_utm_term','latest_utm_source','latest_utm_content','latest_referrer','latest_referrer_host','latest_search_keyword','latest_traffic_source_type','updated_at']
+        self.device_properties_not_str_in_restrict_mode = ['screen_width','screen_height','latitude','longitude','first_visit_time']
         if admin.device_source_update_mode in ['first_sight','latest_sight']:
             self.device_properties_list['first'] = ['first_visit_time','first_referrer','first_referrer_host','first_browser_language','first_browser_charset','first_search_keyword','first_traffic_source_type','utm_content','utm_campaign','utm_medium','utm_term','utm_source','created_at']
+        
+        if self.use_kafka is False:
+            write_to_log(filename='api_tools',defname='device_cache',result='当前模式为非kafka模式，由生产者写入device数据')
+        elif self.use_kafka is True and self.fast_mode == 'original':
+            write_to_log(filename='api_tools',defname='device_cache',result='当前模式为kakfa模式，由消费者写入按照单条方式写入数据')
+        elif self.use_kafka is True and self.fast_mode == 'fast':
+            write_to_log(filename='api_tools',defname='device_cache',result='当前模式为kafka模式，由消费者写入内存，再单条写入数据')
+        elif self.use_kafka is True and self.fast_mode == 'boost':
+            write_to_log(filename='api_tools',defname='device_cache',result='当前模式为kafka模式，由消费者写入内存，再批量写入数据，目前该模式尚未支持')
 
     def _check_mem(self):
         if int(time.time()) - self.check_mem_time > self.combine_device_max_memory_gap:
@@ -457,14 +331,17 @@ class device_cache:
         for first_item in self.device_properties_list['first']:
             if '$'+first_item in properties and properties['$'+first_item] and properties['$'+first_item] != '':
                 etld[first_item] = properties['$'+first_item]
+        pending_delete_key = []
         for item in etld:
-            if etld[item] in admin.unrecognized_info_skip:
+            if etld[item] in self.unrecognized_info_skip:
                 #剔除未识别到的值，减少更新时判断的难度，只需要判断空值即可。
-                del etld[item]
-        if admin.device_latest_info_update_mode in ['restrict']:
+                pending_delete_key.append(item)
+        for item in pending_delete_key:
+            del etld[item]
+        if self.device_latest_info_update_mode in ['restrict']:
             #最新模式如果为严格模式，就给所有不存在的字段赋空值，防止后续因为null被更新
             for restrict_item in list(set(self.request_info).union(set(self.device_properties_list['latest_properties']))):
-                if restrict_item not in etld:
+                if restrict_item not in etld and restrict_item not in self.device_properties_not_str_in_restrict_mode:
                     etld[restrict_item] = ''
         return etld
 
@@ -476,7 +353,7 @@ class device_cache:
         #这里要求了必须有distinct_id，所以后续步骤都不需要再判断，都假定distinct_id有值。
         if 'distinct_id' in insert_data_income['data_decode'] and insert_data_income['data_decode']['distinct_id'] != '' and insert_data_income['project'] != '':
             etld_data = self._etl(insert_data_income=insert_data_income)
-            if admin.fast_mode=='original' or (not admin.use_kafka and not use_kafka):
+            if self.fast_mode=='original' or (not self.use_kafka and not use_kafka):
                 #两个都为False时，才能判断是不用kafka的模式。只有一个是False时，有可能是consumer触发的。
                 self._insert_device_data(etld_data=etld_data)
             else:
@@ -496,19 +373,21 @@ class device_cache:
             if item in ['distinct_id','project']:
                 #跳过主键
                 continue
+            elif item in ['latitude','longitude']:
+                update_content = update_content +''',{item}=%({item})s'''.format(item='gps_'+item)
             elif item in self.device_properties_list['first'] :
                 if  admin.device_source_update_mode in ['first_sight']:
                     #第一次模式只更新空值
-                    update_content = update_content +''',{item}=if({item} is null,%(item)s,{item})'''.format(item=item)
+                    update_content = update_content +''',{item}=if({item} is null,%({item})s,{item})'''.format(item=item)
                 elif admin.device_source_update_mode in ['latest_sight']:
                     #最新模式只要有值就更新
-                    update_content = update_content +''',{item}=%(item)s'''.format(item=item)
+                    update_content = update_content +''',{item}=%({item})s'''.format(item=item)
             elif 'ip_city' in etld_data and etld_data['ip_city'] != '{}' and item in ['ip_city','ip_asn','ip']:
-                update_content = update_content +''',{item}=%(item)s'''.format(item=item)
+                update_content = update_content +''',{item}=%({item})s'''.format(item=item)
             elif item in self.device_properties_list['latest_properties'] :
                 if  admin.device_latest_info_update_mode in ['latest_sight','restrict']:
                     #无论是否有值都更新
-                    update_content = update_content +''',{item}=%(item)s'''.format(item=item)
+                    update_content = update_content +''',{item}=%({item})s'''.format(item=item)
 
         #insert data into db
         count = insert_devicedb(table=etld_data['project'],
@@ -696,7 +575,7 @@ class device_cache:
         return 'success'
 
 
-
+device_cache_instance = device_cache()
 
 
         # if 'all' not in self.projects[project]:
