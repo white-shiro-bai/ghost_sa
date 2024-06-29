@@ -7,7 +7,7 @@
 
 # 是否使用Kafka
 use_kafka = True #True时，数据写入kafka。False时，直接插入数据库.ghost_sa大部分功能需要在kafka支持下发挥性能。仅在并发性能极低时，才适用不使用Kafka的模式。
-consumer_workers = 9 #使用kafka时，消费者的数量。标准部署tidb，9个效果比较好。请根据数据库压力调节。不是越大越好。
+consumer_workers = 16 #使用kafka时，消费者的数量。标准部署tidb，9个效果比较好。请根据数据库压力调节。不是越大越好。
 
 
 #batch_send_deduplication
@@ -62,10 +62,10 @@ device_latest_info_update_mode = 'restrict' #'restrict','latest_sight'。this se
 # 'latest_sight' mode is update latest cloumn as latest_sight if newer data is blank.
 
 combine_device_memory = 100000000 #unit byte。default is 100000000(1G), if thread use memory exceed setting , insert all cache into table first.
-combine_device_max_memory_gap = 30 #frequency what memory occupied chech. default is 30 seconds , tiny value provide accurate but cost more interrupt , huge value have better performace but lead more risk on OOM. Data lost is annoying even it can be recovery by event table. this value should be smaller then combine_device_max_window.
+combine_device_max_memory_gap = 3000 #frequency what memory occupied chech. default is 30 seconds , tiny value provide accurate but cost more interrupt , huge value have better performace but lead more risk on OOM. Data lost is annoying even it can be recovery by event table. this value should be smaller then combine_device_max_window.
 combine_device_max_window = 60 #unit seconds。default is 300(every 5 minutes). Force insert device table after window since last insert if max_memory or gap not trigger insert.
 combine_device_max_distinct_id = 1000 #unit keys. default is 1000.if cached distinct id reach the limit , insert all cache into table first.
-combine_device_multiple_threads = 6 # insert treads. between 2 and 9 is good depend on your database performance.Data insert have retry times to avoid data lost when database busy or connection unstable, 1 is not a good idea at lock table , only 1 thread with retry function can jam the process on a single lock.
+combine_device_multiple_threads = 16 # insert treads. between 2 and 9 is good depend on your database performance.Data insert have retry times to avoid data lost when database busy or connection unstable, 1 is not a good idea at lock table , only 1 thread with retry function can jam the process on a single lock.
 
 #Info skip
 unrecognized_info_skip = ['url的domain解析失败','取值异常','未取到值,直接打开','未取到值','未取到值_非http的url','取值异常_referrer异常_','hostname解析异常','未知搜索引擎', 'url_host取值异常','获取url异常','url解析失败','NULL','Null','null','None'] #unrecognized utm and other info list. Utm and info will update to {project}_device if they not in this list.

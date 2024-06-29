@@ -3,7 +3,7 @@
 #Date: 2023-05-27 21:19:00
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-01-28 16:51:11
+#LastEditTime: 2024-06-29 19:36:28
 #FilePath: \ghost_sa_github_cgq\selftest\test_case.py
 #
 import sys
@@ -30,8 +30,6 @@ def test_useragent_generate():
         for j in range(0,len(useragent_list)):
             useragent_list[j] = (j,useragent_list[j].split('\t')[0],useragent_list[j].split('\t')[1].strip('\n'))
     return useragent_list
-
-
 
 def batch_send_deduplication(project='test_me',url='http://127.0.0.1:5000/' ,remark = 'normal' ,no_bot = ''):
 #[root@ghost_sa ghost_test]# python3 selftest/test_case.py test19
@@ -128,6 +126,8 @@ def test_shortcut(count=1000):
 def req(id):
     result = get_json_from_postjson(url='http://localhost:8000/shortit',data={'org_url':'http://www.{count}.com'.format(count=id)})
     print(result)
+
+
 
 if __name__ == '__main__':
     # test_shortcut(count=1000)

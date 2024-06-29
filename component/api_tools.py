@@ -327,7 +327,6 @@ class device_cache:
     def _etl(self,insert_data_income):
         #insertdata to ramdate.
         #这里统一把device表不需要的空值和错值都去掉了。后续操作就不需要判断空值了
-        print(8888888,insert_data_income)
         etld = {}
         etld['project'] = insert_data_income['project']
         etld['distinct_id'] = insert_data_income['data_decode']['distinct_id']
@@ -501,7 +500,6 @@ class device_cache:
 
 
     def _ram_traffic(self,etld_data):
-        print(1122334455,self.cached_data)
         #create and update pending insert data to ram data after check distinct_id is already in device table.
         if etld_data['project'] not in self.cached_data :
             self.cached_data[etld_data['project']] = {}
@@ -520,12 +518,9 @@ class device_cache:
     def _update_ram(self,etld_data):
         #判断每一个直接在request_info里带过来的原始数据
         # update_value = {}
-        print(10101011010,self.cached_data)
-        print(9999999,etld_data)
         if ('updated_at' in self.cached_data[etld_data['project']][etld_data['distinct_id']] and self.cached_data[etld_data['project']][etld_data['distinct_id']]['updated_at'] < etld_data['updated_at'] ) or self.cached_data[etld_data['project']][etld_data['distinct_id']] == {}:
             #日期比较新的情况，处理以新为主的数据
             #处理以新为主的数据
-            print(11111111111111)
             for info_item in self.request_info:
                 if info_item not in ('created_at'):
                     self.cached_data[etld_data['project']][etld_data['distinct_id']][info_item] = etld_data[info_item]
@@ -541,17 +536,14 @@ class device_cache:
                     #把最后信息状态写入缓存
                     self.cached_data[etld_data['project']][etld_data['distinct_id']][first_item] = etld_data[first_item]
         else:
-            print(22222222222222)
             #日期比较旧的情况，且最后一次的更新模式是以最后一次感知到为准，则更新。
             if self.device_latest_info_update_mode =='latest_sight':
-                print(33333333333333)
                 for latest_item in self.device_properties_list['latest_properties']:
                     if latest_item not in self.cached_data[etld_data['project']][etld_data['distinct_id']] and latest_item in etld_data:
                         #把最后信息状态写入缓存
                         self.cached_data[etld_data['project']][etld_data['distinct_id']][latest_item] = etld_data[latest_item]
             #第一次的数据，如果比现存的更早，则更新。
             if ('created_at' in etld_data and etld_data['created_at'] and 'created_at' in self.cached_data[etld_data['project']][etld_data['distinct_id']] and self.cached_data[etld_data['project']][etld_data['distinct_id']]['created_at'] > etld_data['created_at']) or self.cached_data[etld_data['project']][etld_data['distinct_id']] == {} :
-                print(44444444444444)
                 #更新created_at到更早的时间
                 self.cached_data[etld_data['project']][etld_data['distinct_id']]['created_at'] = etld_data['created_at']
                 for first_item in self.device_properties_list['first']:
@@ -560,7 +552,6 @@ class device_cache:
                         self.cached_data[etld_data['project']][etld_data['distinct_id']][first_item] = etld_data[first_item]
             #如果不比现在的更早，则根据admin.device_source_update_mode来判断是否更新。
             else:
-                print(55555555555555)
                 #如果更早拿不到数据，但仍然保持以最早感知到的为准。则更新。
                 #这里判断的最早感知，是没错的。在实际数据中，大概率是发生在没有更早的有效信息了。如果是以最后感知到的为准，会在上面updated_at的环节就写入，然后在从ram-->db的过程中判断。
                 if self.device_source_update_mode == 'first_sight':
@@ -569,7 +560,6 @@ class device_cache:
                         #把最后信息状态写入缓存
                             self.cached_data[etld_data['project']][etld_data['distinct_id']][first_item] = etld_data[first_item]
 
-        print(10101011011,self.cached_data)
 
     def dump(self):
         #dump_ram_to_db
@@ -581,7 +571,7 @@ class device_cache:
         delete_count = 0 #删除数量
         pending_delete = {} #待删除的数据
         for project in self.cached_data:
-            for distinct_id in self.cached_data[project]:
+            for distinct_id in self.cached_data[project]: #!这里报了错
                 if self.cached_data[project][distinct_id] == {}:
                     empty += 1
                     if project not in pending_delete:

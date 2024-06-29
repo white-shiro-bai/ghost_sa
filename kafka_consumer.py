@@ -3,7 +3,7 @@
 #Date: 2022-10-06 16:15:40
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-06-23 18:41:31
+#LastEditTime: 2024-06-29 19:38:26
 #FilePath: \ghost_sa_github_cgq\kafka_consumer.py
 #
 import sys
