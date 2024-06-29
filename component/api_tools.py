@@ -252,7 +252,8 @@ class device_cache:
                  use_kafka = admin.use_kafka,
                  fast_mode = admin.fast_mode,
                  unrecognized_info_skip = admin.unrecognized_info_skip,
-                 device_latest_info_update_mode = admin.device_latest_info_update_mode):
+                 device_latest_info_update_mode = admin.device_latest_info_update_mode,
+                 device_source_update_mode = admin.device_source_update_mode):
         # self.start_time = int(time.time())
         self.combine_device_memory = combine_device_memory
         self.combine_device_max_memory_gap = combine_device_max_memory_gap
@@ -263,16 +264,27 @@ class device_cache:
         self.fast_mode = fast_mode
         self.unrecognized_info_skip = unrecognized_info_skip
         self.device_latest_info_update_mode = device_latest_info_update_mode
+        self.device_source_update_mode = device_source_update_mode
         self.check_mem_time = int(time.time())
         self.cache_size = 0
         self.cached_data = {}
-        self.request_info = ['user_agent','accept_language','ip','ip_city','ip_is_good','ip_asn','ip_asn_is_good','ua_platform','ua_browser','ua_version','ua_language']
+        self.request_info = ['user_agent','accept_language','ip','ip_city','ip_is_good','ip_asn','ip_asn_is_good','ua_platform','ua_browser','ua_version','ua_language','created_at','updated_at']
         self.device_properties_list = {'first':[]}
         self.device_properties_list['fix'] = ['distinct_id','project']
         self.device_properties_list['latest_properties'] = ['lib','device_id','manufacturer','model','os','os_version','ua_platform','ua_browser','ua_version','ua_language','screen_width','screen_height','network_type','user_agent','accept_language','wifi','app_version','carrier','bot_name','browser','browser_version','is_login_id','screen_orientation','latitude','longitude','referrer','referrer_host','latest_utm_campaign','latest_utm_medium','latest_utm_term','latest_utm_source','latest_utm_content','latest_referrer','latest_referrer_host','latest_search_keyword','latest_traffic_source_type','updated_at']
         self.device_properties_not_str_in_restrict_mode = ['screen_width','screen_height','latitude','longitude','first_visit_time']
-        if admin.device_source_update_mode in ['first_sight','latest_sight']:
+        if self.device_source_update_mode in ['first_sight','latest_sight']:
             self.device_properties_list['first'] = ['first_visit_time','first_referrer','first_referrer_host','first_browser_language','first_browser_charset','first_search_keyword','first_traffic_source_type','utm_content','utm_campaign','utm_medium','utm_term','utm_source','created_at']
+        print('combine_device_memory:'+str(self.combine_device_memory)
+        +' combine_device_max_memory_gap:'+str(self.combine_device_max_memory_gap)
+        +' combine_device_max_window:'+str(self.combine_device_max_window)
+        +' combine_device_max_distinct_id:'+str(self.combine_device_max_distinct_id)
+        +' combine_device_multiple_threads:'+str(self.combine_device_multiple_threads)
+        +' use_kafka:'+str(self.use_kafka)
+        +' fast_mode:'+str(self.fast_mode)
+        +' unrecognized_info_skip:'+str(self.unrecognized_info_skip)
+        +' device_latest_info_update_mode:'+str(self.device_latest_info_update_mode)
+        +' device_source_update_mode:'+str(self.device_source_update_mode))
         
         if self.use_kafka is False:
             write_to_log(filename='api_tools',defname='device_cache',result='当前模式为非kafka模式，由生产者写入device数据')
@@ -315,6 +327,7 @@ class device_cache:
     def _etl(self,insert_data_income):
         #insertdata to ramdate.
         #这里统一把device表不需要的空值和错值都去掉了。后续操作就不需要判断空值了
+        print(8888888,insert_data_income)
         etld = {}
         etld['project'] = insert_data_income['project']
         etld['distinct_id'] = insert_data_income['data_decode']['distinct_id']
@@ -376,16 +389,16 @@ class device_cache:
             elif item in ['latitude','longitude']:
                 update_content = update_content +''',{item}=%({item})s'''.format(item='gps_'+item)
             elif item in self.device_properties_list['first'] :
-                if  admin.device_source_update_mode in ['first_sight']:
+                if  self.device_source_update_mode in ['first_sight']:
                     #第一次模式只更新空值
                     update_content = update_content +''',{item}=if({item} is null,%({item})s,{item})'''.format(item=item)
-                elif admin.device_source_update_mode in ['latest_sight']:
+                elif self.device_source_update_mode in ['latest_sight']:
                     #最新模式只要有值就更新
                     update_content = update_content +''',{item}=%({item})s'''.format(item=item)
             elif 'ip_city' in etld_data and etld_data['ip_city'] != '{}' and item in ['ip_city','ip_asn','ip']:
                 update_content = update_content +''',{item}=%({item})s'''.format(item=item)
             elif item in self.device_properties_list['latest_properties'] :
-                if  admin.device_latest_info_update_mode in ['latest_sight','restrict']:
+                if  self.device_latest_info_update_mode in ['latest_sight','restrict']:
                     #无论是否有值都更新
                     update_content = update_content +''',{item}=%({item})s'''.format(item=item)
 
@@ -455,20 +468,20 @@ class device_cache:
             #这里空值不会进列表循环
             #根据配置，设定更新方式
             if item in self.device_properties_list['first'] :
-                if  admin.device_source_update_mode in ['first_sight']:
+                if  self.device_source_update_mode in ['first_sight']:
                     #第一次模式只更新空值
-                    update_content = update_content +''',{item}=if({item} is null,%(item)s,{item})'''.format(item=item)
-                elif admin.device_source_update_mode in ['latest_sight']:
+                    update_content = update_content +''',{item}=if({item} is null,%({item})s,{item})'''.format(item=item)
+                elif self.device_source_update_mode in ['latest_sight']:
                     #最新模式只要有值就更新
-                    update_content = update_content +''',{item}=%(item)s'''.format(item=item)
+                    update_content = update_content +''',{item}=%({item})s'''.format(item=item)
             elif 'ip_city' in data and data['ip_city'] != '{}' and item in ['ip_city','ip_asn','ip']:
-                update_content = update_content +''',{item}=%(item)s'''.format(item=item)
+                update_content = update_content +''',{item}=%({item})s'''.format(item=item)
             elif item in ['latitude','longitude']:
-                update_content = update_content +''',gps_{item}=%(item)s'''.format(item=item)
+                update_content = update_content +''',gps_{item}=%({item})s'''.format(item=item)
             elif item in self.device_properties_list['latest_properties'] :
-                if  admin.device_latest_info_update_mode in ['latest_sight','restrict']:
+                if  self.device_latest_info_update_mode in ['latest_sight','restrict']:
                     #无论是否有值都更新
-                    update_content = update_content +''',{item}=%(item)s'''.format(item=item)
+                    update_content = update_content +''',{item}=%({item})s'''.format(item=item)
             #处理特殊值
             if item in ['is_login_id','wifi']:
                 data[item] = bool_to_str(data[item])
@@ -477,9 +490,9 @@ class device_cache:
         return result
 
     def check_distinct_id(self,distinct_id,project):
-        if project in self.cached_data and distinct_id in self.cached_data['project']:
-                #已经在缓存中，继续加缓存
-                return 'in_mem'
+        if project in self.cached_data and distinct_id in self.cached_data[project]:
+            #已经在缓存中，继续加缓存
+            return 'in_mem'
         elif check_distinct_id_in_device(project=project,distinct_id=distinct_id) >= 1:
             #检查是否在device表里已有
             return 'in_device'
@@ -488,6 +501,7 @@ class device_cache:
 
 
     def _ram_traffic(self,etld_data):
+        print(1122334455,self.cached_data)
         #create and update pending insert data to ram data after check distinct_id is already in device table.
         if etld_data['project'] not in self.cached_data :
             self.cached_data[etld_data['project']] = {}
@@ -496,7 +510,7 @@ class device_cache:
         #if there is not distinct_id in ram,init it before update
         self._update_ram(etld_data=etld_data)
         #check throller and trans to db.
-        if self._check_mem() > admin.combine_device_memory :
+        if self._check_mem() > self.combine_device_memory :
             dump_status = self.dump()
             if dump_status == 'success':
                 self.cache_size = 0
@@ -506,13 +520,20 @@ class device_cache:
     def _update_ram(self,etld_data):
         #判断每一个直接在request_info里带过来的原始数据
         # update_value = {}
-
-        if 'updated_at' in self.cached_data[etld_data['project']][etld_data['distinct_id']] and self.cached_data[etld_data['project']][etld_data['distinct_id']]['updated_at'] < etld_data['updated_at']:
+        print(10101011010,self.cached_data)
+        print(9999999,etld_data)
+        if ('updated_at' in self.cached_data[etld_data['project']][etld_data['distinct_id']] and self.cached_data[etld_data['project']][etld_data['distinct_id']]['updated_at'] < etld_data['updated_at'] ) or self.cached_data[etld_data['project']][etld_data['distinct_id']] == {}:
             #日期比较新的情况，处理以新为主的数据
             #处理以新为主的数据
+            print(11111111111111)
             for info_item in self.request_info:
-                self.cached_data[etld_data['project']][etld_data['distinct_id']][info_item] = etld_data[info_item]
+                if info_item not in ('created_at'):
+                    self.cached_data[etld_data['project']][etld_data['distinct_id']][info_item] = etld_data[info_item]
+                elif info_item in ('created_at'):
+                    if info_item not in self.cached_data[etld_data['project']][etld_data['distinct_id']]:
+                        self.cached_data[etld_data['project']][etld_data['distinct_id']][info_item] = etld_data[info_item]
             for decode_item in self.device_properties_list['latest_properties']:
+                if decode_item in etld_data and decode_item != 'updated_at':
                     self.cached_data[etld_data['project']][etld_data['distinct_id']][decode_item] = etld_data[decode_item]
             #处理以初次为主的数据，这里只处理有的就可以，因为在init里判断了，如果是严格模式，first列表不会初始化
             for first_item in self.device_properties_list['first']:
@@ -520,14 +541,17 @@ class device_cache:
                     #把最后信息状态写入缓存
                     self.cached_data[etld_data['project']][etld_data['distinct_id']][first_item] = etld_data[first_item]
         else:
+            print(22222222222222)
             #日期比较旧的情况，且最后一次的更新模式是以最后一次感知到为准，则更新。
-            if admin.device_latest_info_update_mode =='latest_sight':
+            if self.device_latest_info_update_mode =='latest_sight':
+                print(33333333333333)
                 for latest_item in self.device_properties_list['latest_properties']:
                     if latest_item not in self.cached_data[etld_data['project']][etld_data['distinct_id']] and latest_item in etld_data:
                         #把最后信息状态写入缓存
                         self.cached_data[etld_data['project']][etld_data['distinct_id']][latest_item] = etld_data[latest_item]
             #第一次的数据，如果比现存的更早，则更新。
-            if 'created_at' in etld_data and etld_data['created_at'] and 'created_at' in self.cached_data[etld_data['project']][etld_data['distinct_id']] and self.cached_data[etld_data['project']][etld_data['distinct_id']]['created_at'] > etld_data['created_at']:
+            if ('created_at' in etld_data and etld_data['created_at'] and 'created_at' in self.cached_data[etld_data['project']][etld_data['distinct_id']] and self.cached_data[etld_data['project']][etld_data['distinct_id']]['created_at'] > etld_data['created_at']) or self.cached_data[etld_data['project']][etld_data['distinct_id']] == {} :
+                print(44444444444444)
                 #更新created_at到更早的时间
                 self.cached_data[etld_data['project']][etld_data['distinct_id']]['created_at'] = etld_data['created_at']
                 for first_item in self.device_properties_list['first']:
@@ -536,14 +560,16 @@ class device_cache:
                         self.cached_data[etld_data['project']][etld_data['distinct_id']][first_item] = etld_data[first_item]
             #如果不比现在的更早，则根据admin.device_source_update_mode来判断是否更新。
             else:
+                print(55555555555555)
                 #如果更早拿不到数据，但仍然保持以最早感知到的为准。则更新。
                 #这里判断的最早感知，是没错的。在实际数据中，大概率是发生在没有更早的有效信息了。如果是以最后感知到的为准，会在上面updated_at的环节就写入，然后在从ram-->db的过程中判断。
-                if admin.device_source_update_mode == 'first_sight':
+                if self.device_source_update_mode == 'first_sight':
                     for first_item in self.device_properties_list['first']:
                         if first_item in etld_data and first_item not in self.cached_data[etld_data['project']][etld_data['distinct_id']]:
                         #把最后信息状态写入缓存
                             self.cached_data[etld_data['project']][etld_data['distinct_id']][first_item] = etld_data[first_item]
 
+        print(10101011011,self.cached_data)
 
     def dump(self):
         #dump_ram_to_db
@@ -552,11 +578,15 @@ class device_cache:
         nochange_count = 0 #相比历史无变化数量
         error = 0 #更新失败数量
         empty = 0 #仅有空对象的数量（预留以减小数据库查询压力，但最后没有数据更新）
+        delete_count = 0 #删除数量
+        pending_delete = {} #待删除的数据
         for project in self.cached_data:
             for distinct_id in self.cached_data[project]:
                 if self.cached_data[project][distinct_id] == {}:
                     empty += 1
-                    del self.cached_data[project][distinct_id]
+                    if project not in pending_delete:
+                        pending_delete[project] = []
+                    pending_delete[project].append(distinct_id)
                 else:
                     result = self._update_device(project=project,distinct_id=distinct_id,data=self.cached_data[project][distinct_id])
                     if result in ['success']:
@@ -567,11 +597,17 @@ class device_cache:
                         error += 1
                     if 'updated_at' in self.cached_data[project][distinct_id] and self.cached_data[project][distinct_id]['updated_at'] + self.combine_device_max_window < current_timestamp10() and result in ['success','no_change']:
                         #判断没有新数据进了再删，避免内存里找不到，去数据库里找，占用io。
-                        del self.cached_data[project][distinct_id]
+                        if project not in pending_delete:
+                            pending_delete[project] = []
+                        pending_delete[project].append(distinct_id)
+        for project in pending_delete:
+            for distinct_id in pending_delete[project]:
+                del self.cached_data[project][distinct_id]
+                delete_count += 1
         if error > 0:
-            write_to_log(filename='api_tools', defname='device_cache_dump', result='success_dump:'+str(success_count)+',no_change_dump:'+str(nochange_count)+',error_dump:'+str(error),level='warning')
+            write_to_log(filename='api_tools', defname='device_cache_dump', result='success_dump:'+str(success_count)+',no_change_dump:'+str(nochange_count)+',error_dump:'+str(error)+',delete_count:'+str(delete_count),level='warning')
             return 'success with error'
-        write_to_log(filename='api_tools', defname='device_cache_dump', result='success_dump:'+str(success_count)+',no_change_dump:'+str(nochange_count)+',error_dump:'+str(error),level='info')
+        write_to_log(filename='api_tools', defname='device_cache_dump', result='success_dump:'+str(success_count)+',no_change_dump:'+str(nochange_count)+',error_dump:'+str(error)+',delete_count:'+str(delete_count),level='info')
         return 'success'
 
 

@@ -3,7 +3,7 @@
 #Date: 2023-05-28 17:11:16
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-06-23 14:55:04
+#LastEditTime: 2024-06-29 12:18:49
 #FilePath: \ghost_sa_github_cgq\configs\db.py
 #
 import sys
