@@ -3,7 +3,7 @@
 #Date: 2023-05-27 21:19:00
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-06-29 19:36:28
+#LastEditTime: 2024-06-30 20:32:35
 #FilePath: \ghost_sa_github_cgq\selftest\test_case.py
 #
 import sys
@@ -66,7 +66,7 @@ def batch_send_deduplication(project='test_me',url='http://127.0.0.1:5000/' ,rem
                     ip = ipbase_list[0][1]
                     user_agent = useragent_list[j][2]
                     lib = useragent_list[j][1]
-                    worker.submit(send_tracking_data,project=project,distinct_id='batch_send_deduplication'+str(j),url=url,lib=lib,ip=ip,user_agent=user_agent,other_value={'ua字典行数':j,'行计数':indepent_count-1,'应含独立行数':indepent_count,'累计行数':send_count,'本行发送次数':j_count,'本行应该去除数':j_rule_count,'本行不应该去重数':j_count-j_rule_count,'规则':'正常重复数据，重复写入只记1条'},track_id=j,time13=time13,remark=remark,mode=send_mode[0],gzip=send_zip[0],no_bot=no_bot)
+                    worker.submit(send_tracking_data,project=project,distinct_id='batch_send_deduplication'+str(j),url=url,lib=lib,ip=ip,user_agent=user_agent,other_value={'ua字典行数':j,'行计数':indepent_count-1,'应含独立行数':indepent_count,'累计行数':send_count,'本行发送次数':j_count,'本行应该去除数':j_rule_count,'本行不应该去重数':j_count-j_rule_count,'规则':'正常重复数据，重复写入只记1条'},track_id=j,time13=time13,remark=remark,mode=send_mode[0],gzip=send_zip[0],no_bot=no_bot,copy=str(j_count))
                 if (j+1)%i == 1:
                     send_recount_count += 1
                     j_count += 1
@@ -75,7 +75,7 @@ def batch_send_deduplication(project='test_me',url='http://127.0.0.1:5000/' ,rem
                     user_agent = useragent_list[j][2]
                     lib = useragent_list[j][1]
                     time132 = int(time.time()*1000)+j_count
-                    worker.submit(send_tracking_data,project=project,distinct_id='batch_send_deduplication'+str(j),url=url,lib=lib,ip=ip,user_agent=user_agent,other_value={'ua字典行数':j,'行计数':indepent_count-1,'应含独立行数':indepent_count,'累计行数':send_count,'本行重复次数':j_count,'本行应该去除数':j_rule_count,'本行不应该去重数':j_count-j_rule_count,'规则':'track_id一致，上报时间戳不一致，多次重复都应该保留'},track_id=j,time13=time132,remark=remark,no_bot=no_bot)
+                    worker.submit(send_tracking_data,project=project,distinct_id='batch_send_deduplication'+str(j),url=url,lib=lib,ip=ip,user_agent=user_agent,other_value={'ua字典行数':j,'行计数':indepent_count-1,'应含独立行数':indepent_count,'累计行数':send_count,'本行重复次数':j_count,'本行应该去除数':j_rule_count,'本行不应该去重数':j_count-j_rule_count,'规则':'track_id一致，上报时间戳不一致，多次重复都应该保留'},track_id=j,time13=time132,remark=remark,no_bot=no_bot,copy=str(j_count))
                 if i == 3:
                     send_duplicate_count = send_duplicate_count+j_rule_count
                 # write_to_log(filename='test_case',defname='batch_send_deduplication',result='uv:'+str(indepent_count)+',pv:'+str(send_count)+',vv:'+str(j_count))
@@ -96,8 +96,8 @@ def batch_send_deduplication(project='test_me',url='http://127.0.0.1:5000/' ,rem
     print(result[0])
 
 
-def send_tracking_data(mode='post',gzip='yes',project='test_me',distinct_id='test_distinct_id',lib='js',track_id=0,time13=int(time.time()*1000),ip='36.56.48.14',user_agent=admin.who_am_i,url='http://127.0.0.1:5000/',other_value={},remark='normal',no_bot=''):
-    data = data_generate(distinct_id=distinct_id,track_id=track_id,lib=lib,time13=time13,other_value=other_value)
+def send_tracking_data(mode='post',gzip='yes',project='test_me',distinct_id='test_distinct_id',lib='js',track_id=0,time13=int(time.time()*1000),ip='36.56.48.14',user_agent=admin.who_am_i,url='http://127.0.0.1:5000/',other_value={},remark='normal',no_bot='',copy=''):
+    data = data_generate(distinct_id=distinct_id,track_id=track_id,lib=lib,time13=time13,other_value=other_value,copy=copy)
     if mode == 'post':
         if gzip == 'yes':
             sent_date = data['dataszip']
