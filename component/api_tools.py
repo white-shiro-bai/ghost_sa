@@ -268,6 +268,7 @@ class device_cache:
         self.check_mem_time = int(time.time())
         self.cache_size = 0
         self.cached_data = {}
+        self.dump_lock = 0
         self.request_info = ['user_agent','accept_language','ip','ip_city','ip_is_good','ip_asn','ip_asn_is_good','ua_platform','ua_browser','ua_version','ua_language','created_at','updated_at']
         self.device_properties_list = {'first':[]}
         self.device_properties_list['fix'] = ['distinct_id','project']
@@ -361,6 +362,11 @@ class device_cache:
     def insert_device(self,project,data_decode,user_agent,accept_language,ip,ip_city,ip_is_good,ip_asn,ip_asn_is_good,ua_platform,ua_browser,ua_version,ua_language,created_at=None,updated_at=None,use_kafka=False):
         #this is class input
         #replace insert funcion from api_tools
+        waiting_count = 0
+        while self.dump_lock == 1:
+            time.sleep(1)
+            waiting_count += 1
+            write_to_log(filename='api_tools',defname='insert_device',result='dump_ram is running,waiting_count:'+str(waiting_count)+'s')
         insert_data_income = {'project':project,'data_decode':data_decode,'user_agent':user_agent,'accept_language':accept_language,'ip':ip,'ip_city':ip_city,'ip_asn':ip_asn,'ip_is_good':ip_is_good,'ip_asn_is_good':ip_asn_is_good,'ua_browser':ua_browser,'ua_platform':ua_platform,'ua_language':ua_language,'ua_version':ua_version,'created_at':created_at if created_at else int(time.time()),'updated_at':updated_at if updated_at else int(time.time())}
         #这里要求了必须有distinct_id，所以后续步骤都不需要再判断，都假定distinct_id有值。
         if 'distinct_id' in insert_data_income['data_decode'] and insert_data_income['data_decode']['distinct_id'] != '' and insert_data_income['project'] != '':
@@ -374,7 +380,7 @@ class device_cache:
                 if distinct_status == 'nowhere':
                     self._insert_device_data(etld_data=etld_data)
                 elif distinct_status in ('in_mem','in_device'):
-                    self._ram_traffic(etld_data=etld_data)
+                    pending =self._ram_traffic(etld_data=etld_data)
         else:
             return 'no_project_or_distinct_id'
 
@@ -462,6 +468,7 @@ class device_cache:
         print('插入或更新device'+str(count)+'条')
 
     def _update_device(self,project,distinct_id,data):
+        # print('正在更新',project,distinct_id,data)
         update_content = ''
         for item in data:
             #这里空值不会进列表循环
@@ -508,10 +515,10 @@ class device_cache:
         #if there is not distinct_id in ram,init it before update
         self._update_ram(etld_data=etld_data)
         #check throller and trans to db.
-        if self._check_mem() > self.combine_device_memory :
-            dump_status = self.dump()
-            if dump_status == 'success':
-                self.cache_size = 0
+        # if self._check_mem() > self.combine_device_memory :
+        #     dump_status = self.dump()
+        #     if dump_status == 'success':
+        #         self.cache_size = 0
 
 
 
@@ -560,10 +567,11 @@ class device_cache:
                         #把最后信息状态写入缓存
                             self.cached_data[etld_data['project']][etld_data['distinct_id']][first_item] = etld_data[first_item]
 
-
     def dump(self):
         #dump_ram_to_db
         #dump这里执行完，不重置类的内存占用，是为了不锁定dump程序，把定时器执行时，能否由内存占用控制的权限，交给定时器。
+        self.dump_lock = 1
+        time.sleep(2) #置锁后，等待2秒，防止有traffic没执行完造成字典变动。
         success_count = 0 #成功更新数量
         nochange_count = 0 #相比历史无变化数量
         error = 0 #更新失败数量
@@ -571,7 +579,7 @@ class device_cache:
         delete_count = 0 #删除数量
         pending_delete = {} #待删除的数据
         for project in self.cached_data:
-            for distinct_id in self.cached_data[project]: #!这里报了错
+            for distinct_id in self.cached_data[project]: 
                 if self.cached_data[project][distinct_id] == {}:
                     empty += 1
                     if project not in pending_delete:
@@ -585,7 +593,7 @@ class device_cache:
                         nochange_count += 1
                     else :
                         error += 1
-                    if 'updated_at' in self.cached_data[project][distinct_id] and self.cached_data[project][distinct_id]['updated_at'] + self.combine_device_max_window < current_timestamp10() and result in ['success','no_change']:
+                    if ('updated_at' in self.cached_data[project][distinct_id] and self.cached_data[project][distinct_id]['updated_at'] + self.combine_device_max_window < current_timestamp10() and result in ['success','no_change']) or 'updated_at' not in self.cached_data[project][distinct_id]:
                         #判断没有新数据进了再删，避免内存里找不到，去数据库里找，占用io。
                         if project not in pending_delete:
                             pending_delete[project] = []
@@ -594,6 +602,7 @@ class device_cache:
             for distinct_id in pending_delete[project]:
                 del self.cached_data[project][distinct_id]
                 delete_count += 1
+        self.dump_lock = 0
         if error > 0:
             write_to_log(filename='api_tools', defname='device_cache_dump', result='success_dump:'+str(success_count)+',no_change_dump:'+str(nochange_count)+',error_dump:'+str(error)+',delete_count:'+str(delete_count),level='warning')
             return 'success with error'
