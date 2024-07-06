@@ -81,6 +81,8 @@ admin_override_code = 'override' #越权密码
 admin_do_not_track_code = 'dntmode' #cdn模式不参与记录密码
 
 
+gzip_first = False #是否优先尝试gzip解压数据。app的sdk优先发送gzip数据。js相关的sdk发送原始数据。但是他们在上报的时候，很多不正确的携带gzip参数。所以使用参数判断不准。只能try一下，try如果命中就还好，没命中性能就不太好。所以这里设定一个开关，可以根据自己哪种SDK多一点来决定是否开启。
+
 #IP地址转化
 #IP_Address dictionary
 ip_city_mode = 'all' #mode for ip_city. 'all' for all info. 'language' for only language selected , it was designed for saving storage spaces. default value : "all"
@@ -122,7 +124,7 @@ user_ip_first = True #user_ip_key字段优先作为用户ip。当检测到埋点
 user_ip_key = '$ip' # 后端上报埋点时传递ip用的key。
 
 #接入控制
-access_control_commit_mode = 'none_kafka' #接入控制数据的提交模式，默认 'trigger' 为使用trigger.py进程（建议）。'kafka_consumer'为使用kafka_consumer.py方式提交。'access_control'为独立进程方式提交，该方法可以用来独立控制内存消耗，不过会多消耗一份kafka订阅。'none_kafka'该方法仅在use_kafka是False时有效，不建议在没有kafka的环境下使用。'false'为关闭接入控制提交信息
+access_control_commit_mode = 'access_control' #接入控制数据的提交模式，默认 'trigger' 为使用trigger.py进程（建议）。'kafka_consumer'为使用kafka_consumer.py方式提交。'access_control'为独立进程方式提交，该方法可以用来独立控制内存消耗，不过会多消耗一份kafka订阅。'none_kafka'该方法仅在use_kafka是False时有效，不建议在没有kafka的环境下使用。'false'为关闭接入控制提交信息
 access_control_kafka_client_group_id='access_control_group'# 接入控制使用独立的kafka订阅时，会在kafka_op的group_id后面拼上的名字(会拼在kafka.py的group_id后面)
 access_control_kafka_client_client_id='access_control_client'# 接入控制使用独立的kafka订阅时，会在kafka_op的group_id后面拼上的名字(会拼在kafka.py的client_id后面)
 access_control_query = True #开启登录控制查询，当状态为False时，统一返回通过状态

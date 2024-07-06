@@ -3,7 +3,7 @@
 #Date: 2021-09-18 16:29:59
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-04-13 17:06:15
+#LastEditTime: 2024-07-06 20:14:23
 #FilePath: \ghost_sa_github_cgq\component\url_tools.py
 #
 import sys
@@ -21,13 +21,20 @@ import string
 
 def sa_decode(params):
     de64 = base64.b64decode(urllib.parse.unquote(params))
-    try:
-        pending_data = json.loads(gzip.decompress(de64))
-        return pending_data
-    except:
-        pending_data = json.loads(de64)
-        return pending_data
-
+    if admin.gzip_first is True:
+        try:
+            pending_data = json.loads(gzip.decompress(de64))
+            return pending_data
+        except:
+            pending_data = json.loads(de64)
+            return pending_data
+    else:
+        try:
+            pending_data = json.loads(de64)
+            return pending_data
+        except:
+            pending_data = json.loads(gzip.decompress(de64))
+            return pending_data
 
 def force_to_bool(key):
     if any(pt == str(key).lower() for pt in ['true','yes','1','on']):

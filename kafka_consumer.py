@@ -3,7 +3,7 @@
 #Date: 2022-10-06 16:15:40
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-06-29 19:38:26
+#LastEditTime: 2024-07-06 14:21:43
 #FilePath: \ghost_sa_github_cgq\kafka_consumer.py
 #
 import sys
@@ -32,10 +32,16 @@ if admin.batch_send_deduplication_mode == 'consumer':
     batch_send_scheduler.add_job(device_cache_instance.dump, 'interval', seconds=admin.combine_device_max_window)
     batch_send_scheduler.start()
 from component.public_func import multi_thread_pool
+import time
 def use_kafka():
     results = get_message_from_kafka()
     mtp = multi_thread_pool(admin.consumer_workers)
     for result in results:
+        waiting_count = 0
+        while device_cache_instance.dump_lock == 1:
+            time.sleep(1)
+            waiting_count += 1
+            write_to_log(filename='kafka_consumer',defname='use_kafka',result='dump_ram is running,waiting_count:'+str(waiting_count)+'s')
         mtp.submit(do_insert,msg=result.value.decode('utf-8'),offset=result.offset)
 
 def do_insert(msg,offset):

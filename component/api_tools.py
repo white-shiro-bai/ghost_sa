@@ -4,7 +4,6 @@
 import sys
 sys.path.append("..")
 sys.path.append("./")
-# sys.setrecursionlimt(10000000)
 from component.db_op import do_tidb_select
 from component.db_func import insert_devicedb,insert_user_db,find_recall_url,insert_event,find_recall_history,insert_properties,check_utm,check_distinct_id_in_device,update_devicedb
 from component.api_req import get_json_from_api
@@ -18,6 +17,8 @@ from component.public_func import show_obj_size
 import time
 import hashlib
 from component.url_tools import bool_to_str
+from component.public_func import multi_thread_pool
+from concurrent.futures import as_completed
 
 def get_properties_value(name,data_decode):
     if '$'+name in data_decode['properties']:
@@ -362,11 +363,6 @@ class device_cache:
     def insert_device(self,project,data_decode,user_agent,accept_language,ip,ip_city,ip_is_good,ip_asn,ip_asn_is_good,ua_platform,ua_browser,ua_version,ua_language,created_at=None,updated_at=None,use_kafka=False):
         #this is class input
         #replace insert funcion from api_tools
-        waiting_count = 0
-        while self.dump_lock == 1:
-            time.sleep(1)
-            waiting_count += 1
-            write_to_log(filename='api_tools',defname='insert_device',result='dump_ram is running,waiting_count:'+str(waiting_count)+'s')
         insert_data_income = {'project':project,'data_decode':data_decode,'user_agent':user_agent,'accept_language':accept_language,'ip':ip,'ip_city':ip_city,'ip_asn':ip_asn,'ip_is_good':ip_is_good,'ip_asn_is_good':ip_asn_is_good,'ua_browser':ua_browser,'ua_platform':ua_platform,'ua_language':ua_language,'ua_version':ua_version,'created_at':created_at if created_at else int(time.time()),'updated_at':updated_at if updated_at else int(time.time())}
         #这里要求了必须有distinct_id，所以后续步骤都不需要再判断，都假定distinct_id有值。
         if 'distinct_id' in insert_data_income['data_decode'] and insert_data_income['data_decode']['distinct_id'] != '' and insert_data_income['project'] != '':
@@ -578,6 +574,8 @@ class device_cache:
         empty = 0 #仅有空对象的数量（预留以减小数据库查询压力，但最后没有数据更新）
         delete_count = 0 #删除数量
         pending_delete = {} #待删除的数据
+        dump_pool = multi_thread_pool(max_workers=self.combine_device_multiple_threads, thread_name_prefix='dump_pool')
+        dump_list = []
         for project in self.cached_data:
             for distinct_id in self.cached_data[project]: 
                 if self.cached_data[project][distinct_id] == {}:
@@ -586,18 +584,23 @@ class device_cache:
                         pending_delete[project] = []
                     pending_delete[project].append(distinct_id)
                 else:
-                    result = self._update_device(project=project,distinct_id=distinct_id,data=self.cached_data[project][distinct_id])
-                    if result in ['success']:
-                        success_count += 1
-                    elif result in ['no_change']:
-                        nochange_count += 1
-                    else :
-                        error += 1
-                    if ('updated_at' in self.cached_data[project][distinct_id] and self.cached_data[project][distinct_id]['updated_at'] + self.combine_device_max_window < current_timestamp10() and result in ['success','no_change']) or 'updated_at' not in self.cached_data[project][distinct_id]:
-                        #判断没有新数据进了再删，避免内存里找不到，去数据库里找，占用io。
-                        if project not in pending_delete:
-                            pending_delete[project] = []
-                        pending_delete[project].append(distinct_id)
+                    dump_list.append({'project':project,'distinct_id':distinct_id,'data':self.cached_data[project][distinct_id]})
+                    # result = self._update_device(project=project,distinct_id=distinct_id,data=self.cached_data[project][distinct_id])
+        tasks = [dump_pool.submit(self._update_device, project=dump_item['project'], distinct_id=dump_item['distinct_id'], data=dump_item['data']) for dump_item in dump_list]
+        for result_object in as_completed(tasks):
+            result_dict  = result_object.result()
+            result = result_dict['result']
+            if result in ['success']:
+                success_count += 1
+            elif result in ['no_change']:
+                nochange_count += 1
+            else :
+                error += 1
+            if ('updated_at' in result_dict and result_dict['updated_at'] and result_dict['updated_at'] + self.combine_device_max_window < current_timestamp10() and result in ['success','no_change']) or 'updated_at' not in result_dict or not result_dict['updated_at']:
+                #判断没有新数据进了再删，避免内存里找不到，去数据库里找，占用io。
+                if result_dict['project'] not in pending_delete:
+                    pending_delete[result_dict['project']] = []
+                pending_delete[result_dict['project']].append(result_dict['distinct_id'])
         for project in pending_delete:
             for distinct_id in pending_delete[project]:
                 del self.cached_data[project][distinct_id]

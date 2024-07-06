@@ -57,13 +57,13 @@ def update_devicedb(project,distinct_id,data,update_content):
     key = data
     result = do_tidb_exe(sql=sql , args=key)
     if result[1] == 1:
-        return 'success'
+        return {'result':'success','project':project,'distinct_id':distinct_id,'updated_at':data['updated_at'] if 'updated_at' in data else None }
     elif result[0] == 'sql_key_err':
-        return 'sql_key_err'
+        return {'result':'sql_key_err','project':project,'distinct_id':distinct_id,'updated_at':data['updated_at'] if 'updated_at' in data else None }
     elif result[0] == 'sql_err':
-        return 'sql_err'
+        return {'result':'sql_err','project':project,'distinct_id':distinct_id,'updated_at':data['updated_at'] if 'updated_at' in data else None }
     elif result[1] == 0:
-        return 'no_change'
+        return {'result':'no_change','project':project,'distinct_id':distinct_id,'updated_at':data['updated_at'] if 'updated_at' in data else None }
     else:
         return None
 
