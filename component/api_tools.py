@@ -519,6 +519,7 @@ class device_cache:
             #处理以新为主的数据
             for info_item in self.request_info:
                 if info_item not in ('created_at'):
+                    #!这里有一个报错，后面写入的时候处理了created，理论上讲，request_info里不用再处理一遍判断，有值都更新就行。这个逻辑要思考一下。
                     self.cached_data[etld_data['project']][etld_data['distinct_id']][info_item] = etld_data[info_item]
                 elif info_item in ('created_at'):
                     if info_item not in self.cached_data[etld_data['project']][etld_data['distinct_id']]:
