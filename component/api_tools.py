@@ -365,8 +365,15 @@ class device_cache:
             if item in ['distinct_id','project']:
                 #跳过主键
                 continue
+            elif item == 'created_at':
+                continue
+            elif item == 'updated_at':
+                #updated_at单独处理，只要变大就更新
+                update_content = update_content +''',{item}=if(%({item})s>{item},%({item})s,{item})'''.format(item=item)
             elif item in ['latitude','longitude']:
                 update_content = update_content +''',{item}=%({item})s'''.format(item='gps_'+item)
+            elif 'ip_city' in etld_data and etld_data['ip_city'] != '{}' and item in ['ip_city','ip_asn','ip']:
+                update_content = update_content +''',{item}=%({item})s'''.format(item=item)
             elif item in self.device_properties_list['first'] :
                 if  self.device_source_update_mode in ['first_sight']:
                     #第一次模式只更新空值
@@ -374,13 +381,13 @@ class device_cache:
                 elif self.device_source_update_mode in ['latest_sight']:
                     #最新模式只要有值就更新
                     update_content = update_content +''',{item}=%({item})s'''.format(item=item)
-            elif 'ip_city' in etld_data and etld_data['ip_city'] != '{}' and item in ['ip_city','ip_asn','ip']:
-                update_content = update_content +''',{item}=%({item})s'''.format(item=item)
             elif item in self.device_properties_list['latest_properties'] :
-                if  self.device_latest_info_update_mode in ['latest_sight','restrict']:
-                    #无论是否有值都更新
+                if  self.device_latest_info_update_mode in ['latest_sight'] and item !='':
+                    #如果是最后一次模式，则只在有值时更新
                     update_content = update_content +''',{item}=%({item})s'''.format(item=item)
-
+                elif self.device_latest_info_update_mode in ['restrict']:
+                    #如果是严格模式，则哪怕是空值，也会把有值的更新为空值，做到真正的严格
+                    update_content = update_content +''',{item}=%({item})s'''.format(item=item)
         #insert data into db
         count = insert_devicedb(table=etld_data['project'],
         distinct_id=etld_data['distinct_id'],
@@ -447,20 +454,28 @@ class device_cache:
         for item in data:
             #这里空值不会进列表循环
             #根据配置，设定更新方式
-            if item in self.device_properties_list['first'] :
+            if item == 'created_at':
+                continue
+            elif item == 'updated_at':
+                #updated_at单独处理，只要变大就更新
+                update_content = update_content +''',{item}=if(%({item})s>{item},%({item})s,{item})'''.format(item=item)
+            elif 'ip_city' in data and data['ip_city'] != '{}' and item in ['ip_city','ip_asn','ip']:
+                update_content = update_content +''',{item}=%({item})s'''.format(item=item)
+            elif item in ['latitude','longitude']:
+                update_content = update_content +''',gps_{item}=%({item})s'''.format(item=item)
+            elif item in self.device_properties_list['first'] :
                 if  self.device_source_update_mode in ['first_sight']:
                     #第一次模式只更新空值
                     update_content = update_content +''',{item}=if({item} is null,%({item})s,{item})'''.format(item=item)
                 elif self.device_source_update_mode in ['latest_sight']:
                     #最新模式只要有值就更新
                     update_content = update_content +''',{item}=%({item})s'''.format(item=item)
-            elif 'ip_city' in data and data['ip_city'] != '{}' and item in ['ip_city','ip_asn','ip']:
-                update_content = update_content +''',{item}=%({item})s'''.format(item=item)
-            elif item in ['latitude','longitude']:
-                update_content = update_content +''',gps_{item}=%({item})s'''.format(item=item)
             elif item in self.device_properties_list['latest_properties'] :
-                if  self.device_latest_info_update_mode in ['latest_sight','restrict']:
-                    #无论是否有值都更新
+                if  self.device_latest_info_update_mode in ['latest_sight'] and item !='':
+                    #如果是最后一次模式，则只在有值时更新
+                    update_content = update_content +''',{item}=%({item})s'''.format(item=item)
+                elif self.device_latest_info_update_mode in ['restrict']:
+                    #如果是严格模式，则哪怕是空值，也会把有值的更新为空值，做到真正的严格
                     update_content = update_content +''',{item}=%({item})s'''.format(item=item)
             #处理特殊值
             if item in ['is_login_id','wifi']:
