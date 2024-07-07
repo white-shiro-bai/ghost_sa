@@ -266,7 +266,7 @@ class device_cache:
         self.unrecognized_info_skip = unrecognized_info_skip
         self.device_latest_info_update_mode = device_latest_info_update_mode
         self.device_source_update_mode = device_source_update_mode
-        self.check_mem_time = int(time.time())
+        self.check_mem_time = current_timestamp10()
         self.cache_size = 0
         self.cached_data = {}
         self.dump_lock = 0
@@ -297,34 +297,12 @@ class device_cache:
         elif self.use_kafka is True and self.fast_mode == 'boost':
             write_to_log(filename='api_tools',defname='device_cache',result='当前模式为kafka模式，由消费者写入内存，再批量写入数据，目前该模式尚未支持')
 
-    def _check_mem(self):
-        if int(time.time()) - self.check_mem_time > self.combine_device_max_memory_gap:
+    def check_mem(self,force_check = False):
+        if force_check or current_timestamp10() - self.check_mem_time > self.combine_device_max_memory_gap:
         #check memory occupied.
             self.cache_size = show_obj_size(self.cached_data)
+            self.check_mem_time = current_timestamp10()
         return self.cache_size
-
-    # def _ram_clean(self):
-    # keys_count = len(self.cache.keys())
-    # cache_size = show_obj_size(self.cache)
-    # cache_status = 'cache size:' + str(cache_size) + \
-    #     '; batch_send_max_memory_limit:' + str(self.batch_send_max_memory_limit) + \
-    #     '; keys count:'+ str(keys_count) + \
-    #     '; keys limit:'+ str(self.batch_send_max_batch_key_limit) + \
-    #     '; expired window:'+ str(self.batch_send_max_window*60*1000)
-    # write_to_log(filename='batch_send',defname='_ram_clean',result=cache_status)
-
-    # if cache_size >= self.batch_send_max_memory_limit or keys_count >= self.batch_send_max_batch_key_limit:
-    #     write_to_log(filename='batch_send',defname='_ram_clean',result='exec_clean start')
-    #     timenow13 = int(round(time.time() * 1000))
-    #     for key in list(self.cache.keys()):
-    #         if self.cache[key]['time13'] + (self.batch_send_max_window*60*1000) < timenow13:
-    #             del self.cache[key]
-    #     cache_size_after_clean = show_obj_size(self.cache)
-    #     write_to_log(filename='batch_send',defname='_ram_clean',result='cache size after clean:'+str(cache_size_after_clean))
-    #     print(self.cache)
-    #     if cache_size_after_clean >= self.batch_send_max_memory_limit:
-    #         self.cache = {}
-    #         write_to_log(filename='batch_send',defname='_ram_clean',result='!warning cache size after clean is still too large,clean all. please scale up batch_send_max_memory_limit or scale down expired window.')
 
     def _etl(self,insert_data_income):
         #insertdata to ramdate.
@@ -610,23 +588,11 @@ class device_cache:
             write_to_log(filename='api_tools', defname='device_cache_dump', result='success_dump:'+str(success_count)+',no_change_dump:'+str(nochange_count)+',error_dump:'+str(error)+',delete_count:'+str(delete_count),level='warning')
             return 'success with error'
         write_to_log(filename='api_tools', defname='device_cache_dump', result='success_dump:'+str(success_count)+',no_change_dump:'+str(nochange_count)+',error_dump:'+str(error)+',delete_count:'+str(delete_count),level='info')
+        self.check_mem(force_check = True)
         return 'success'
 
 
 device_cache_instance = device_cache()
 
-
-        # if 'all' not in self.projects[project]:
-        #     self.projects[project]['all'] = {'ip_group':{},'ip':{},'distinct_id':{},'add_on_key':{}}
-        # if event not in self.projects[project]:
-        #     self.projects[project][event] = {'ip_group':{},'ip':{},'distinct_id':{},'add_on_key':{}}
-        # if int(time.time())-self.start_time >= admin.access_control_max_window or self.check_mem() >= admin.access_control_max_memory:
-        #     write_to_log(filename='access_control', defname='traffic', result='开始清理:'+str(self.check_mem()))
-        #     self.etl()
-        #     write_to_log(filename='access_control', defname='traffic', result='完成清理:'+str(self.check_mem()))
-        #     self.traffic(project=project,event=event,ip_commit=ip_commit,distinct_id_commit=distinct_id_commit,add_on_key_commit=add_on_key_commit)
-        # else:
-        #     self.commit(project=project,event=event,ip_commit=ip_commit,distinct_id_commit=distinct_id_commit,add_on_key_commit=add_on_key_commit)
-            # print('commit')
 if __name__ == "__main__":
     print(gen_token())

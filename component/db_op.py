@@ -3,7 +3,7 @@
 #Date: 2022-03-13 00:19:41
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-04-14 15:33:27
+#LastEditTime: 2024-07-07 15:57:12
 #FilePath: \ghost_sa_github_cgq\component\db_op.py
 #
 import sys
@@ -96,7 +96,7 @@ def do_tidb_select(sql,presql=None, args=None, retrycount=5,retry_sleep_time=1):
 
 if __name__ == "__main__":
     # print(do_tidb_exe('show tables'))
-    from component.public_value import get_time_str,current_timestamp
+    from component.public_value import get_time_str,current_timestamp10
     sql = 'insert into `deduplication_key` (`project`,`distinct_id`,`track_id`,`sdk_time13`,`created_at`) values ( %(project)s,%(distinct_id)s,%(track_id)s,%(sdk_time13)s,%(created_at)s)'
     key = {'project': 'test_me', 'distinct_id': 'test123', 'track_id': '4567', 'sdk_time13':1234567890123 ,'created_at':get_time_str(inttime=current_timestamp10())}
     print(do_tidb_exe(sql=sql, args=key,retrycount=0,skip_mysql_code=1062))
