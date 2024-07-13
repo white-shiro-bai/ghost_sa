@@ -1,9 +1,13 @@
-# -*- coding: utf-8 -*
-# author: unknowwhite@outlook.com
-# wechat: Ben_Xiaobai
+# -*- coding: utf-8 -*-
+#
+#Date: 2022-03-13 00:19:42
+#Author: unknowwhite@outlook.com
+#WeChat: Ben_Xiaobai
+#LastEditTime: 2024-07-13 20:04:52
+#FilePath: \ghost_sa_github_cgq\tools\update_20210226_to_20210406.py
+#
 import sys
-sys.path.append("./")
-sys.setrecursionlimit(10000000)
+sys.path.append('./')
 from component.db_op import do_tidb_select,do_tidb_exe
 
 def update_properties():

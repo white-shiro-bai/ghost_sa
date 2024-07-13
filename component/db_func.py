@@ -4,7 +4,6 @@
 import sys
 sys.path.append("..")
 sys.path.append("./")
-sys.setrecursionlimit(10000000)
 import time
 from component.db_op import do_tidb_exe,do_tidb_select
 from configs.export import write_to_log

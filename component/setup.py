@@ -3,7 +3,6 @@
 # wechat: Ben_Xiaobai
 import sys
 sys.path.append("./")
-sys.setrecursionlimit(10000000)
 from component.db_op import do_tidb_exe,do_tidb_select
 from component.db_func import insert_mobile_ad_src
 from configs import admin

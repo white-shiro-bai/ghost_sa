@@ -5,7 +5,6 @@
 # 该程序用来把老版本鬼策升级到支持用户分群的新版本。仅老用户在升级2020年10月15日之后的版本使用。如果新装就是2020年10月15日后的版本，无需运行此程序。
 import sys
 sys.path.append("./")
-sys.setrecursionlimit(10000000)
 from component.db_func import select_all_project
 from component.db_op import do_tidb_exe
 

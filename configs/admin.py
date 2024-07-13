@@ -52,18 +52,18 @@ fast_mode = 'fast' # 'original','fast','boost'。fast_mode can only work with us
 use_properties = False #True时，会插入properties表，这个表不是必须的，只是方便提取数据时快速找到埋点里包含的变量，目前有比较严重的性能问题，不建议开启。这个表计划在2025年左右进行优化，优化后会具备完整的元数据能力，且不再有性能问题。。
 
 #Device Table
-device_source_update_mode = 'restrict' #'restrict','first_sight','latest_sight'。this setting control device first source column update mode .
+device_source_update_mode = 'first_sight' #'restrict','first_sight','latest_sight'。this setting control device first source column update mode .
 # 'restrict' mode is limit update device table only when the row insert first time no matter value , it suite for a brand new project,restrict mode will log the real first source.
 # 'first_sight' mode is update device table when the column is empty and income data is valued ,it useful to patch all source , it is the default mode of 2.0 ghost_sa .
 # 'latest_sight' mode is update column no matter the status when income data is valued, it the mode of 1.0 ghost_sa.
 
-device_latest_info_update_mode = 'restrict' #'restrict','latest_sight'。this setting control device latest info column update mode .
+device_latest_info_update_mode = 'latest_sight' #'restrict','latest_sight'。this setting control device latest info column update mode .
 # 'restrict' mode is limit update device table latest column only when the source is real latest data 
 # 'latest_sight' mode is update latest cloumn as latest_sight if newer data is blank.
 
-combine_device_memory = 100000000 #unit byte。default is 100000000(1G), if thread use memory exceed setting , insert all cache into table first.
-combine_device_max_memory_gap = 3000 #frequency what memory occupied chech. default is 30 seconds , tiny value provide accurate but cost more interrupt , huge value have better performace but lead more risk on OOM. Data lost is annoying even it can be recovery by event table. this value should be smaller then combine_device_max_window.
-combine_device_max_window = 60 #unit seconds。default is 300(every 5 minutes). Force insert device table after window since last insert if max_memory or gap not trigger insert.
+combine_device_memory = 10000 #unit byte。default is 100000000(1G), if thread use memory exceed setting , insert all cache into table first.
+combine_device_max_memory_gap = 30 #frequency what memory occupied chech. default is 30 seconds , tiny value provide accurate but cost more interrupt , huge value have better performace but lead more risk on OOM. Data lost is annoying even it can be recovery by event table. this value should be smaller then combine_device_max_window.
+combine_device_max_window = 30 #unit seconds。default is 300(every 5 minutes). Force insert device table after window since last insert if max_memory or gap not trigger insert.
 combine_device_max_distinct_id = 1000 #unit keys. default is 1000.if cached distinct id reach the limit , insert all cache into table first.
 combine_device_multiple_threads = 16 # insert treads. between 2 and 9 is good depend on your database performance.Data insert have retry times to avoid data lost when database busy or connection unstable, 1 is not a good idea at lock table , only 1 thread with retry function can jam the process on a single lock.
 

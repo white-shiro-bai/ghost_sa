@@ -3,7 +3,6 @@
 # wechat: Ben_Xiaobai
 import sys
 sys.path.append("./")
-sys.setrecursionlimit(10000000)
 import datetime
 import time
 import random

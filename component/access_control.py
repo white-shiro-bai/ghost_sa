@@ -6,7 +6,6 @@ import sys
 # from threading import Event
 # from traceback import print_exception
 sys.path.append("./")
-sys.setrecursionlimit(10000000)
 from configs import admin,kafka
 import time 
 from component.public_func import show_my_memory

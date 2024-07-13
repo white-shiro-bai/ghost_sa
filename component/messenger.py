@@ -3,7 +3,6 @@
 # wechat: Ben_Xiaobai
 import sys
 sys.path.append("./")
-sys.setrecursionlimit(10000000)
 import json
 from configs.export import write_to_log
 from component.e_mail import send_email

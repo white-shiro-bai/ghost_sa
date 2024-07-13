@@ -1,9 +1,13 @@
-# -*- coding: utf-8 -*
-# author: unknowwhite@outlook.com
-# wechat: Ben_Xiaobai
+# -*- coding: utf-8 -*-
+#
+#Date: 2022-03-13 00:19:41
+#Author: unknowwhite@outlook.com
+#WeChat: Ben_Xiaobai
+#LastEditTime: 2024-07-13 20:06:14
+#FilePath: \ghost_sa_github_cgq\component\we_chat.py
+#
 import sys
-sys.path.append("./")
-sys.setrecursionlimit(10000000)
+sys.path.append('./')
 import json
 from configs.export import write_to_log
 from component.api_req import get_json_from_api,get_json_from_postjson

@@ -3,18 +3,11 @@
 #Date: 2022-03-13 00:19:41
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-01-14 16:38:44
+#LastEditTime: 2024-07-13 20:07:16
 #FilePath: \ghost_sa_github_cgq\component\api_req.py
 #
 import sys
 sys.path.append('./')
-# -*- coding: utf-8 -*
-# author: unknowwhite@outlook.com
-# wechat: Ben_Xiaobai
-import sys
-sys.path.append("./")
-sys.setrecursionlimit(10000000)
-
 from configs import admin
 import requests
 import traceback

@@ -3,8 +3,6 @@
 # wechat: Ben_Xiaobai
 import sys
 sys.path.append("./")
-sys.setrecursionlimit(10000000)
-
 from flask import request,jsonify,Response,redirect
 import traceback
 import time

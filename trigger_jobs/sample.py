@@ -3,7 +3,6 @@
 # wechat: Ben_Xiaobai
 import sys
 sys.path.append("./")
-sys.setrecursionlimit(10000000)
 import time
 from component.db_func import insert_event
 import json
