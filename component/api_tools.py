@@ -270,7 +270,7 @@ class device_cache:
         self.cache_size = 0
         self.cached_data = {}
         self.dump_lock = 0
-        self.request_info = ['user_agent','accept_language','ip','ip_city','ip_is_good','ip_asn','ip_asn_is_good','ua_platform','ua_browser','ua_version','ua_language','created_at','updated_at']
+        self.request_info = ['user_agent','accept_language','ip','ip_city','ip_asn','ua_platform','ua_browser','ua_version','ua_language','created_at','updated_at']
         self.device_properties_list = {'first':[]}
         self.device_properties_list['fix'] = ['distinct_id','project']
         self.device_properties_list['latest_properties'] = ['lib','device_id','manufacturer','model','os','os_version','ua_platform','ua_browser','ua_version','ua_language','screen_width','screen_height','network_type','user_agent','accept_language','wifi','app_version','carrier','bot_name','browser','browser_version','is_login_id','screen_orientation','latitude','longitude','referrer','referrer_host','latest_utm_campaign','latest_utm_medium','latest_utm_term','latest_utm_source','latest_utm_content','latest_referrer','latest_referrer_host','latest_search_keyword','latest_traffic_source_type','updated_at']
@@ -388,6 +388,13 @@ class device_cache:
                 elif self.device_latest_info_update_mode in ['restrict']:
                     #如果是严格模式，则哪怕是空值，也会把有值的更新为空值，做到真正的严格
                     update_content = update_content +''',{item}=%({item})s'''.format(item=item)
+            elif item in self.request_info:
+                if  self.device_latest_info_update_mode in ['latest_sight'] and item !='':
+                    update_content = update_content +''',{item}=%({item})s'''.format(item=item)
+                elif self.device_latest_info_update_mode in ['restrict']:
+                    update_content = update_content +''',{item}=%({item})s'''.format(item=item)
+            if item in ['is_login_id','wifi']:
+                etld_data[item] = bool_to_str(etld_data[item])
         #insert data into db
         count = insert_devicedb(table=etld_data['project'],
         distinct_id=etld_data['distinct_id'],
@@ -477,6 +484,14 @@ class device_cache:
                 elif self.device_latest_info_update_mode in ['restrict']:
                     #如果是严格模式，则哪怕是空值，也会把有值的更新为空值，做到真正的严格
                     update_content = update_content +''',{item}=%({item})s'''.format(item=item)
+            elif item in self.request_info:
+                #request_info也按照最后的属性处理。这里没有再额外处理created_at和updated_at，是因为在前面处理过了。不会进到这个分支了。
+                if  self.device_latest_info_update_mode in ['latest_sight'] and item !='':
+                    #如果是最后一次模式，则只在有值时更新
+                    update_content = update_content +''',{item}=%({item})s'''.format(item=item)
+                elif self.device_latest_info_update_mode in ['restrict']:
+                    #如果是严格模式，则哪怕是空值，也会把有值的更新为空值，做到真正的严格
+                    update_content = update_content +''',{item}=%({item})s'''.format(item=item)
             #处理特殊值
             if item in ['is_login_id','wifi']:
                 data[item] = bool_to_str(data[item])
@@ -518,12 +533,13 @@ class device_cache:
             #日期比较新的情况，处理以新为主的数据
             #处理以新为主的数据
             for info_item in self.request_info:
-                if info_item not in ('created_at'):
-                    #!这里有一个报错，后面写入的时候处理了created，理论上讲，request_info里不用再处理一遍判断，有值都更新就行。这个逻辑要思考一下。
-                    self.cached_data[etld_data['project']][etld_data['distinct_id']][info_item] = etld_data[info_item]
-                elif info_item in ('created_at'):
-                    if info_item not in self.cached_data[etld_data['project']][etld_data['distinct_id']]:
+                if info_item in etld_data:
+                    if info_item not in ('created_at'):
+                        #后面update的时候处理了created，理论上讲，request_info里不用再处理一遍判断，有值都更新就行。这里额外操作一下，图个保险。
                         self.cached_data[etld_data['project']][etld_data['distinct_id']][info_item] = etld_data[info_item]
+                    elif info_item in ('created_at'):
+                        if info_item not in self.cached_data[etld_data['project']][etld_data['distinct_id']]:
+                            self.cached_data[etld_data['project']][etld_data['distinct_id']][info_item] = etld_data[info_item]
             for decode_item in self.device_properties_list['latest_properties']:
                 if decode_item in etld_data and decode_item != 'updated_at':
                     self.cached_data[etld_data['project']][etld_data['distinct_id']][decode_item] = etld_data[decode_item]
