@@ -3,7 +3,7 @@
 #Date: 2023-05-27 21:19:00
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-06-30 20:32:35
+#LastEditTime: 2024-07-14 14:49:12
 #FilePath: \ghost_sa_github_cgq\selftest\test_case.py
 #
 import sys
@@ -81,7 +81,7 @@ def batch_send_deduplication(project='test_me',url='http://127.0.0.1:5000/' ,rem
                 # write_to_log(filename='test_case',defname='batch_send_deduplication',result='uv:'+str(indepent_count)+',pv:'+str(send_count)+',vv:'+str(j_count))
     time_end = int(time.time()*1000)
     print('batch_send_deduplication执行完毕，用时：',time_end-time_start)
-    print('应收到请求数据:',send_count,',如开启去重，应包含正常数据:',indepent_count,',应包含特殊规则数据:',send_recount_count,',如果开启去重，实际去重数量应为:',send_duplicate_count,',如果未开启去重，插入数据应为',send_duplicate_count+indepent_count)
+    print('在未提供正确admin情况下，可以验证爬虫的ua是否正常被remark程spider，在正确提供admin密码的情况下，应收到请求数据:',send_count,',如开启去重，应包含正常数据:',indepent_count,',应包含特殊规则数据:',send_recount_count,',如果开启去重，实际去重数量应为:',send_duplicate_count,',如果未开启去重，插入数据应为',send_duplicate_count+indepent_count)
     print(time_start,time_end)
     sql = """SELECT
             remark,JSON_EXTRACT( all_json, '$."规则"' ) AS rule,count(*),count(distinct track_id)
