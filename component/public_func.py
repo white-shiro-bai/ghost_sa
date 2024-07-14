@@ -3,7 +3,7 @@
 #Date: 2022-03-13 00:19:41
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-06-30 20:29:52
+#LastEditTime: 2024-07-14 14:31:04
 #FilePath: \ghost_sa_github_cgq\component\public_func.py
 #
 import sys
@@ -46,7 +46,7 @@ def key_counter(group={},keytype='',key=''):
 
 def data_generate(distinct_id='test_distinct_id',track_id=0,lib='js',time13=int(time.time()*1000),other_properties={},other_value={},copy='0'):
     #生成模拟数据，用来进行压力测试。
-    data_json = {"_track_id": track_id, "anonymous_id": "1645844717318-3513716-0fabf7952c6188-54770152", "distinct_id": distinct_id, "event": "$MPShow", "lib": {"$lib": lib, "$lib_method": "code", "$lib_version": "1.14.19"}, "properties": {"$app_id": "wx2c2f802113293ce7", "$brand": "OPPO", "$is_first_day": "true", "$latest_scene": "wx-1035"+copy, "$lib": lib, "$lib_version": "1.14.19", "$manufacturer": "OPPO"+copy, "$model": "PCKM00"+copy, "$network_type": "WIFI", "$os": "Android", "$os_version": "11", "$referrer": "直接打开", "$referrer_title": "测试页面", "$scene": "wx-1035", "$screen_height": 756, "$screen_width": 360, "$timezone_offset": -480, "$url_path": "pages/eventList/index", "$url_query": "pages/eventList/index","utm_source":"✨☀👉","lastest_utm_medium":"👉✨☀"}, "time": time13, "type": "track"}
+    data_json = {"_track_id": track_id, "anonymous_id": "1645844717318-3513716-0fabf7952c6188-54770152", "distinct_id": distinct_id, "event": "$MPShow", "lib": {"$lib": lib, "$lib_method": "code", "$lib_version": "1.14.19"}, "properties": {"$app_id": "wx2c2f802113293ce7", "$brand": "OPPO", "$is_first_day": "true", "$latest_scene": "wx-1035"+copy, "$lib": lib, "$lib_version": "1.14.19", "$manufacturer": "OPPO"+copy, "$model": "PCKM00"+copy, "$network_type": "WIFI", "$os": "Android", "$os_version": "11", "$referrer": "直接打开", "$referrer_title": "测试页面", "$scene": "wx-1035", "$screen_height": 756, "$screen_width": 360, "$timezone_offset": -480, "$url_path": "pages/eventList/index", "$url_query": "pages/eventList/index","$utm_source":"✨☀👉","$latest_utm_medium":"👉✨☀"}, "time": time13, "type": "track"}
     data_json["properties"].update(other_properties)
     data_json.update(other_value)
     datazip= urllib.parse.quote(base64.b64encode((gzip.compress(json.dumps(data_json).encode('utf-8')))))
