@@ -7,7 +7,7 @@
 
 # 是否使用Kafka
 use_kafka = True #True时，数据写入kafka。False时，直接插入数据库.ghost_sa大部分功能需要在kafka支持下发挥性能。仅在并发性能极低时，才适用不使用Kafka的模式。
-consumer_workers = 16 #使用kafka时，消费者的数量。标准部署tidb，9个效果比较好。请根据数据库压力调节。不是越大越好。
+consumer_workers = 9 #使用kafka时，消费者的数量。标准部署tidb，9个效果比较好。请根据数据库压力调节。不是越大越好。
 
 
 #batch_send_deduplication
@@ -60,7 +60,7 @@ device_latest_info_update_mode = 'latest_sight' #'restrict','latest_sight'。thi
 # 'restrict' mode is limit update device table latest column only when the source is real latest data 
 # 'latest_sight' mode is update latest cloumn as latest_sight if newer data is blank.
 
-combine_device_memory = 50000000 #unit byte。default is 50000000(500M), if thread use memory exceed setting , insert all cache into table first.
+combine_device_memory = 50000000 #unit byte。default is 50000000(500M), if thread use memory exceed setting ,empty cache after dump data.
 combine_device_max_memory_gap = 30 #frequency what memory occupied chech. default is 30 seconds , tiny value provide accurate but cost more interrupt , huge value have better performace but lead more risk on OOM. Data lost is annoying even it can be recovery by event table. this value should be smaller then combine_device_max_window.
 combine_device_max_window = 300 #unit seconds。default is 300(every 5 minutes). Force insert device table after window since last insert if max_memory or gap not trigger insert.
 

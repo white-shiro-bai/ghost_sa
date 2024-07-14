@@ -257,7 +257,7 @@ class device_cache:
         # self.start_time = int(time.time())
         self.combine_device_memory = combine_device_memory
         self.combine_device_max_memory_gap = combine_device_max_memory_gap
-        self.combine_device_max_window = combine_device_max_window
+        self.combine_device_max_window = combine_device_max_window if combine_device_max_window >= 10 else 10
         self.combine_device_multiple_threads = combine_device_multiple_threads
         self.use_kafka = use_kafka
         self.fast_mode = fast_mode
