@@ -248,8 +248,7 @@ class device_cache:
     def __init__(self,combine_device_memory = admin.combine_device_memory,
                  combine_device_max_memory_gap = admin.combine_device_max_memory_gap,
                  combine_device_max_window = admin.combine_device_max_window,
-                 combine_device_max_distinct_id = admin.combine_device_max_distinct_id,
-                 combine_device_multiple_threads = admin.combine_device_multiple_threads,
+                 combine_device_multiple_threads = admin.consumer_workers,
                  use_kafka = admin.use_kafka,
                  fast_mode = admin.fast_mode,
                  unrecognized_info_skip = admin.unrecognized_info_skip,
@@ -259,7 +258,6 @@ class device_cache:
         self.combine_device_memory = combine_device_memory
         self.combine_device_max_memory_gap = combine_device_max_memory_gap
         self.combine_device_max_window = combine_device_max_window
-        self.combine_device_max_distinct_id = combine_device_max_distinct_id
         self.combine_device_multiple_threads = combine_device_multiple_threads
         self.use_kafka = use_kafka
         self.fast_mode = fast_mode
@@ -280,7 +278,6 @@ class device_cache:
         print('combine_device_memory:'+str(self.combine_device_memory)
         +' combine_device_max_memory_gap:'+str(self.combine_device_max_memory_gap)
         +' combine_device_max_window:'+str(self.combine_device_max_window)
-        +' combine_device_max_distinct_id:'+str(self.combine_device_max_distinct_id)
         +' combine_device_multiple_threads:'+str(self.combine_device_multiple_threads)
         +' use_kafka:'+str(self.use_kafka)
         +' fast_mode:'+str(self.fast_mode)
@@ -616,12 +613,20 @@ class device_cache:
                 del self.cached_data[project][distinct_id]
                 delete_count += 1
         self.dump_lock = 0
+        return_str = ''
         if error > 0:
             write_to_log(filename='api_tools', defname='device_cache_dump', result='success_dump:'+str(success_count)+',no_change_dump:'+str(nochange_count)+',error_dump:'+str(error)+',delete_count:'+str(delete_count),level='warning')
-            return 'success with error'
+            return_str = 'success with error'
         write_to_log(filename='api_tools', defname='device_cache_dump', result='success_dump:'+str(success_count)+',no_change_dump:'+str(nochange_count)+',error_dump:'+str(error)+',delete_count:'+str(delete_count),level='info')
         self.check_mem(force_check = True)
-        return 'success'
+        return_str = 'success'
+        after_dump = self.check_mem(force_check=True)
+        write_to_log(filename='api_tools', defname='device_cache_dump', result='after_dump:'+str(after_dump),level='info')
+        if after_dump > self.combine_device_memory:
+            self.cached_data = {}
+            write_to_log(filename='api_tools', defname='device_cache_dump', result='after_dump:'+str(after_dump)+' exceed combine_device_memory:'+str(self.combine_device_memory)+' reset chach_data.',level='warning')
+            return_str = 'success with exceed combine_device_memory:'+str(self.combine_device_memory)
+        return return_str
 
 
 device_cache_instance = device_cache()
