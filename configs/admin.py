@@ -64,6 +64,7 @@ combine_device_memory = 50000000 #unit byte。default is 50000000(500M), if thre
 combine_device_max_memory_gap = 30 #frequency what memory occupied chech. default is 30 seconds , tiny value provide accurate but cost more interrupt , huge value have better performace but lead more risk on OOM. Data lost is annoying even it can be recovery by event table. this value should be smaller then combine_device_max_window.
 combine_device_max_window = 300 #unit seconds。default is 300(every 5 minutes). Force insert device table after window since last insert if max_memory or gap not trigger insert.
 
+gzip_first = False #是否优先尝试gzip解压数据。app的sdk优先发送gzip数据。js相关的sdk发送原始数据。但是他们在上报的时候，很多不正确的携带gzip参数。所以使用参数判断不准。只能try一下，try如果命中就还好，没命中性能就不太好。所以这里设定一个开关，可以根据自己哪种SDK多一点来决定是否开启。
 
 #Info skip
 unrecognized_info_skip = ['url的domain解析失败','取值异常','未取到值,直接打开','未取到值','未取到值_非http的url','取值异常_referrer异常_','hostname解析异常','未知搜索引擎', 'url_host取值异常','获取url异常','url解析失败','NULL','Null','null','None'] #unrecognized utm and other info list. Utm and info will update to {project}_device if they not in this list.
@@ -79,7 +80,6 @@ admin_override_code = 'override' #越权密码
 admin_do_not_track_code = 'dntmode' #cdn模式不参与记录密码
 
 
-gzip_first = False #是否优先尝试gzip解压数据。app的sdk优先发送gzip数据。js相关的sdk发送原始数据。但是他们在上报的时候，很多不正确的携带gzip参数。所以使用参数判断不准。只能try一下，try如果命中就还好，没命中性能就不太好。所以这里设定一个开关，可以根据自己哪种SDK多一点来决定是否开启。
 
 #IP地址转化
 #IP_Address dictionary
