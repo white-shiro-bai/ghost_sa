@@ -3,7 +3,6 @@
 # wechat: Ben_Xiaobai
 import sys
 sys.path.append("./")
-sys.setrecursionlimit(10000000)
 from component.db_func import insert_usergroup_plan,insert_noti_temple
 import json
 

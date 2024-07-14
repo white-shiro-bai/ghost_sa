@@ -3,7 +3,6 @@
 # wechat: Ben_Xiaobai
 import sys
 sys.path.append("./")
-sys.setrecursionlimit(10000000)
 from component.db_func import insert_usergroup_data,insert_usergroup_list,update_usergroup_plan,check_lastest_usergroup_list_index,check_list_id
 import time
 import traceback

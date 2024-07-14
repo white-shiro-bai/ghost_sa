@@ -3,7 +3,6 @@
 # wechat: Ben_Xiaobai
 import sys
 sys.path.append("./")
-sys.setrecursionlimit(10000000)
 from component.public_value import get_next_time,get_priority
 from component.db_func import select_scheduler_enable_project,select_usergroup_jobs_plan,insert_scheduler_job,check_next_scheduler_job,update_scheduler_job,select_noti_temple,select_usergroup_data,insert_noti,insert_noti_group,update_noti_group,select_usergroupdata_data,update_usergroup_plan,update_usergroup_list,select_auto_temple_apply_plan,update_noti_temple
 from configs.export import write_to_log

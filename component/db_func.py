@@ -4,7 +4,6 @@
 import sys
 sys.path.append("..")
 sys.path.append("./")
-sys.setrecursionlimit(10000000)
 import time
 from component.db_op import do_tidb_exe,do_tidb_select
 from configs.export import write_to_log
@@ -45,16 +44,27 @@ def insert_event(table,alljson,track_id,distinct_id,lib,event,type_1,User_Agent,
 def insert_devicedb(table,distinct_id,device_id,manufacturer,model,os,os_version,screen_width,screen_height,network_type,user_agent,accept_language,ip,ip_city,ip_asn,wifi,app_version,carrier,referrer,referrer_host,bot_name,browser,browser_version,is_login_id,screen_orientation,gps_latitude,gps_longitude,first_visit_time,first_referrer,first_referrer_host,first_browser_language,first_browser_charset,first_search_keyword,first_traffic_source_type,utm_content,utm_campaign,utm_medium,utm_term,utm_source,latest_utm_content,latest_utm_campaign,latest_utm_medium,latest_utm_term,latest_utm_source,latest_referrer,latest_referrer_host,latest_search_keyword,latest_traffic_source_type,update_content,ua_platform,ua_browser,ua_version,ua_language,lib,created_at=None,updated_at=None):
     if created_at is None:
         timenow = int(time.time())
-        date = time.strftime("%Y-%m-%d", time.localtime())
-        hour = int(time.strftime("%H", time.localtime()))
     else:
         timenow = created_at
-        date = time.strftime("%Y-%m-%d", time.localtime(created_at))
-        hour = int(time.strftime("%H", time.localtime(created_at)))
     sql = """insert HIGH_PRIORITY into `{table}_device` (`distinct_id`,`device_id`,`manufacturer`,`model`,`os`,`os_version`,`screen_width`,`screen_height`,`network_type`,`user_agent`,`accept_language`,`ip`,`ip_city`,`ip_asn`,`wifi`,`app_version`,`carrier`,`referrer`,`referrer_host`,`bot_name`,`browser`,`browser_version`,`is_login_id`,`screen_orientation`,`gps_latitude`,`gps_longitude`,`first_visit_time`,`first_referrer`,`first_referrer_host`,`first_browser_language`,`first_browser_charset`,`first_search_keyword`,`first_traffic_source_type`,`utm_content`,`utm_campaign`,`utm_medium`,`utm_term`,`utm_source`,`latest_utm_content`,`latest_utm_campaign`,`latest_utm_medium`,`latest_utm_term`,`latest_utm_source`,`latest_referrer`,`latest_referrer_host`,`latest_search_keyword`,`latest_traffic_source_type`,`created_at`,`updated_at`,`ua_platform`,`ua_browser`,`ua_version`,`ua_language`,`lib`) values ( %(distinct_id)s,%(device_id)s,%(manufacturer)s,%(model)s,%(os)s,%(os_version)s,%(screen_width)s,%(screen_height)s,%(network_type)s,%(user_agent)s,%(accept_language)s,%(ip)s,%(ip_city)s,%(ip_asn)s,%(wifi)s,%(app_version)s,%(carrier)s,%(referrer)s,%(referrer_host)s,%(bot_name)s,%(browser)s,%(browser_version)s,%(is_login_id)s,%(screen_orientation)s,%(gps_latitude)s,%(gps_longitude)s,%(first_visit_time)s,%(first_referrer)s,%(first_referrer_host)s,%(first_browser_language)s,%(first_browser_charset)s,%(first_search_keyword)s,%(first_traffic_source_type)s,%(utm_content)s,%(utm_campaign)s,%(utm_medium)s,%(utm_term)s,%(utm_source)s,%(latest_utm_content)s,%(latest_utm_campaign)s,%(latest_utm_medium)s,%(latest_utm_term)s,%(latest_utm_source)s,%(latest_referrer)s,%(latest_referrer_host)s,%(latest_search_keyword)s,%(latest_traffic_source_type)s,%(created_at)s,%(updated_at)s,%(ua_platform)s,%(ua_browser)s,%(ua_version)s,%(ua_language)s,%(lib)s) ON DUPLICATE KEY UPDATE `updated_at`={updated_at}{update_content};""".format(table=table,updated_at=timenow,update_content=update_content)
     key = {'distinct_id':distinct_id,'device_id':device_id,'manufacturer':manufacturer,'model':model,'os':os,'os_version':os_version,'screen_width':screen_width,'screen_height':screen_height,'network_type':network_type,'user_agent':user_agent,'accept_language':accept_language,'ip':ip,'ip_city':ip_city,'ip_asn':ip_asn,'wifi':wifi,'app_version':app_version,'carrier':carrier,'referrer':referrer,'referrer_host':referrer_host,'bot_name':bot_name,'browser':browser,'browser_version':browser_version,'is_login_id':is_login_id,'screen_orientation':screen_orientation,'gps_latitude':gps_latitude,'gps_longitude':gps_longitude,'first_visit_time':first_visit_time,'first_referrer':first_referrer,'first_referrer_host':first_referrer_host,'first_browser_language':first_browser_language,'first_browser_charset':first_browser_charset,'first_search_keyword':first_search_keyword,'first_traffic_source_type':first_traffic_source_type,'utm_content':utm_content,'utm_campaign':utm_campaign,'utm_medium':utm_medium,'utm_term':utm_term,'utm_source':utm_source,'latest_utm_content':latest_utm_content,'latest_utm_campaign':latest_utm_campaign,'latest_utm_medium':latest_utm_medium,'latest_utm_term':latest_utm_term,'latest_utm_source':latest_utm_source,'latest_referrer':latest_referrer,'latest_referrer_host':latest_referrer_host,'latest_search_keyword':latest_search_keyword,'latest_traffic_source_type':latest_traffic_source_type,'created_at':timenow,'updated_at':timenow,'ua_platform':ua_platform,'ua_browser':ua_browser,'ua_version':ua_version,'ua_language':ua_language,'lib':lib}
     result = do_tidb_exe(sql=tidb_write(sql), args=key)
     return result[1]
+
+def update_devicedb(project,distinct_id,data,update_content):
+    sql = """update {project}_device set {update_content} where distinct_id = '{distinct_id}'""".format(project=project,update_content=update_content,distinct_id=distinct_id)
+    key = data
+    result = do_tidb_exe(sql=sql , args=key)
+    if result[1] == 1:
+        return {'result':'success','project':project,'distinct_id':distinct_id,'updated_at':data['updated_at'] if 'updated_at' in data else None }
+    elif result[0] == 'sql_key_err':
+        return {'result':'sql_key_err','project':project,'distinct_id':distinct_id,'updated_at':data['updated_at'] if 'updated_at' in data else None }
+    elif result[0] == 'sql_err':
+        return {'result':'sql_err','project':project,'distinct_id':distinct_id,'updated_at':data['updated_at'] if 'updated_at' in data else None }
+    elif result[1] == 0:
+        return {'result':'no_change','project':project,'distinct_id':distinct_id,'updated_at':data['updated_at'] if 'updated_at' in data else None }
+    else:
+        return None
 
 def insert_user_db(project,distinct_id,lib,map_id,original_id,user_id,all_user_profile,update_params,created_at=None,updated_at=None):
     if created_at is None:
@@ -79,6 +89,7 @@ def insert_properties(project,lib,remark,event,properties,properties_len,created
     sql = """insert HIGH_PRIORITY into `{table}_properties` (`lib`,`remark`,`event`,`properties`,`properties_len`,`created_at`,`updated_at`,`total_count`,`lastinsert_at`) values ( %(lib)s,%(remark)s,%(event)s,%(properties)s,%(properties_len)s,%(created_at)s,%(updated_at)s,1,%(updated_at)s) ON DUPLICATE KEY UPDATE `properties`=if(properties_len<%(properties_len)s,%(properties)s,properties),`properties_len`=if(properties_len<%(properties_len)s,%(properties_len)s,properties_len),updated_at=if(properties_len<%(properties_len)s,%(updated_at)s,updated_at),total_count=total_count+1,lastinsert_at=%(updated_at)s;""".format(table=project)
     key = {'lib':lib,'remark':remark,'event':event,'properties':properties,'properties_len':properties_len,'created_at':created_at,'updated_at':updated_at}
     result = do_tidb_exe(sql=tidb_write(sql), args=key)
+    return result
 
 
 def get_long_url_from_short(short_url):
@@ -1114,6 +1125,10 @@ def update_access_control(**kwargs):
     result  = do_tidb_exe(sql=sql,retrycount=0)
     return result
 
+def check_distinct_id_in_device(project,distinct_id):
+    sql="""select count(1) from {project}_device where distinct_id = '{distinct_id}' limit 1""".format(project=project,distinct_id=distinct_id)
+    result = do_tidb_select(sql=sql,retrycount=0)[0][0]
+    return result[0] if result else 0  # if result not found, return 0.  If found, return count.  This is used to filter out duplicate device
 
 def insert_deduplication_key(project,distinct_id,track_id,sdk_time13):
     sql = 'insert HIGH_PRIORITY into `deduplication_key` (`project`,`distinct_id`,`track_id`,`sdk_time13`,`created_at`) values ( %(project)s,%(distinct_id)s,%(track_id)s,%(sdk_time13)s,CURRENT_TIMESTAMP)'
@@ -1133,5 +1148,6 @@ def count_deduplication_key():
     return do_tidb_select(sql=sql)[0][0][0]
 
 if __name__ == "__main__":
-    print(delete_deduplication_key(expired_time='2024-01-28 17:28:50'))
-    print(count_deduplication_key())
+    # print(delete_deduplication_key(expired_time='2024-01-28 17:28:50'))
+    # print(count_deduplication_key())
+    print(update_devicedb(project='test_me',distinct_id='batch_send_deduplication0',data={'lib':'test_lib','lib2':'123132','updated_at':1231273861},update_content=''))

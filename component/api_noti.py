@@ -3,7 +3,6 @@
 # wechat: Ben_Xiaobai
 import sys
 sys.path.append("./")
-sys.setrecursionlimit(10000000)
 from component.url_tools import get_url_params,get_req_info
 from configs.export import write_to_log
 from configs import admin

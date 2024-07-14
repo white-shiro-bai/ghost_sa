@@ -3,7 +3,6 @@
 # wechat: Ben_Xiaobai
 import sys
 sys.path.append("..")
-sys.setrecursionlimit(10000000)
 from configs import admin
 if admin.access_control_commit_mode =='none_kafka':
     from component.access_control import access_control

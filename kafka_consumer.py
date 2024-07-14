@@ -3,38 +3,42 @@
 #Date: 2022-10-06 16:15:40
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-02-11 18:31:38
+#LastEditTime: 2024-07-13 20:08:30
 #FilePath: \ghost_sa_github_cgq\kafka_consumer.py
 #
 import sys
-sys.path.append('./')
-# -*- coding: utf-8 -*
-# author: unknowwhite@outlook.com
-# wechat: Ben_Xiaobai
-from component.api import insert_data,insert_installation_track,insert_shortcut_history,insert_shortcut_read
 import json
-from component.kafka_op import get_message_from_kafka
-import sys
+import time
 import traceback
-# import multiprocessing
+sys.path.append('./')
+from component.public_func import multi_thread_pool
+from component.api import insert_data,insert_installation_track,insert_shortcut_history,insert_shortcut_read,device_cache_instance
+from component.kafka_op import get_message_from_kafka
 from configs.export import write_to_log
-sys.path.append("./")
-sys.setrecursionlimit(10000000)
 from configs import admin
 if admin.access_control_commit_mode =='kafka_consumer':
     from component.access_control import access_control
     ac_kafka_consumer = access_control()
-if admin.batch_send_deduplication_mode == 'consumer':
-    from component.batch_send import batch_cache
+if admin.batch_send_deduplication_mode == 'consumer' or admin.fast_mode in ['fast','boost']:
     from apscheduler.schedulers.background import BackgroundScheduler
-    batch_send_scheduler = BackgroundScheduler()
-    batch_send_scheduler.add_job(batch_cache.clean_expired, 'interval', seconds=admin.batch_send_max_memory_gap)
-    batch_send_scheduler.start()
-from component.public_func import multi_thread_pool
+    consumer_scheduler = BackgroundScheduler()
+    if admin.batch_send_deduplication_mode == 'consumer':
+        from component.batch_send import batch_cache
+        consumer_scheduler.add_job(batch_cache.clean_expired, 'interval', seconds=admin.batch_send_max_memory_gap)
+    if admin.fast_mode in ['fast','boost']:
+        consumer_scheduler.add_job(device_cache_instance.dump, 'interval', seconds=device_cache_instance.combine_device_max_window)
+    consumer_scheduler.start()
 def use_kafka():
     results = get_message_from_kafka()
     mtp = multi_thread_pool(admin.consumer_workers)
     for result in results:
+        waiting_count = 0
+        # if device_cache_instance.check_mem() >= device_cache_instance.combine_device_memory:
+            # device_cache_instance.dump()
+        while device_cache_instance.dump_lock == 1:
+            time.sleep(1)
+            waiting_count += 1
+            write_to_log(filename='kafka_consumer',defname='use_kafka',result='dump_ram is running,waiting_count:'+str(waiting_count)+'s')
         mtp.submit(do_insert,msg=result.value.decode('utf-8'),offset=result.offset)
 
 def do_insert(msg,offset):
