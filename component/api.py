@@ -3,36 +3,36 @@
 # wechat: Ben_Xiaobai
 import sys
 sys.path.append("./")
-sys.setrecursionlimit(10000000)
-
 from flask import request,jsonify,Response,redirect
 import traceback
 import time
 import urllib.parse
-import base64
 import json
 import os
 from component.db_func import insert_event,get_long_url_from_short, insert_noti_temple,insert_shortcut_history,check_long_url,insert_shortcut,show_shortcut,count_shortcut,show_check,insert_properties,insert_user_db,show_project,read_mobile_ad_list,count_mobile_ad_list,read_mobile_ad_src_list,check_mobile_ad_url,insert_mobile_ad_list,distinct_id_query,insert_shortcut_read,query_access_control,query_access_control_exclude,get_access_control_event,get_access_control_detail,get_access_control_detail_count,update_access_control,get_status_codes
 from geoip.geo import get_addr,get_asn
-import gzip
-from component.api_tools import insert_device,encode_urlutm,insert_user,recall_dsp,return_dsp_utm,gen_token,tag_name,user_info
+from component.api_tools import encode_urlutm,insert_user,recall_dsp,return_dsp_utm,gen_token,tag_name,user_info,device_cache_instance
 from configs.export import write_to_log
-from component.shorturl import get_suoim_short_url
+from component.shorturl import get_ghost_sa_short_url
 from configs import admin
 import time
 if admin.use_kafka is True:
     from component.kafka_op import insert_message_to_kafka
 import re
 from trigger import trigger
-from component.qrcode import gen_qrcode
-from component.url_tools import get_url_params,get_req_info
+from component.pic_tools import gen_qrcode,gen_text_img
+from component.url_tools import get_url_params,get_req_info,sa_decode,force_to_bool
 import hashlib
-if admin.access_control_commit_mode =='none_kafka':
-    from component.access_control import access_control
-    ac_none_kafka = access_control()
-
+from component.batch_send import batch_cache
 
 def insert_data(project,data_decode,User_Agent,Host,Connection,Pragma,Cache_Control,Accept,Accept_Encoding,Accept_Language,ip,ip_city,ip_asn,url,referrer,remark,ua_platform,ua_browser,ua_version,ua_language,ip_is_good,ip_asn_is_good,created_at=None,updated_at=None,use_kafka=admin.use_kafka):
+    if 'properties' in data_decode :
+        # 感谢shenhongbin7854提交代码解决上报内容中包含超出utf8的emoji内容时，会报错的问题。https://github.com/shenhongbin7854
+        # 这里在原方法上做了进一步改进。可以保留mb4的emoji了。原本以为是pymysql的问题。后来发现是json.loads问题。在这里做一次转换之后。后续的所有操作。就能正确识别emoji了。
+        # 参考https://devpress.csdn.net/python/6304515cc67703293080afa7.html
+        for key in data_decode['properties'].keys():
+            if type(data_decode['properties'][key]) == str:
+                data_decode['properties'][key] = data_decode['properties'][key].encode('utf-16', 'surrogatepass').decode('utf-16')
     start_time = time.time()
     jsondump = json.dumps(data_decode,ensure_ascii=False)
     if '_track_id' in data_decode:
@@ -64,7 +64,11 @@ def insert_data(project,data_decode,User_Agent,Host,Connection,Pragma,Cache_Cont
             if event != 'cdn_mode' or event != 'cdn_mode2' or admin.access_control_cdn_mode_write == 'event' or admin.access_control_cdn_mode_write == 'device' :
                 count = insert_event(table=project,alljson=jsondump,track_id=track_id,distinct_id=distinct_id,lib=lib,event=event,type_1=type_1,User_Agent=User_Agent,Host=Host,Connection=Connection,Pragma=Pragma,Cache_Control=Cache_Control,Accept=Accept,Accept_Encoding=Accept_Encoding,Accept_Language=Accept_Language,ip=ip,ip_city=ip_city,ip_asn=ip_asn,url=url,referrer=referrer,remark=remark,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,created_at=created_at)
             if event != 'cdn_mode' or event != 'cdn_mode2' or admin.access_control_cdn_mode_write == 'device':
-                insert_device(project=project,data_decode=data_decode,user_agent=User_Agent,accept_language=Accept_Language,ip=ip,ip_city=ip_city,ip_is_good=ip_is_good,ip_asn=ip_asn,ip_asn_is_good=ip_asn_is_good,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,created_at=created_at)
+                # if admin.use_kafka == False: 
+                    #这里进行两次判断，如果传入的也是False，设定也是False，说明是生产者调用的。
+                device_cache_instance.insert_device(project=project,data_decode=data_decode,user_agent=User_Agent,accept_language=Accept_Language,ip=ip,ip_city=ip_city,ip_is_good=ip_is_good,ip_asn=ip_asn,ip_asn_is_good=ip_asn_is_good,ua_platform=ua_platform,ua_browser=ua_browser,ua_version=ua_version,ua_language=ua_language,created_at=created_at,updated_at=updated_at,use_kafka=use_kafka)
+                # elif admin.use_kafka == True:
+                    #如果传入的是False，但是设定是True，说明是消费者传入的。
             properties_key = []
             for keys in data_decode['properties'].keys():
                 properties_key.append(keys)
@@ -94,6 +98,7 @@ def insert_data(project,data_decode,User_Agent,Host,Connection,Pragma,Cache_Cont
                 tr = trigger(project=project,data_decode=data_decode)
                 tr.play_all()
             if admin.access_control_commit_mode =='none_kafka':
+                from flask_main import ac_none_kafka
                 ac_none_kafka.traffic(project=project,event=event,ip_commit=ip,distinct_id_commit=distinct_id,add_on_key_commit=data_decode['properties'][admin.access_control_add_on_key] if admin.access_control_add_on_key in data_decode['properties'] else None)
         except Exception:
             error = traceback.format_exc()
@@ -114,17 +119,9 @@ def get_data():
     if project:
         pending_data_list_all = []
         if get_url_params('data'):
-            de64 = base64.b64decode(urllib.parse.unquote(get_url_params('data')).encode('utf-8'))
-            try:
-                pending_data_list_all.append(json.loads(gzip.decompress(de64)))
-            except:
-                pending_data_list_all.append(json.loads(de64))
+            pending_data_list_all.append(sa_decode(get_url_params('data')))
         if get_url_params('data_list'):
-            de64_list = base64.b64decode(urllib.parse.unquote(get_url_params('data_list')).encode('utf-8'))
-            try:
-                data_decodes = json.loads(gzip.decompress(de64_list))
-            except:
-                data_decodes = json.loads(de64_list)
+            data_decodes = sa_decode(get_url_params('data_list'))
             for data_decode in data_decodes:
                 pending_data_list_all.append(data_decode)
         for pending_data in pending_data_list_all:
@@ -132,11 +129,105 @@ def get_data():
                 if 'properties' in pending_data and admin.user_ip_key in pending_data['properties'] and pending_data['properties'][admin.user_ip_key]:
                     user_ip = pending_data['properties'][admin.user_ip_key]
                     if len(user_ip) - len(user_ip.replace('.','')) == 3:
-                        ip = user_ip
-                        ip_city,ip_is_good = get_addr(user_ip)
-                        ip_asn,ip_asn_is_good = get_asn(user_ip)
-            insert_data(project=project,data_decode=pending_data,User_Agent=req_info['User_Agent'],Host=req_info['Host'],Connection=req_info['Connection'],Pragma=req_info['Pragma'],Cache_Control=req_info['Cache_Control'],Accept=req_info['Accept'],Accept_Encoding=req_info['Accept_Encoding'],Accept_Language=req_info['Accept_Language'],ip=req_info['ip'],ip_city=req_info['ip_city'],ip_asn=req_info['ip_asn'],url=req_info['url'],referrer=req_info['referrer'],remark=req_info['remark'],ua_platform=req_info['ua_platform'],ua_browser=req_info['ua_browser'],ua_version=req_info['ua_version'],ua_language=req_info['ua_language'],ip_is_good=req_info['ip_is_good'],ip_asn_is_good=req_info['ip_asn_is_good'])
+                        ip_is_good = get_addr(user_ip)[1] # to aviod internal ip address, double check ips are valid for city name lookup. such as avoid like QA_Client --> Internal Network --> QA_Server --> Internet --> Ghost_SA
+                        if ip_is_good == 1:
+                            req_info['ip'] = user_ip
+                            req_info['ip_city'],req_info['ip_is_good'] = get_addr(user_ip)
+                            req_info['ip_asn'],req_info['ip_asn_is_good'] = get_asn(user_ip)
+            
+            batch_status = batch_cache.query(project=project,distinct_id=pending_data['distinct_id'],track_id=pending_data['_track_id'] if '_track_id' in pending_data else 0,time13=pending_data['time'] if 'time' in pending_data else 0, source='api') 
+            if batch_status == 'go':
+                insert_data(project=project,data_decode=pending_data,User_Agent=req_info['User_Agent'],Host=req_info['Host'],Connection=req_info['Connection'],Pragma=req_info['Pragma'],Cache_Control=req_info['Cache_Control'],Accept=req_info['Accept'],Accept_Encoding=req_info['Accept_Encoding'],Accept_Language=req_info['Accept_Language'],ip=req_info['ip'],ip_city=req_info['ip_city'],ip_asn=req_info['ip_asn'],url=req_info['url'],referrer=req_info['referrer'],remark=req_info['remark'],ua_platform=req_info['ua_platform'],ua_browser=req_info['ua_browser'],ua_version=req_info['ua_version'],ua_language=req_info['ua_language'],ip_is_good=req_info['ip_is_good'],ip_asn_is_good=req_info['ip_asn_is_good'])
+            elif batch_status == 'skip' and admin.batch_send_deduplication_insert == 'remark':
+                insert_data(project=project,data_decode=pending_data,User_Agent=req_info['User_Agent'],Host=req_info['Host'],Connection=req_info['Connection'],Pragma=req_info['Pragma'],Cache_Control=req_info['Cache_Control'],Accept=req_info['Accept'],Accept_Encoding=req_info['Accept_Encoding'],Accept_Language=req_info['Accept_Language'],ip=req_info['ip'],ip_city=req_info['ip_city'],ip_asn=req_info['ip_asn'],url=req_info['url'],referrer=req_info['referrer'],remark='du-'+req_info['remark'],ua_platform=req_info['ua_platform'],ua_browser=req_info['ua_browser'],ua_version=req_info['ua_version'],ua_language=req_info['ua_language'],ip_is_good=req_info['ip_is_good'],ip_asn_is_good=req_info['ip_asn_is_good'])
+            elif admin.batch_send_deduplication_insert == 'remark':
+                insert_data(project=project,data_decode=pending_data,User_Agent=req_info['User_Agent'],Host=req_info['Host'],Connection=req_info['Connection'],Pragma=req_info['Pragma'],Cache_Control=req_info['Cache_Control'],Accept=req_info['Accept'],Accept_Encoding=req_info['Accept_Encoding'],Accept_Language=req_info['Accept_Language'],ip=req_info['ip'],ip_city=req_info['ip_city'],ip_asn=req_info['ip_asn'],url=req_info['url'],referrer=req_info['referrer'],remark='missrule-'+req_info['remark'],ua_platform=req_info['ua_platform'],ua_browser=req_info['ua_browser'],ua_version=req_info['ua_version'],ua_language=req_info['ua_language'],ip_is_good=req_info['ip_is_good'],ip_asn_is_good=req_info['ip_asn_is_good'])
     return Response(returnimage, mimetype="image/gif")
+
+def decode_sa_data():
+    try:
+        return jsonify({'decode':sa_decode(get_url_params('data'))})
+    except:
+        return '解码失败：\n'+get_url_params('data')
+
+def debug_datas():
+    return_json = {'00--IMPORTANT--INFORMATION--00':'ghost_sa的debug接口与神策官方功能有差异，\r不提供上报合法性判断，但无论上报正确与否，\r都会返回请求的全部信息，便于项目部署和二开。\r使用debug功能时，建议关闭debug模式，\r手动修改上报地址中的sa.gif为debug以获取更好的体验。\r更多信息可以看https://github.com/white-shiro-bai/ghost_sa/wiki/Debug%E6%A8%A1%E5%BC%8F%E7%9A%84%E6%94%AF%E6%8C%81%E5%92%8C%E5%8E%9F%E7%90%86。'}
+    if request.method == 'OPTIONS':
+        return 'OK'
+    project = request.args.get('project',None)
+    headers = {}
+    ip = request.remote_addr
+    for key, value in request.headers.items():
+        headers[key] = value
+    req_info = get_req_info()
+    org_form = {}
+    for key, value in request.form.items():
+        org_form[key] = value
+    org_args = {}
+    for key, value in request.args.items():
+        org_args[key] = value
+    org_json = {}
+    try:
+        org_json = request.json
+    except:
+        org_json = {}
+    play_load_str = ''
+    if 'text/plain' in request.headers.get('CONTENT-TYPE', ''):
+        play_load_str = request.data.decode('utf-8')
+    data_decode_single = {}
+    datas_decode = {}
+    pending_data_list_all = []
+    if get_url_params('data'):
+        data_decode_single = sa_decode(get_url_params('data'))
+        pending_data_list_all.append(sa_decode(get_url_params('data')))
+    if get_url_params('data_list'):
+        datas_decode = sa_decode(get_url_params('data_list'))
+        for data_decode in datas_decode:
+                pending_data_list_all.append(data_decode)
+    #增加入库功能
+    write = force_to_bool(get_url_params('dryrun',None))
+    if not write and 'Dry-Run' in headers:
+        write = force_to_bool(headers['Dry-Run'])
+    if not project:
+        return_json['01_result_0desc'] = '没有提供project参数'
+    if write and project:
+        for pending_data in pending_data_list_all:
+            if admin.user_ip_first is True:
+                if 'properties' in pending_data and admin.user_ip_key in pending_data['properties'] and pending_data['properties'][admin.user_ip_key]:
+                    user_ip = pending_data['properties'][admin.user_ip_key]
+                    if len(user_ip) - len(user_ip.replace('.','')) == 3:
+                        ip_is_good = get_addr(user_ip)[1] # to aviod internal ip address, double check ips are valid for city name lookup. such as avoid like QA_Client --> Internal Network --> QA_Server --> Internet --> Ghost_SA
+                        if ip_is_good == 1:
+                            req_info['ip'] = user_ip
+                            req_info['ip_city'],req_info['ip_is_good'] = get_addr(user_ip)
+                            req_info['ip_asn'],req_info['ip_asn_is_good'] = get_asn(user_ip)
+                            return_json['01_result_0desc'] = '使用埋点里上报的IP入库:' + user_ip
+            insert_data(project=project,data_decode=pending_data,User_Agent=req_info['User_Agent'],Host=req_info['Host'],Connection=req_info['Connection'],Pragma=req_info['Pragma'],Cache_Control=req_info['Cache_Control'],Accept=req_info['Accept'],Accept_Encoding=req_info['Accept_Encoding'],Accept_Language=req_info['Accept_Language'],ip=req_info['ip'],ip_city=req_info['ip_city'],ip_asn=req_info['ip_asn'],url=req_info['url'],referrer=req_info['referrer'],remark=req_info['remark'],ua_platform=req_info['ua_platform'],ua_browser=req_info['ua_browser'],ua_version=req_info['ua_version'],ua_language=req_info['ua_language'],ip_is_good=req_info['ip_is_good'],ip_asn_is_good=req_info['ip_asn_is_good'],use_kafka=False)
+    return_json['02_dryrun_0desc'] = '是否开启写入，debug模式默认不开启。如需写入，请按SDK方法开启写入，或在url上增加dryrun=true的参数。'
+    return_json['02_dryrun_1data'] = write
+    return_json['10_org_headers_0desc'] = '这部分是ghost收到的原始header，可以看到WAF，SLB等前序中间件对header的修改。'
+    return_json['10_org_headers_1data'] = headers
+    return_json['20_org_ip_0desc'] = '这部分是ghost收到的原始ip。'
+    return_json['20_org_ip_1data'] = ip
+    return_json['30_fix_headers_0desc'] = '这部分是经过ghost_sa处理的header结果，是入库数据的依据。'
+    return_json['30_fix_headers_1data'] = req_info
+    return_json['40_org_args_0desc'] = '这部分是原始上报的url args。'
+    return_json['40_org_args_1data'] = org_args
+    return_json['50_org_form_0desc'] = '这部分是原始上报的data form。'
+    return_json['50_org_form_1data'] = org_form
+    return_json['60_org_json_0desc'] = '这部分时原始上报的raw-json数据'
+    return_json['60_org_json_1data'] = org_json
+    return_json['70_org_raw_0desc'] = '这部分时原始上报的request.data'
+    return_json['70_org_raw_1data'] = play_load_str
+    return_json['80_org_data_decode_0desc'] = '这部分是从data部分解出来的埋点数据'
+    return_json['80_org_data_decode_1data'] = data_decode_single
+    return_json['90_org_datas_decode_0desc'] = '这部分是从datas部分解出来的埋点数据'
+    return_json['90_org_datas_decode_1data'] = datas_decode
+    import pprint
+    return_text = pprint.pformat(return_json)
+    if 'Accept' in headers  and headers['Accept'].find('image')>-1:
+        return Response(gen_text_img(return_text), mimetype="image/gif")
+    return return_text
 
 def get_datas():
     try:
@@ -164,17 +255,20 @@ def get_long(short_url):
         return '您查询的解析不存在'
 
 def shortit():
-    if 'org_url' in request.form:
-        org_url = request.form.get('org_url').replace(' ','')
-        expired_at = int(time.mktime(time.strptime(request.form.get('expired_at','2038-01-19'), "%Y-%m-%d")))
-        project = request.form.get('project',None)
-        src = request.form.get('src','suoim')
-        submitter = request.form.get('submitter',None)
-        utm_source = request.form.get('utm_source',None)
-        utm_medium = request.form.get('utm_medium',None)
-        utm_campaign = request.form.get('utm_campaign',None)
-        utm_content = request.form.get('utm_content',None)
-        utm_term = request.form.get('utm_term',None)
+    if get_url_params(params='org_url') :
+        org_url = get_url_params(params='org_url').strip()
+        expired_at = int(time.mktime(time.strptime(get_url_params('expired_at','2038-01-19'), "%Y-%m-%d")))
+        if expired_at <= int(time.time()):
+            returnjson = {'result':'error','error':'不允许创建过期时间早于当前时间的短链接'}
+            return jsonify(returnjson)
+        project = get_url_params('project',None)
+        src = get_url_params('src','ghost_sa')
+        submitter = get_url_params('submitter',None)
+        utm_source = get_url_params('utm_source',None)
+        utm_medium = get_url_params('utm_medium',None)
+        utm_campaign = get_url_params('utm_campaign',None)
+        utm_content = get_url_params('utm_content',None)
+        utm_term = get_url_params('utm_term',None)
         url_addon = encode_urlutm(utm_source=utm_source,utm_medium=utm_medium,utm_campaign=utm_campaign,utm_content=utm_content,utm_term=utm_term)
         if '?' in org_url:
             longurl = org_url+'&'+url_addon
@@ -185,10 +279,11 @@ def shortit():
             returnjson = {'result':urlstatus,'urllist':urllist}
             return jsonify(returnjson)
         else:
+            src_short_url_dec = 0
             check_short_status = 'success'
             while check_short_status == 'success':
-                if src =='suoim':
-                    src_short_url,status = get_suoim_short_url(long_url=longurl)
+                if src =='suoim' or src =='ghost_sa' or src == 'weibo':
+                    src_short_url,status,src_short_url_dec = get_ghost_sa_short_url()
                 else:
                     return jsonify({'result':'error','urllist':'src:'+src+'不存在'})
                 if status == 'ok':
@@ -197,7 +292,7 @@ def shortit():
                         continue
                     break
             short_url = src_short_url.split('/')[-1]
-            insert_count = insert_shortcut(project=project,short_url=short_url,long_url=longurl,expired_at=expired_at,src=src,src_short_url=src_short_url,submitter=submitter,utm_source=utm_source,utm_medium=utm_medium,utm_campaign=utm_campaign,utm_content=utm_content,utm_term=utm_term)
+            insert_count = insert_shortcut(project=project,short_url=short_url,short_url_dec=src_short_url_dec,long_url=longurl,expired_at=expired_at,src=src,src_short_url=src_short_url,submitter=submitter,utm_source=utm_source,utm_medium=utm_medium,utm_campaign=utm_campaign,utm_content=utm_content,utm_term=utm_term)
             print('已插入短连接解析地址'+str(insert_count))
             urllist,urlstatus = check_long_url(long_url=longurl)
             returnjson = {'result':'created_success','urllist':urllist}
@@ -209,6 +304,8 @@ def shortit():
 def show_short_cut_list():
     page = int(request.args.get('page')) if 'page' in request.args else 1
     length = int(request.args.get('length')) if 'length' in request.args else 50
+    if length >= 5000:
+        length = 5000
     sort = '`shortcut`.created_at'
     if 'sort' in request.args:
         sort_org = request.args.get('sort')
@@ -473,25 +570,25 @@ def show_mobile_ad_list():
     sort    = '`mobile_ad_list`.created_at'
     if 'sort' in request.args:
         sort_org = request.args.get('sort')
-        sort = sort_org
+        sort = '`mobile_ad_src`.' + sort_org if sort_org == 'src_name' else '`mobile_ad_list`.'+ sort_org
     way = request.args.get('way') if 'way' in request.args else 'desc'
     add_on_parames = []
     if 'create_date_start' in request.args:
         # print('kk1')
-        add_on_parames.append('mobile_ad_list.created_at>={crstart}'.format(crstart=request.args.get('create_date_start')))
+        add_on_parames.append('`mobile_ad_list`.created_at>={crstart}'.format(crstart=request.args.get('create_date_start')))
         # print(add_on_params)
     if 'create_date_end' in request.args:
-        add_on_parames.append('mobile_ad_list.created_at<={crend}'.format(crend=request.args.get('create_date_end')))
+        add_on_parames.append('`mobile_ad_list`.created_at<={crend}'.format(crend=request.args.get('create_date_end')))
     if 'expired_date_start' in request.args:
-        add_on_parames.append('mobile_ad_list.expired_at>={epstart}'.format(epstart=request.args.get('expired_date_start')))
+        add_on_parames.append('`mobile_ad_list`.expired_at>={epstart}'.format(epstart=request.args.get('expired_date_start')))
     if 'expired_date_end' in request.args:
-        add_on_parames.append('mobile_ad_list.expired_at<={epend}'.format(epend=request.args.get('expired_date_end')))
+        add_on_parames.append('`mobile_ad_list`.expired_at<={epend}'.format(epend=request.args.get('expired_date_end')))
     if 'url' in request.args:
-        add_on_parames.append('mobile_ad_list.url=\'{url}\''.format(url=request.args.get('url')))
+        add_on_parames.append('`mobile_ad_list`.url=\'{url}\''.format(url=request.args.get('url')))
     if 'src' in request.args:
-        add_on_parames.append('mobile_ad_list.src like \'{src}%\''.format(src=request.args.get('src')))
+        add_on_parames.append('`mobile_ad_list`.src like \'{src}%\''.format(src=request.args.get('src')))
     if 'src_name' in request.args:
-        add_on_parames.append('mobile_ad_src.src_name like \'{src_name}%\''.format(src=request.args.get('src_name')))
+        add_on_parames.append('`mobile_ad_src`.src_name like \'{src_name}%\''.format(src=request.args.get('src_name')))
     if 'utm_source' in request.args:
         add_on_parames.append('`mobile_ad_list`.utm_source like \'%{utm_source}%\''.format(utm_source=request.args.get('utm_source')))
     if 'utm_medium' in request.args:
@@ -548,6 +645,9 @@ def create_mobile_ad_link():
     if 'src' in request.form and 'project' in request.form:
         src = request.form.get('src')
         expired_at = int(time.mktime(time.strptime(request.form.get('expired_at','2038-01-19'), "%Y-%m-%d"))) if 'expired_at' in request.form else 2147483647
+        if expired_at <= int(time.time()):
+            returnjson = {'result':'error','error':'不允许创建过期时间早于当前时间的第三方跟踪链接'}
+            return jsonify(returnjson)
         project = request.form.get('project',None)
         submitter = request.form.get('submitter',None)
         utm_source = request.form.get('utm_source',None)

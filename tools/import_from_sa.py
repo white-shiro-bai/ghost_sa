@@ -3,7 +3,6 @@
 # wechat: Ben_Xiaobai
 import sys
 sys.path.append("./")
-sys.setrecursionlimit(10000000)
 from configs.sensorsSQL import exesqlsc,exesqlcs
 import json
 from component.api import insert_data

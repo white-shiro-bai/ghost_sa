@@ -3,34 +3,83 @@
 #Date: 2021-09-18 16:29:59
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2022-02-19 17:37:45
-#FilePath: \ghost_sa_github\configs\admin.py
-#
+
+
+# 是否使用Kafka
+use_kafka = True #True时，数据写入kafka。False时，直接插入数据库.ghost_sa大部分功能需要在kafka支持下发挥性能。仅在并发性能极低时，才适用不使用Kafka的模式。
+consumer_workers = 9 #使用kafka时，消费者的数量。标准部署tidb，9个效果比较好。请根据数据库压力调节。不是越大越好。
+
+
+#batch_send_deduplication
+batch_send_deduplication_mode = 'consumer' #skip same track_id ,distinct_id , lib , all_json['time'] data insert into event table in max_timeout. default
+        # 'none' is disable.
+        # 'ram' mode keep cache in flask_app and not share cache in multi instance .
+        # 'consumer' mode do nothing in flask_app. comsumer.py will do deduplication job . It is the most safety way.
+        # 'redis' mode use redis to share cache with multi instance , it support both speed and scale.
+        # 'tidb6.5+' mode require tidb version >=6.5.  use db to share cache with multi instance , it support big scale.
+        # 'tidb6.4-' mode support almost mysql protocol db. use db to share cache with multi instance , it support big scale.
+        # 'mysql' mode support mysql 5.7+ . use inno-db engine to share cache with multi instance , it support big scale.
+        # 'mysql-memory' mode support mysql 5.7+ . use mysql memory engine to share cache with multi instance , it support big scale.
+batch_send_deduplication_insert = 'remark' #'skip' or 'remark' duplication data.
+        # 'remark' is default setting, both normal and duplication date will insert into database . duplication data will be add aa "du-" chart before original remark. for example, normal data will insert as remark = 'normal', duplication date will insert as remark = 'du-normal' . 'remark' mode provide one more chance to verify data. 
+        # 'skip' will skip duplication data and no record left.
+batch_send_max_memory_limit  = 20000000 #unit byte。default is 20000000(200M), if thread use memory exceed setting , delete oldest catch.
+batch_send_max_memory_gap = 60 #unit seconds. frequency what memory occupied chech. default is 30 seconds , tiny value provide accurate but cost more interrupt , huge value have better performace but lead more risk on OOM. Data lost is annoying even it can be recovery by event table. this value should be smaller then batch_send_max_window.
+batch_send_max_batch_key_limit = 200000 #unit item. batch_key = distinct_id+lib . cache clean will apply when size of batch_key meet limit nomatter max memory limit.
+batch_send_max_window = 60 #unit minutes. batch cache expired window. affect on ram and redis. default is 60 minutes. batch_key in cache that not update in window will be delete when batch_send_max_memory_limit or batch_send_max batch_key_limit reached.
+batch_send_redis_db_number = 1 # redis database number .
+
 
 #Database
-database_type = 'tidb' # type for database. 'tidb' support from tidb(https://docs.pingcap.com/zh/tidb/stable/?utm_source=ghost_sa),tested from tidb v3.0.0 to v5.1.1 and newer. 'mysql' support mysql from v5.7 to v8 and newer. #! WARNING: Do not use Ghost_sa with mysql in a production deployment , it runs very slow.
+database_type = 'mysql' # type for database. 'tidb' support from tidb(https://docs.pingcap.com/zh/tidb/stable/?utm_source=ghost_sa),tested from tidb v3.0.0 to v7.6.0. 'mysql' support mysql from v5.7+ and tidb 8.0+ . 'tidb-serverless' support tidb_serverless #! WARNING: Do not use Ghost_sa with mysql in a production deployment , it runs very slow.
+
+serverless_system = 'RedHat' # this setting only effect 'tidb-serverless' mode,it can support 'MacOS','Debian','RedHat','Alpine','OpenSUSE'，'Windows'.'Debian' include Debian / Ubuntu / Arch and 'RedHat' include RedHat / Fedora / CentOS / Mageia.
+
+ca_local = {'MacOS':'/etc/ssl/cert.pem','Debian':'/etc/ssl/certs/ca-certificates.crt','RedHat':'/etc/pki/tls/certs/ca-bundle.crt','Alpine':'/etc/ssl/cert.pem','OpenSUSE':'/etc/ssl/ca-bundle.pem','Windows':'cacert.pem'} 
+
+#pic_tools
+font = './fonts/NotoSerifCJKsc-Regular.otf' #Font file path for pic_tools.
 
 #Bot Identify
 bot_list = ['spider','googlebot','adsbot-google','baiduboxapp','bingpreview','bingbot'] # If there any string in User_Agent,the request will be set remark as 'spider' ,no matter what the original remark is . Maintain bot list in lower case.
 
+#Performance and Feature
+
+fast_mode = 'fast' # 'original','fast','boost'。fast_mode can only work with use_kafka is True. and it only effect kafka_consumer.py. original mode is start from ghost_sa earliest version, update all data in db tables. fast mode is use memory to cache data, and update data into db tables. boost mode write data like fast mode, but use batch insert and close all trys to enhance performance, it fastest but may cause data lost at abnormal data collection request.
+
+# 是否开启properties表
+use_properties = False #True时，会插入properties表，这个表不是必须的，只是方便提取数据时快速找到埋点里包含的变量，目前有比较严重的性能问题，不建议开启。这个表计划在2025年左右进行优化，优化后会具备完整的元数据能力，且不再有性能问题。。
+
+#Device Table
+device_source_update_mode = 'first_sight' #'restrict','first_sight','latest_sight'。this setting control device first source column update mode .
+# 'restrict' mode is limit update device table only when the row insert first time no matter value , it suite for a brand new project,restrict mode will log the real first source.
+# 'first_sight' mode is update device table when the column is empty and income data is valued ,it useful to patch all source , it is the default mode of 2.0 ghost_sa .
+# 'latest_sight' mode is update column no matter the status when income data is valued, it the mode of 1.0 ghost_sa.
+
+device_latest_info_update_mode = 'latest_sight' #'restrict','latest_sight'。this setting control device latest info column update mode .
+# 'restrict' mode is limit update device table latest column only when the source is real latest data 
+# 'latest_sight' mode is update latest cloumn as latest_sight if newer data is blank.
+
+combine_device_memory = 50000000 #unit byte。default is 50000000(500M), if thread use memory exceed setting ,empty cache after dump data.
+combine_device_max_memory_gap = 30 #frequency what memory occupied chech. default is 30 seconds , tiny value provide accurate but cost more interrupt , huge value have better performace but lead more risk on OOM. Data lost is annoying even it can be recovery by event table. this value should be smaller then combine_device_max_window.
+combine_device_max_window = 300 #unit seconds。default is 300(every 5 minutes). Force insert device table after window since last insert if max_memory or gap not trigger insert.
+
+gzip_first = False #是否优先尝试gzip解压数据。app的sdk优先发送gzip数据。js相关的sdk发送原始数据。但是他们在上报的时候，很多不正确的携带gzip参数。所以使用参数判断不准。只能try一下，try如果命中就还好，没命中性能就不太好。所以这里设定一个开关，可以根据自己哪种SDK多一点来决定是否开启。
+
+#Info skip
+unrecognized_info_skip = ['url的domain解析失败','取值异常','未取到值,直接打开','未取到值','未取到值_非http的url','取值异常_referrer异常_','hostname解析异常','未知搜索引擎', 'url_host取值异常','获取url异常','url解析失败','NULL','Null','null','None'] #unrecognized utm and other info list. Utm and info will update to {project}_device if they not in this list.
+
+bot_override = True # allow insert into event table with specific remark if no_bot=admin_password otherwise remark force to spider. 
 
 # 身份识别
 who_am_i = 'ghost_sa' #向外发送回调请求时的UA识别
 
-
 # 数据查询接口的验证密码
-
 admin_password = 'admin' #普通查询密码
 admin_override_code = 'override' #越权密码
 admin_do_not_track_code = 'dntmode' #cdn模式不参与记录密码
 
-# 是否使用Kafka
 
-use_kafka = False #True时，数据写入kafka。False时，直接插入数据库
-
-# 是否开启properties表
-
-use_properties = True #True时，会插入properties表，这个表不是必须的，只是方便提取数据时快速找到埋点里包含的变量。
 
 #IP地址转化
 #IP_Address dictionary
@@ -47,7 +96,6 @@ ip_city_language = ['zh-CN', 'en'] #only work at "language" mode. ip_city will o
         #   * zh-CN -- Simplified Chinese.
 
 # 移动广告回调支持
-
 aso_dsp_callback_event = '$AppStart' #触发广告回调和UTM更新的事件，默认为APP启动后触发。注意，无论下一行是否开启回调，都会触发UTM更新。
 aso_dsp_callback = True #Ture时，开启移动广告回调，False时，下面的配置都不会生效
 aso_dsp_callback_interval_days = 3 #回调追溯期，单位为3天，会查找对应设备3天内是否有广告记录，如果有则会回调最近的一条记录。
@@ -55,16 +103,13 @@ aso_dsp_callback_repeat = False #是否允许重复回调，默认为不允许�
 aso_dsp_callback_history = False #是否允许回调非首日用户。记是否判断['properties']['$is_first_day']这个值。默认为False,即用户只有在第一天安装并启动APP的时候，才会进行回调。如果这个值改为True，那无论是否首日，用户启动APP都会取寻找追溯期内的地址进行回调，对数据库压力较大。
 
 # 自定义动作触发器
-
 independent_listener = False #True时需要独立进程订阅kafka消息执行触发器。False时会在进行入库操作时执行触发器。如果不需要触发器功能，选择True，然后不运行触发器进程就行了。
 # independent_listener_kafka_client_group_id='trigger_listener' #独立的订阅组名字
 independent_listener_kafka_client_group_id='trigger_listener2' #trigger独立的订阅组名字(会拼在kafka.py的group_id后面)
 independent_listener_kafka_client_client_id = 'trigger_listener2'#trigger独立的订阅组名字(会拼在kafka.py的client_id后面)
 
 # 宝贝回家公益项目
-
 use_bbhj = True #默认启用宝贝回家公益项目功能，启用后，程序报错时会显示宝贝回家公益页面。并在链接处显示您的项目名和错误代码。不启用该功能时，则直接显示您的留言。
-
 bbhj_keyword = '你的请求不合法哟。有兴趣的话，点击查看源码哟'
 bbhj_url = 'https://github.com/white-shiro-bai/ghost_sa/'
 

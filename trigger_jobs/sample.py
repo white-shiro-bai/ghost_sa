@@ -3,12 +3,11 @@
 # wechat: Ben_Xiaobai
 import sys
 sys.path.append("./")
-sys.setrecursionlimit(10000000)
 import time
 from component.db_func import insert_event
 import json
 from component.api_req import get_json_from_postjson
-from component.db_op import select_tidb
+from component.db_op import do_tidb_select
 from configs.export import write_to_log
 import traceback
 
@@ -17,7 +16,7 @@ def recall_baidu_bdvid(uid, project, newType=99, convertValue=0,token="your_toke
         timenow = int(time.time())
         sql_check_all_did = """select if(original_id='',distinct_id,original_id)as did from {project}_user where distinct_id='{uid}' GROUP BY did""".format(
             uid=uid, project=project)
-        all_did, did_count = select_tidb(sql=sql_check_all_did)
+        all_did, did_count = do_tidb_select(sql=sql_check_all_did)
         did_list = []
         for did in all_did:
             did_list.append("'"+did[0]+"'")
@@ -25,7 +24,7 @@ def recall_baidu_bdvid(uid, project, newType=99, convertValue=0,token="your_toke
         sql_find_last_bdvid = """select date,created_at,distinct_id,SUBSTRING_INDEX(SUBSTRING_INDEX(JSON_EXTRACT(all_json, '$."properties"."$url"'),'bd_vid=',-1),'"',1)as bdvid,JSON_EXTRACT(all_json, '$."properties"."$url"'),all_json from {project} where distinct_id in ({dids}) and `event`='$pageview' and JSON_EXTRACT(all_json, '$."properties"."$url"') like '%bd_vid=%' having LENGTH(bdvid)>0 ORDER BY created_at desc limit 1""".format(
             dids=did_str, project=project)
         print(sql_find_last_bdvid)
-        bdvid_result, bdvid_count = select_tidb(sql=sql_find_last_bdvid)
+        bdvid_result, bdvid_count = do_tidb_select(sql=sql_find_last_bdvid)
         if bdvid_count > 0:
             latest_date = bdvid_result[0][0]
             latest_created_at = bdvid_result[0][1]
@@ -70,14 +69,14 @@ def recall_oceanengine_click(uid, project, event_type='active'):
         timenow = int(time.time())
         sql_check_all_did = """select if(original_id='',distinct_id,original_id)as did from {project}_user where distinct_id='{uid}' GROUP BY did""".format(
             uid=uid, project=project)
-        all_did = select_tidb(sql=sql_check_all_did)
+        all_did = do_tidb_select(sql=sql_check_all_did)
         did_list = []
         for did in all_did[0]:
             did_list.append("'"+did[0]+"'")
         did_str = (',').join(did_list)
         sql_find_last_clickid = """select date,created_at,distinct_id,SUBSTRING_INDEX(SUBSTRING_INDEX(JSON_EXTRACT(all_json, '$."properties"."$url"'),'clickid=',-1),'&creativeid=',1)as clickid,JSON_EXTRACT(all_json, '$."properties"."$url"'),all_json from {project} where distinct_id in ({dids}) and `event`='$pageview' and JSON_EXTRACT(all_json, '$."properties"."$url"') like '%clickid=%' having LENGTH(clickid)>0 ORDER BY created_at desc limit 1""".format(dids=did_str, project=project)
         print(sql_find_last_clickid)
-        clickid_result = select_tidb(sql=sql_find_last_clickid)
+        clickid_result = do_tidb_select(sql=sql_find_last_clickid)
         if clickid_result[1] > 0:
             latest_date = clickid_result[0][0][0]
             latest_created_at = clickid_result[0][0][1]

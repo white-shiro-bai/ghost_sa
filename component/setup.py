@@ -3,9 +3,9 @@
 # wechat: Ben_Xiaobai
 import sys
 sys.path.append("./")
-sys.setrecursionlimit(10000000)
 from component.db_op import do_tidb_exe,do_tidb_select
 from component.db_func import insert_mobile_ad_src
+from configs import admin
 import time
 import csv
 import os
@@ -51,22 +51,24 @@ def create_project(project_name,expired=None):
     `access_control_threshold_event` int(11) DEFAULT NULL COMMENT '接入控制的单项缺省值'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;"""
 
-    create_shortcut = """CREATE TABLE if not EXISTS `shortcut` (
-    `project` varchar(255) DEFAULT NULL COMMENT '项目名',
-    `short_url` varchar(255) DEFAULT NULL COMMENT '短链地址',
-    `long_url` varchar(768) DEFAULT NULL COMMENT '长链地址',
-    `expired_at` int(11) DEFAULT NULL COMMENT '过期时间',
-    `created_at` int(11) DEFAULT NULL COMMENT '创建时间',
-    `src` varchar(10) DEFAULT NULL COMMENT '使用的第三方创建源',
-    `src_short_url` varchar(255) DEFAULT NULL COMMENT '创建源返回的短地址',
-    `submitter` varchar(255) DEFAULT NULL COMMENT '由谁提交',
-    `utm_source` varchar(2048) DEFAULT NULL COMMENT 'utm_source',
-    `utm_medium` varchar(2048) DEFAULT NULL COMMENT 'utm_medium',
-    `utm_campaign` varchar(2048) DEFAULT NULL COMMENT 'utm_campaign',
-    `utm_content` varchar(2048) DEFAULT NULL COMMENT 'utm_content',
-    `utm_term` varchar(2048) DEFAULT NULL COMMENT 'utm_term',
-    KEY `short_url` (`short_url`),
-    KEY `long_url` (`long_url`)
+    create_shortcut = """CREATE TABLE IF NOT EXISTS `shortcut` (
+`project` varchar(255) DEFAULT NULL COMMENT '项目名',
+`short_url` varchar(255) DEFAULT NULL COMMENT '短链地址',
+`short_url_dec` bigint(18) NOT NULL DEFAULT '0' COMMENT '短链地址十进制表达。正数是自身创建的。0是网站外带进来的需要参与排序的。-1是手动创建或修改不参与排序的。',
+`long_url` varchar(768) DEFAULT NULL COMMENT '长链地址',
+`expired_at` int(11) DEFAULT NULL COMMENT '过期时间',
+`created_at` int(11) DEFAULT NULL COMMENT '创建时间',
+`src` varchar(10) DEFAULT NULL COMMENT '使用的第三方创建源',
+`src_short_url` varchar(255) DEFAULT NULL COMMENT '创建源返回的短地址',
+`submitter` varchar(255) DEFAULT NULL COMMENT '由谁提交',
+`utm_source` varchar(2048) DEFAULT NULL COMMENT 'utm_source',
+`utm_medium` varchar(2048) DEFAULT NULL COMMENT 'utm_medium',
+`utm_campaign` varchar(2048) DEFAULT NULL COMMENT 'utm_campaign',
+`utm_content` varchar(2048) DEFAULT NULL COMMENT 'utm_content',
+`utm_term` varchar(2048) DEFAULT NULL COMMENT 'utm_term',
+KEY `long_url` (`long_url`),
+KEY `short_url_dec`(`short_url_dec`),
+UNIQUE KEY `short_url` (`short_url`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;"""
     create_shortcut_history = """CREATE TABLE IF NOT EXISTS `shortcut_history` (
     `short_url` varchar(255) DEFAULT NULL COMMENT '解析短链',
@@ -483,9 +485,44 @@ def update_mobile_ad_src():
             result,count =insert_mobile_ad_src(src=r[0],src_name=r[1],src_args=r[2],utm_source=r[3],utm_medium=r[4],utm_campaign=r[5],utm_content=r[6],utm_term=r[7])
             total_count = total_count+count
     print(str(total_count)+'条移动广告来源插入或更新完成（更新会记2次）')
-
+    
+def init_deduplication_key():
+    sql_dedu ="""CREATE TABLE `deduplication_key` (
+  `project` varchar(64) NOT NULL,
+  `distinct_id` varchar(254) NOT NULL,
+  `track_id` varchar(64) NOT NULL,
+  `sdk_time13` bigint(17) NOT NULL,
+  `created_at` TIMESTAMP,
+  UNIQUE INDEX `nx`(`project`, `distinct_id`, `track_id`, `sdk_time13`)
+) TTL = `created_at` + INTERVAL {minute} MINUTE TTL_ENABLE = 'ON';""".format(minute=admin.batch_send_max_window)
+    if admin.batch_send_deduplication_mode in ('tidb6.5+','tidb6.4-','mysql'):
+        req = do_tidb_exe(sql=sql_dedu,skip_mysql_code=1050)
+        if req[0] == 'sql_err':
+            print('去重表存在重复，如果没有变更admin.batch_send_deduplication_mode的去重模式，可以忽略此信息。如果变更过，请删掉去重表重新初始化。')
+        else:
+            print('去重表初始化成功')
+    sql_event = """CREATE EVENT clean_deduplication_key
+ON SCHEDULE EVERY 60 MINUTE 
+ON COMPLETION PRESERVE 
+DO DELETE `deduplication_key` where created_at <= current_timestamp - {minute} MINUTE;
+    """.format(minute=admin.batch_send_max_window)
+    sql_event_switch ='SET GLOBAL event_scheduler = ON;'
+    if admin.batch_send_deduplication_mode in ('mysql'):
+        req = do_tidb_exe(sql=sql_event)
+        if req[0] != 'sql_err':
+            print('mysql定时任务设置成功')
+        else:
+            print('mysql定时任务设置失败')
+        
+        req = do_tidb_exe(sql=sql_event_switch)
+        if req[0] != 'sql_err':
+            print('mysql定时器打开成功')
+        else:
+            print('mysql定时器打开失败')
+        
 
 if __name__ == "__main__":
         # create_project(project_name='test_app_with_date',expired='2020-01-01')
         create_project(project_name='test_me')
         update_mobile_ad_src()
+        init_deduplication_key()

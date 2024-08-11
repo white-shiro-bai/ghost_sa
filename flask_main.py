@@ -3,18 +3,26 @@
 # wechat: Ben_Xiaobai
 import sys
 sys.path.append("..")
-sys.setrecursionlimit(10000000)
-from component.api import get_datas, get_long, shortit, show_short_cut_list, ghost_check ,installation_track,show_project_list,show_mobile_ad_list,show_mobile_src_list,create_mobile_ad_link,check_exist_distinct_id,who_am_i,shortcut_read,show_qrcode,show_long_qrcode,show_all_logos,show_logo,access_permit,get_access_control_token,get_check_token,access_control_list,access_control_detail,update_access_status,status_codes
-from component.api_noti import show_usergroup_plan,show_usergroup_list,duplicate_scheduler_jobs,show_usergroup_data,disable_usergroup_data,show_temples,apply_temples_list,show_noti_group,show_noti_detial,manual_send,disable_single,show_scheduler_jobs,create_scheduler_jobs_manual,create_manual_temple_noti,create_manual_non_temple_noti,show_temple_args,recall_blacklist_commit,query_msg_type,query_blacklist_single,sms_callback
 from configs import admin
+if admin.access_control_commit_mode =='none_kafka':
+    from component.access_control import access_control
+    ac_none_kafka = access_control()
+from component.api import get_datas, get_long, shortit, show_short_cut_list, ghost_check ,installation_track,show_project_list,show_mobile_ad_list,show_mobile_src_list,create_mobile_ad_link,check_exist_distinct_id,who_am_i,shortcut_read,show_qrcode,show_long_qrcode,show_all_logos,show_logo,access_permit,get_access_control_token,get_check_token,access_control_list,access_control_detail,update_access_status,status_codes,decode_sa_data,batch_cache,debug_datas
+from component.api_noti import show_usergroup_plan,show_usergroup_list,duplicate_scheduler_jobs,show_usergroup_data,disable_usergroup_data,show_temples,apply_temples_list,show_noti_group,show_noti_detial,manual_send,disable_single,show_scheduler_jobs,create_scheduler_jobs_manual,create_manual_temple_noti,create_manual_non_temple_noti,show_temple_args,recall_blacklist_commit,query_msg_type,query_blacklist_single,sms_callback
 from flask_cors import CORS
 from flask import Flask,Response
 import sys
 import os
+from apscheduler.schedulers.background import BackgroundScheduler
 
 
 app = Flask(__name__)
-CORS(app)
+CORS(app,origins='*',supports_credentials=True,allow_headers='*')
+
+if admin.batch_send_deduplication_mode in ('ram','tidb6.4-'):
+    batch_send_scheduler = BackgroundScheduler()
+    batch_send_scheduler.add_job(batch_cache.clean_expired, 'interval', seconds=admin.batch_send_max_memory_gap)
+    batch_send_scheduler.start()
 
 def return_error(code=0):
     pagename = str(code) + '  '+admin.bbhj_keyword
@@ -23,6 +31,14 @@ def return_error(code=0):
     if admin.use_bbhj is True:
         return f"""<html><script type="text/javascript" src="//qzonestyle.gtimg.cn/qzone/hybrid/app/404/search_children.js" charset="utf-8" homePageUrl="{admin.bbhj_url}" homePageName="{pagename}"></script></html>"""
 
+# @app.before_request
+
+
+
+# @app.teardown_appcontext
+# def close_scheduler(*args):
+#     print(args)
+#     batch_send_scheduler.shutdown()
 
 
 @app.errorhandler(404)
@@ -56,6 +72,7 @@ app.add_url_rule('/status_codes', view_func=status_codes, methods=['GET','POST']
 #数据收集
 app.add_url_rule('/sa', view_func=get_datas, methods=['GET', 'POST'])#神策SDK上报接口
 app.add_url_rule('/sa.gif', view_func=get_datas, methods=['GET', 'POST'])#神策SDK上报接口
+app.add_url_rule('/debug', view_func=debug_datas, methods=['GET', 'POST' , 'OPTIONS'])#神策SDKdebug模式接口
 #短连接
 app.add_url_rule('/t/<short_url>', view_func=get_long, methods=['GET', 'POST'])#解析接口
 app.add_url_rule('/<short_url>.gif', view_func=shortcut_read, methods=['GET'])#站外跟踪
@@ -75,6 +92,7 @@ app.add_url_rule('/show_mobile_src_list', view_func=show_mobile_src_list, method
 app.add_url_rule('/check_exist', view_func=check_exist_distinct_id, methods=['GET'])#查询idfa或其他id是否已存在
 #辅助功能
 app.add_url_rule('/who_am_i', view_func=who_am_i, methods=['GET'])#获取自身ip
+app.add_url_rule('/dc', view_func=decode_sa_data, methods=['GET'])#通用解码
 
 #用户分群与召回
 # app.add_url_rule('/usergroups/check_enable_project', view_func=create_mobile_ad_link, methods=['POST'])#查询开启了用户分群与召回的项目列表

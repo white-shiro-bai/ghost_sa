@@ -3,17 +3,11 @@
 #Date: 2022-03-12 14:54:46
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2022-03-12 17:35:05
+#LastEditTime: 2024-07-13 20:06:41
 #FilePath: \ghost_sa_github_cgq\component\kafka_op.py
 #
 import sys
 sys.path.append('./')
-# -*- coding: utf-8 -*
-# author: unknowwhite@outlook.com
-# wechat: Ben_Xiaobai
-import sys
-sys.path.append("./")
-sys.setrecursionlimit(10000000)
 from kafka import KafkaProducer, KafkaConsumer
 import json
 from configs import kafka

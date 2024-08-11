@@ -3,7 +3,6 @@
 # wechat: Ben_Xiaobai
 import sys
 sys.path.append("./")
-sys.setrecursionlimit(10000000)
 from component.db_func import insert_update_recall_blacklist,insert_recall_blacklist_reason,select_recall_blacklist_id,insert_recall_blacklist,update_recall_blacklist,insert_recall_blacklist_history,select_recall_blacklist_list
 import time
 

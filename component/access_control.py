@@ -6,7 +6,6 @@ import sys
 # from threading import Event
 # from traceback import print_exception
 sys.path.append("./")
-sys.setrecursionlimit(10000000)
 from configs import admin,kafka
 import time 
 from component.public_func import show_my_memory
@@ -31,7 +30,7 @@ class access_control:
 
     def check_mem(self):
         #每30秒检查一次内存占用量
-        if int(time.time()-self.check_mem_start) <= 30 and self.projects != {}:
+        if int(time.time()-self.check_mem_start) <= admin.access_control_max_memory_gap and self.projects != {}:
             return self.my_memory
         else:
             self.my_memory = int(show_my_memory())

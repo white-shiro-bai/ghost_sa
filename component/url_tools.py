@@ -3,8 +3,8 @@
 #Date: 2021-09-18 16:29:59
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2022-02-19 19:56:23
-#FilePath: \ghost_sa_github\component\url_tools.py
+#LastEditTime: 2024-07-06 20:14:23
+#FilePath: \ghost_sa_github_cgq\component\url_tools.py
 #
 import sys
 sys.path.append("./")
@@ -12,8 +12,53 @@ from flask import request
 from configs.export import write_to_log
 from geoip.geo import get_addr,get_asn
 from configs import admin
+from component.public_func import key_counter
 import urllib
+import base64
+import json
+import gzip
+import string
 
+def sa_decode(params):
+    de64 = base64.b64decode(urllib.parse.unquote(params))
+    if admin.gzip_first is True:
+        try:
+            pending_data = json.loads(gzip.decompress(de64))
+            return pending_data
+        except:
+            pending_data = json.loads(de64)
+            return pending_data
+    else:
+        try:
+            pending_data = json.loads(de64)
+            return pending_data
+        except:
+            pending_data = json.loads(gzip.decompress(de64))
+            return pending_data
+
+def force_to_bool(key):
+    if any(pt == str(key).lower() for pt in ['true','yes','1','on']):
+        return True
+    elif any(pt == str(key).lower() for pt in ['false','no','0','off']):
+        return False
+    else:
+        return False
+
+def bool_to_str(key):
+    if isinstance(key,bool):
+        if key is True:
+            return 'True'
+        elif key is False:
+            return 'False'
+    elif isinstance(key,str):
+        if key.lower() in ['true','yes','1','on']:
+            return 'True'
+        elif key.lower() in ['false','no','0','off']:
+            return 'False'
+        else:
+            return None
+    else:
+        return None
 
 def get_url_params(params,default=None,log_error=False):
     # Extract params from any type of request as possible as support. 
@@ -64,7 +109,8 @@ def get_req_info():
     if get_url_params('user_agent'):
         User_Agent = get_url_params('user_agent')
     if User_Agent and User_Agent !='' and any([pt in User_Agent.lower() for pt in admin.bot_list]):
-        remark = 'spider'
+        if admin.bot_override is False or get_url_params('no_bot') != admin.admin_password : # mark spider if not allow override or password is wrong.
+            remark = 'spider'
     Host = request.headers.get('Host') #: 10.16.5.241:5000
     if get_url_params('host'):
         Host = get_url_params('host')
@@ -81,16 +127,34 @@ def get_req_info():
     url = request.url
     if get_url_params('request_uri'):
         url = get_url_params('request_uri')
+    ip_group={'internet':{},'internal':{}}
+    ip_key_list = ['X-Forwarded-For','X-Original-Forwarded-For','X-True-Ip','X-Client-Ip','Wl-Proxy-Client-Ip','Proxy-Client-IP','X-Real-IP','HTTP_CLIENT_IP']
     if get_url_params('http_x_forward_for') and get_url_params('http_x_forward_for') != '' and get_url_params('http_x_forward_for').count('.')==3:
         ip = get_url_params('http_x_forward_for')
     elif get_url_params('remote_addr') and get_url_params('remote_addr') != '' and get_url_params('remote_addr').count('.')==3:
         ip = get_url_params('remote_addr')
     elif get_url_params('ip') and get_url_params('ip') != '' and get_url_params('ip').count('.')==3:
         ip = get_url_params('ip')
-    elif request.headers.get('X-Forwarded-For'):
-        ip = request.headers.get('X-Forwarded-For') #获取SLB真实地址
     else:
+        for header_key in ip_key_list:
+            #处理反向代理和其他WAF带过来的头信息
+            pending_ip = request.headers.get(header_key).split(',')[0].strip() if request.headers.get(header_key) else None
+            if pending_ip and len(pending_ip.split('.'))==4:
+                is_good_ip = get_addr(pending_ip)[1]
+                if is_good_ip == 1 :
+                    ip_group = key_counter(group=ip_group,keytype='internet',key=pending_ip)
+                elif is_good_ip == 0 :
+                    ip_group = key_counter(group=ip_group,keytype='internal',key=pending_ip)
         ip = request.remote_addr#服务器直接暴露
+        is_good_ip = get_addr(ip)[1]
+        if is_good_ip == 1 :
+            ip_group = key_counter(group=ip_group,keytype='internet',key=ip)
+        elif is_good_ip == 0 :
+            ip_group = key_counter(group=ip_group,keytype='internal',key=ip)
+        if len(ip_group['internet'])>0:
+            ip = max(ip_group['internet'], key=lambda x:ip_group['internet'][x])
+        else:
+            ip = max(ip_group['internal'], key=lambda x:ip_group['internal'][x])
     # ip = '124.115.214.179' #测试西安bug
     # ip = '36.5.99.68' #测试安徽bug
     ip_city,ip_is_good = get_addr(ip)
@@ -101,3 +165,15 @@ def get_req_info():
     elif get_url_params('http_referer') and get_url_params('http_referer')!= '$http_referer' :
         referrer = get_url_params('http_referer')[0:2047]
     return {'remark':remark,'User_Agent':User_Agent,'Host':Host,'Connection':Connection,'Pragma':Pragma,'Cache_Control':Cache_Control,'Accept':Accept,'Accept_Encoding':Accept_Encoding,'Accept_Language':Accept_Language,'ua_platform':ua_platform,'ua_browser':ua_browser,'ua_version':ua_version,'ua_language':ua_language,'url':url,'ip':ip,'ip_city':ip_city,'ip_is_good':ip_is_good,'ip_asn':ip_asn,'ip_asn_is_good':ip_asn_is_good,'referrer':referrer}
+
+def is62hex(text):
+    text = str(text)
+    for i in text:
+        if i not in string.hexdigits + string.ascii_letters :
+            return 0,i
+    return 1,None
+
+if __name__ == '__main__':
+    test_is62hex = ['4325','f3442','CD3432f','234_8342','dfsad-32','23F*B',4321543]
+    for i in test_is62hex:
+        print(i, is62hex(i))
