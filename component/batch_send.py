@@ -3,7 +3,7 @@
 #Date: 2024-01-06 19:33:58
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-01-28 18:57:37
+#LastEditTime: 2024-08-11 19:18:06
 #FilePath: \ghost_sa_github_cgq\component\batch_send.py
 #
 import sys
@@ -87,12 +87,12 @@ class batch_send_deduplication():
 
     def _ram_insert(self,batch_key,trackey,time13):
         if batch_key in self.cache.keys():
-            self.cache[batch_key]['track_ids'].append(trackey)
+            self.cache[batch_key]['track_ids'].add(trackey)
             if time13 >= self.cache[batch_key]['time13']:
                 self.cache[batch_key]['time13'] = time13
         else:
             self.cache[batch_key] = {}
-            self.cache[batch_key]['track_ids'] = [trackey]
+            self.cache[batch_key]['track_ids'] = {trackey}
             self.cache[batch_key]['time13'] = time13
 
     def _ram_query(self,batch_key,trackey,time13):
