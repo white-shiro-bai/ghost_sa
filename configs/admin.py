@@ -140,6 +140,7 @@ access_control_cdn_mode_distinct_id_check = True #CDN模式是否查验distinct_
 access_control_cdn_mode_distinct_id_token_check = True #CDN模式是否查验distinct_id与token的匹配度。默认关。
 access_control_token_means_override = False #如果CDN模式下使用参数传递distinct_id且token被认可，则等效override密码正确。
 access_control_cdn_mode_mega_match = False #CDN模式是否参考其他event作为封禁依据。当False时，CDN模式只核对event是cdn_mode的事件。
+access_control_referer_whitelist = ['ifup.top'] # referer白名单，在CDN模式下，如果referer的域名在名单内，则强制触发dnt模式，请求记录不参与统计。通常用于一些内部应用或者调试等大量访问，又不方便提供dnt密码的场景。
 access_control_distinct_id_per_ip = 4 # ip触发进入黑名单的量是distinct_id的阈值的倍数
 access_control_ip_per_ip_group = 3 # ip组触发进入黑名单的量是ip的阈值的倍数
 access_control_ip_group_per_ip_group_extend = 5 # 超大IP组触发进入黑名单的量是ip组的倍数

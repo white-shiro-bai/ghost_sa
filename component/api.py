@@ -856,7 +856,7 @@ def access_permit():
     if not distinct_event and 'distinct_id' in properties:
         distinct_event = properties['distinct_id']
     if project and (mode == 'cdn' or mode == 'cdn2' or admin.access_control_force_cdn_record is True) :
-        if "http_referer" in args and "kitchen.tvcbook.com" in args["http_referer"]:
+        if "http_referer" in args and any(x in args['http_referer'] for x in admin.access_control_referer_whitelist):
             dnt = admin.admin_do_not_track_code
         distinct_cdn = distinct_event
         if not distinct_cdn and 'uri' in args and args['uri'] == "/favicon.ico":
