@@ -494,7 +494,7 @@ def init_deduplication_key():
   `sdk_time13` bigint(17) NOT NULL,
   `created_at` TIMESTAMP,
   UNIQUE INDEX `nx`(`project`, `distinct_id`, `track_id`, `sdk_time13`)
-) TTL = `created_at` + INTERVAL {minute} MINUTE TTL_ENABLE = 'ON';""".format(minute=admin.batch_send_max_window)
+) /*T![ttl] TTL = `created_at` + INTERVAL {minute} MINUTE TTL_ENABLE = 'ON'*/;""".format(minute=admin.batch_send_max_window)
     if admin.batch_send_deduplication_mode in ('tidb6.5+','tidb6.4-','mysql'):
         req = do_tidb_exe(sql=sql_dedu,skip_mysql_code=1050)
         if req[0] == 'sql_err':
