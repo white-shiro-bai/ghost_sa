@@ -3,7 +3,7 @@
 #Date: 2024-12-29 16:38:21
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2025-01-05 18:05:15
+#LastEditTime: 2025-01-05 21:47:59
 #FilePath: \ghost_sa_github_cgq\component\db_init.py
 #
 import sys
@@ -56,7 +56,7 @@ class DbInit():
         if result[1] == 0:
             self.init_version(currentversion=-1)
             return -1
-        sql = "select currentversion from dbversion;"
+        sql = "select currentversion from dbversion;" #这里不考虑额外处理读取到-1版本的情况，因为版本检查时traffic触发的，traffix会在上一步得到-1或这一步读到-1时，开始版本检查器。
         result = do_tidb_select(sql,retrycount=0)
         return result[0][0][0]
 
