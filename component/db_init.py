@@ -3,7 +3,7 @@
 #Date: 2024-12-29 16:38:21
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2025-01-11 16:47:44
+#LastEditTime: 2025-01-11 17:37:41
 #FilePath: \ghost_sa_github_cgq\component\db_init.py
 #
 import sys
@@ -11,6 +11,7 @@ sys.path.append('./')
 import os
 from configs.export import write_to_log
 from component.db_op import do_tidb_exe,do_tidb_select
+from component.public_value import get_time_array_from_nlp,current_timestamp10
 
 class DbInit():
     #该工具模仿zabbix的数据库版本控制概念，实现在CICD过程中保持数据表最新。
@@ -61,7 +62,7 @@ class DbInit():
         return result[0][0][0]
 
     def init_version(self,currentversion=-1):
-        sql_initversion = """create table if not exists dbversion (  `currentversion` int NOT NULL DEFAULT '-1' COMMENT '当前版本号,-1为未初始化,-2为未安装ghost_sa',  `nextversion` int NOT NULL DEFAULT '-1' COMMENT '即将执行的升级会升级到的版本号',  `dbversion` varchar(255) NOT NULL DEFAULT 'mysql' COMMENT '程序自动检测的数据库版本',  `pid` int NOT NULL DEFAULT '-1' COMMENT '进程ID，非0时表示被进程锁定，不允许进行升级操作。') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='数据表版本表';"""
+        sql_initversion = """create table if not exists dbversion (`id` int NOT NULL DEFAULT '1',  `currentversion` int NOT NULL DEFAULT '-1' COMMENT '当前版本号,-1为未初始化,-2为未安装ghost_sa',  `nextversion` int NOT NULL DEFAULT '-1' COMMENT '即将执行的升级会升级到的版本号',  `dbversion` varchar(255) NOT NULL DEFAULT 'mysql' COMMENT '程序自动检测的数据库版本',  `pid` int NOT NULL DEFAULT '-1' COMMENT '进程ID，非0时表示被进程锁定，不允许进行升级操作。',  UNIQUE KEY `dbversion_unique` (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='数据表版本表';"""
         do_tidb_exe(sql_initversion,retrycount=0)
         sql_initversiondata = """insert into dbversion (currentversion,nextversion,dbversion,pid) values ({currentversion},{currentversion},'{dbversion}',-1);""".format(dbversion=self.db_version,currentversion=currentversion)
         do_tidb_exe(sql_initversiondata,retrycount=0)
@@ -161,10 +162,10 @@ class DbInit():
         #如果运行时发现缺少版本信息，则检查数据库确定当前版本。
         pass
 
-    def setup_ghost_sa(self,project_name='default',expired_at=0,):
+    def setup_ghost_sa(self,project_name='default',expired_at=2147483647):
         #初始化ghost_sa数据表
         init_once = [
-            """CREATE TABLE IF NOT EXISTS `project_list` (    `project_name` varchar(255) DEFAULT NULL COMMENT '项目名称',    `created_at` int(11) DEFAULT NULL COMMENT '创建时间',    `expired_at` int(11) DEFAULT NULL COMMENT '过期时间',    `event_count` bigint(20) DEFAULT NULL COMMENT '事件量',    `device_count` bigint(20) DEFAULT NULL COMMENT '设备数',    `user_count` bigint(20) DEFAULT NULL COMMENT '用户数',    `enable_scheduler` int(4) DEFAULT 1 COMMENT '是否启动定时器支持',    `access_control_threshold_sum` int(11) DEFAULT NULL COMMENT '接入控制的全局缺省值',    `access_control_threshold_event` int(11) DEFAULT NULL COMMENT '接入控制的单项缺省值'    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='项目列表';""",
+            """CREATE TABLE IF NOT EXISTS `project_list` (    `project_name` varchar(255) DEFAULT NULL COMMENT '项目名称',    `created_at` int(11) DEFAULT NULL COMMENT '创建时间',    `expired_at` int(11) DEFAULT NULL COMMENT '过期时间',    `event_count` bigint(20) DEFAULT NULL COMMENT '事件量',    `device_count` bigint(20) DEFAULT NULL COMMENT '设备数',    `user_count` bigint(20) DEFAULT NULL COMMENT '用户数',    `enable_scheduler` int(4) DEFAULT 1 COMMENT '是否启动定时器支持',    `access_control_threshold_sum` int(11) DEFAULT NULL COMMENT '接入控制的全局缺省值',    `access_control_threshold_event` int(11) DEFAULT NULL COMMENT '接入控制的单项缺省值',  UNIQUE KEY `uniqueindex` (`project_name`)    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='项目列表';""",
             """CREATE TABLE IF NOT EXISTS `shortcut` (    `project` varchar(255) DEFAULT NULL COMMENT '项目名',    `short_url` varchar(255) DEFAULT NULL COMMENT '短链地址',    `short_url_dec` bigint(18) NOT NULL DEFAULT '0' COMMENT '短链地址十进制表达。正数是自身创建的。0是网站外带进来的需要参与排序的。-1是手动创建或修改不参与排序的。',    `long_url` varchar(768) DEFAULT NULL COMMENT '长链地址',    `expired_at` int(11) DEFAULT NULL COMMENT '过期时间',    `created_at` int(11) DEFAULT NULL COMMENT '创建时间',    `src` varchar(10) DEFAULT NULL COMMENT '使用的第三方创建源',    `src_short_url` varchar(255) DEFAULT NULL COMMENT '创建源返回的短地址',    `submitter` varchar(255) DEFAULT NULL COMMENT '由谁提交',    `utm_source` varchar(2048) DEFAULT NULL COMMENT 'utm_source',    `utm_medium` varchar(2048) DEFAULT NULL COMMENT 'utm_medium',    `utm_campaign` varchar(2048) DEFAULT NULL COMMENT 'utm_campaign',    `utm_content` varchar(2048) DEFAULT NULL COMMENT 'utm_content',    `utm_term` varchar(2048) DEFAULT NULL COMMENT 'utm_term',    KEY `long_url` (`long_url`),    KEY `short_url_dec`(`short_url_dec`),    UNIQUE KEY `short_url` (`short_url`)    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='短链列表';""",
             """CREATE TABLE IF NOT EXISTS `shortcut_history` (    `short_url` varchar(255) DEFAULT NULL COMMENT '解析短链',    `result` varchar(255) DEFAULT NULL COMMENT '解析的结果',    `cost_time` int(11) DEFAULT NULL COMMENT '耗费时间',    `ip` varchar(255) DEFAULT NULL,    `created_at` int(11) DEFAULT NULL COMMENT '解析时间',    `user_agent` text DEFAULT NULL,    `accept_language` text DEFAULT NULL,    `ua_platform` varchar(255) DEFAULT NULL,    `ua_browser` varchar(255) DEFAULT NULL,    `ua_version` varchar(255) DEFAULT NULL,    `ua_language` varchar(255) DEFAULT NULL,    KEY `created_at` (`created_at`),    KEY `short_url` (`short_url`),    KEY `short_url_result` (`short_url`,`result`)    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='短链解析记录';""",
             """CREATE TABLE if not EXISTS `mobile_ad_src` (    `src` varchar(255) NOT NULL COMMENT '创建源名称',    `src_name` varchar(255) DEFAULT NULL COMMENT '创建源的中文名字',    `src_args` varchar(1024) DEFAULT NULL COMMENT '创建源自带参数',    `created_at` int(11) DEFAULT NULL COMMENT '创建时间',    `updated_at` int(11) DEFAULT NULL COMMENT '维护时间',    `utm_source` varchar(255) DEFAULT NULL COMMENT '缺省的utm_source',    `utm_medium` varchar(255) DEFAULT NULL COMMENT '缺省的utm_medium',    `utm_campaign` varchar(255) DEFAULT NULL COMMENT '缺省的utm_campaign',    `utm_content` varchar(255) DEFAULT NULL COMMENT '缺省的utm_content',    `utm_term` varchar(255) DEFAULT NULL COMMENT '缺省的utm_term',    PRIMARY KEY (`src`)    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='ASO/DSP创建源缺省参数，这个表可在configs/mobile_ad_src_list.csv中自行添加，更新检查时会自动补充';""",
@@ -197,9 +198,19 @@ class DbInit():
         for sql_status_code_index in range(len(status_code)):
             result = do_tidb_exe(sql=status_code[sql_status_code_index],retrycount=0)
             write_to_log(filename='db_init',defname='setup_ghost_sa',result='status_code'+str(sql_status_code_index)+':'+str(result),level='info')
-        for sql_project_index in range(len(init_project)):
-            result = do_tidb_exe(sql=init_project[sql_project_index].format(project_name=project_name),retrycount=0)
-            write_to_log(filename='db_init',defname='setup_ghost_sa',result='init_project'+str(sql_project_index)+':'+str(result),level='info')
+
+        if not isinstance(expired_at, int):
+            expired_at = get_time_array_from_nlp(expired_at)['time_int']
+        timenow = current_timestamp10()
+        insert_project_list = """insert project_list (`project_name`,`created_at`,`expired_at`) values ('{project_name}',{created_at},{expired_at})""".format(project_name=project_name,created_at=timenow,expired_at=expired_at)
+        res = do_tidb_exe(insert_project_list,retrycount=0,skip_mysql_code=1062)
+        if res[1] == 1:
+            write_to_log(filename='db_init',defname='setup_ghost_sa',result=project_name+'项目已插入project列表',level='info')
+            for sql_project_index in range(len(init_project)):
+                result = do_tidb_exe(sql=init_project[sql_project_index].format(project_name=project_name),retrycount=0)
+                write_to_log(filename='db_init',defname='setup_ghost_sa',result='init_project'+project_name+str(sql_project_index)+':'+str(result),level='info')
+        elif res[0] == 'sql_err':
+            write_to_log(filename='db_init',defname='setup_ghost_sa',result=project_name+'项目已存在',level='info')
         self.init_version(currentversion=self.setup_version)
 
 if __name__ == '__main__':
