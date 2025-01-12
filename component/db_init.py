@@ -3,7 +3,7 @@
 #Date: 2024-12-29 16:38:21
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2025-01-12 18:07:42
+#LastEditTime: 2025-01-12 19:11:53
 #FilePath: \ghost_sa_github_cgq\component\db_init.py
 #
 import sys
@@ -80,10 +80,10 @@ class DbInit():
         #更新数据库版本号
         sql = "update dbversion set id = 1"
         if currentversion:
-            sql += ",currentversion = %(currentversion)d"
+            sql += ",currentversion = %(currentversion)s"
         if nextversion:
-            sql += ",nextversion = %(nextversion)d"
-        sql += ";"
+            sql += ",nextversion = %(nextversion)s"
+        sql += " where id = 1;"
         res = do_tidb_exe(sql=sql,retrycount=0,args={'currentversion':currentversion,'nextversion':nextversion})
         if res[1] == 0:
             return 'success'
@@ -128,18 +128,25 @@ class DbInit():
         self.load_packages()
         #根据package['version']从小到大重新排序
         inspect_version = dict(sorted(self.all_packages.items(), key=lambda item: item[1]['version']))
+        project_list,project_count = select_all_project()
         for version in inspect_version:
             if inspect_version[version]['updatetype'] == 'once':
                 check = self.check_update(sql=inspect_version[version]['check_sql'],check_index=inspect_version[version]['check_index'],check_sql_result=inspect_version[version]['check_sql_result'])
                 if check == 'success':
                     self.current_version = inspect_version[version]['version']
-                    self.update_dbversion(currentversion=self.current_version,nextversion=self.current_version)
+                    res = self.update_dbversion(currentversion=self.current_version,nextversion=self.current_version)
+                    if res == 'success':
+                        write_to_log(filename='db_init',defname='first_version_inspect',result='更新当前版本号：'+str(self.current_version))
             if inspect_version[version]['updatetype'] == 'project':
-                project_list,project_count = select_all_project()
+                pass_count = 0
                 for project in project_list:
+                    check = self.check_update(sql=inspect_version[version]['check_sql'].format(project_name=project),check_index=inspect_version[version]['check_index'],check_sql_result=inspect_version[version]['check_sql_result'].format(project_name=project))
+                    if check == 'success':
+                        pass_count += 1
+                if pass_count == project_count:
+                    self.current_version = inspect_version[version]['version']
+                    self.update_dbversion(currentversion=self.current_version,nextversion=self.current_version)
 
-        pass
-        
 
     def traffic_update(self,max_retry_count=3):
         #控制整个升级进程，如果没库，先创建库，如果有库没版本信息，先创建版本信息表，然后根据检查结果，确定当前表的版本，再根据版本信息表里的版本号，开始升级。
