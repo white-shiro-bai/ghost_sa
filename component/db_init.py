@@ -3,7 +3,7 @@
 #Date: 2024-12-29 16:38:21
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2025-01-11 17:37:41
+#LastEditTime: 2025-01-12 18:07:42
 #FilePath: \ghost_sa_github_cgq\component\db_init.py
 #
 import sys
@@ -12,6 +12,7 @@ import os
 from configs.export import write_to_log
 from component.db_op import do_tidb_exe,do_tidb_select
 from component.public_value import get_time_array_from_nlp,current_timestamp10
+from component.db_func import select_all_project
 
 class DbInit():
     #该工具模仿zabbix的数据库版本控制概念，实现在CICD过程中保持数据表最新。
@@ -20,7 +21,7 @@ class DbInit():
         self.current_version = -1
         self.all_packages = {}
         self.load_packages()
-        self.setup_version = '20001'
+        self.setup_version = '110407'
         self.db_version  = self.check_db_version()
         self.pid = os.getpid()
 
@@ -69,11 +70,26 @@ class DbInit():
 
     def update_version(self,package):
         #根据获取到的升级包，更新下一版本号，执行升级后，更新当前版本号。
-        sql = "update ghostdbversion set nextversion = %(newnextversion)d where nextversion = %(oldnextversion)d;"
+        self.update_dbversion(nextversion=package['version'])
         self.update_exec(package)
-        sql = "update ghostdbversion set currentversion = %(newcurrentversion)d where currentversion = %(oldcurrentversion)d;"
         #执行单一升级脚本
+        self.update_dbversion(currentversion=package['version'])
         pass
+
+    def update_dbversion(self,currentversion=0,nextversion=0):
+        #更新数据库版本号
+        sql = "update dbversion set id = 1"
+        if currentversion:
+            sql += ",currentversion = %(currentversion)d"
+        if nextversion:
+            sql += ",nextversion = %(nextversion)d"
+        sql += ";"
+        res = do_tidb_exe(sql=sql,retrycount=0,args={'currentversion':currentversion,'nextversion':nextversion})
+        if res[1] == 0:
+            return 'success'
+        else:
+            return 'fail'
+
 
     def update_exec(self,package):
         #执行升级脚本并检查结果。
@@ -89,9 +105,16 @@ class DbInit():
             check = self.check_update(package['check_sql'])
         log_end = log_check + '，脚本执行：' + '成功' if check=='success' else '失败'
 
-    def check_update(self,sql):
+    def check_update(self,sql,check_index,check_sql_result):
         #检查升级脚本是否执行成功
-        pass
+        res = do_tidb_select(sql,retrycount=0)
+        if res[0] == 'sql_err':
+            return 'wrong_sql'
+        if res[1] == 0:
+            return 'no_result'
+        if res[0][0][check_index] == check_sql_result:
+            return 'success'
+
 
     def find_next_package(self):
         #确定下一个升级脚本。
@@ -100,25 +123,44 @@ class DbInit():
         #如 1->2->5 1->3->5 1->4->5，2的条件最苛刻，4的条件最宽松。会依次命中 2，3，4。但是234里都指定，需要当前版本是1时，才能执行本次升级。5里指定，当前版本是234时，才能执行升级。即可兼容多个不同的数据库。
         pass
 
+    def first_version_inspect(self):
+        #针对老版本，检查目前数据库结构，确定当前版本号。
+        self.load_packages()
+        #根据package['version']从小到大重新排序
+        inspect_version = dict(sorted(self.all_packages.items(), key=lambda item: item[1]['version']))
+        for version in inspect_version:
+            if inspect_version[version]['updatetype'] == 'once':
+                check = self.check_update(sql=inspect_version[version]['check_sql'],check_index=inspect_version[version]['check_index'],check_sql_result=inspect_version[version]['check_sql_result'])
+                if check == 'success':
+                    self.current_version = inspect_version[version]['version']
+                    self.update_dbversion(currentversion=self.current_version,nextversion=self.current_version)
+            if inspect_version[version]['updatetype'] == 'project':
+                project_list,project_count = select_all_project()
+                for project in project_list:
+
+        pass
+        
+
     def traffic_update(self,max_retry_count=3):
         #控制整个升级进程，如果没库，先创建库，如果有库没版本信息，先创建版本信息表，然后根据检查结果，确定当前表的版本，再根据版本信息表里的版本号，开始升级。
         fail_count = 0
         while self.current_version != self.setup_version:
             self.current_version = self.check_version()
             if self.current_version == -2:
-                self.setup_ghost_sa()
+                self.setup_ghost_sa(project_name='default')
+                self.init_version(currentversion=self.setup_version)
             elif self.current_version == -1:
-                self.fisrt_version_inspect()
-            elif self.current_version < self.setup_version:
-                next_version = self.find_next_package()
-                if next_version:
-                    result = self.update_version()
-                    if result['status'] == 'fail':
-                        fail_count += 1
-                        log(result['reason'])
-                        if fail_count >= max_retry_count:
-                            raise Exception('update fail')
-                            break
+                self.first_version_inspect()
+            # elif self.current_version < self.setup_version:
+            #     next_version = self.find_next_package()
+            #     if next_version:
+            #         result = self.update_version()
+            #         if result['status'] == 'fail':
+            #             fail_count += 1
+            #             log(result['reason'])
+            #             if fail_count >= max_retry_count:
+            #                 raise Exception('update fail')
+            #                 break
 
     def load_packages(self):
         #装载版本信息
@@ -126,7 +168,7 @@ class DbInit():
         # dbtype用来区分数据库类型，适配不同数据库的sql语句。'mysql',仅在非tidb环境执行，'tidb6.4-'仅在tidb6.5以下版本执行，'tidb6.5+'仅在tidb6.5以上环境执行，'tidb'在所有tidb环境下执行，'all'在所有环境都执行。
         # additional_func是动态执行函数。适用于无法单纯使用sql解决的复杂函数。
         # 
-        self.all_packages['110102'] = {'version':110102,'previous_version':[110101],'updatetype':'once','dbtype':'all','sql':['''ALTER TABLE `project_list` ADD COLUMN `enable_scheduler` int(4) NULL DEFAULT 1 COMMENT '是否启动定时器支持' AFTER `user_count`;'''],'task_desc':'项目列表增加定时器开关','check_sql':'''SHOW COLUMNS FROM project_list LIKE 'enable_scheduler';''','check_index':0,'check_sql_result':'enable_scheduler','args':[],'eval':[]}
+        self.all_packages['110102'] = {'version':110102,'previous_version':[-1],'updatetype':'once','dbtype':'all','sql':['''ALTER TABLE `project_list` ADD COLUMN `enable_scheduler` int(4) NULL DEFAULT 1 COMMENT '是否启动定时器支持' AFTER `user_count`;'''],'task_desc':'项目列表增加定时器开关','check_sql':'''SHOW COLUMNS FROM project_list LIKE 'enable_scheduler';''','check_index':0,'check_sql_result':'enable_scheduler','args':[],'eval':[]}
         self.all_packages['110103'] = {'version':110103,'previous_version':[110102],'updatetype':'once','dbtype':'all','sql':['''CREATE TABLE IF NOT EXISTS `status_code` ( `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id',    `desc` varchar(255) DEFAULT NULL COMMENT '含义',    `p_id` int(11) DEFAULT NULL COMMENT '父id',    PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin AUTO_INCREMENT=1;'''],'task_desc':'创建状态码表','check_sql':'''SHOW TABLES LIKE 'status_code';''','check_index':0,'check_sql_result':'status_code','args':[],'eval':[]}
         self.all_packages['110104'] = {'version':110104,'previous_version':[110103],'updatetype':'once','dbtype':'all','sql':["INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (1, '分群列表状态', 0);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (2, '创建列表开始', 1);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (3, '分群信息写入中', 1);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (4, '分群写入完成并包含错误', 1);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (5, '分群写入完成', 1);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (6, '分群写入失败', 1);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (7, '生效策略', 0);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (8, '自动', 7);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (9, '手动', 7);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (10, '禁用', 7);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (11, '进入分群队列', 1);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (12, '优先级', 0);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (13, '普通', 12);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (14, '高', 12);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (15, '最高', 12);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (16, '已添加任务队列', 1);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (17, '任务已被选取', 1);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (18, '任务方法加载完', 1);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (19, '任务执行成功', 1);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (20, '分群ETL失败', 1);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (21, '任务执行失败', 1);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (22, '通知方式', 0);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (23, 'email', 22);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (24, '自动分群但不自动应用模板', 7);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (25, '推送状态', 0);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (26, '推送成功', 25);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (27, '推送失败', 25);","INSERT IGNORE INTO `status_code`(`id`, `desc`, `p_id`) VALUES (28, '自动分群自动应用模板但不自动发送', 7);"],'task_desc':'添加状态码表信息','check_sql':'SELECT MAX(id) FROM events.status_code;','check_index':0,'check_sql_result':'28','args':[],'eval':[]}
         self.all_packages['110105'] = {'version':110105,'previous_version':[110104],'updatetype':'once','dbtype':'all','sql':["""CREATE TABLE IF NOT EXISTS `scheduler_jobs` (    `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '任务id',    `project` varchar(255) DEFAULT NULL COMMENT '项目id',    `group_id` int(11) DEFAULT NULL COMMENT 'group_plan的id',    `list_index` int(11) DEFAULT NULL COMMENT 'group_index任务完成后，补充',    `datetime` int(11) DEFAULT NULL COMMENT '执行的日期，即要执行的那个任务的时间（不是任务执行时间，是要执行的时间。如周三时执行周一的任务。也用来防止任务重复添加）',    `data` json DEFAULT NULL COMMENT '其他附带的参数',    `priority` int(4) DEFAULT NULL COMMENT '优先级',    `status` int(4) DEFAULT NULL COMMENT '状态',    `created_at` int(11) DEFAULT NULL COMMENT '创建时间',    `updated_at` int(11) DEFAULT NULL COMMENT '更新时间',    PRIMARY KEY (`id`),    UNIQUE KEY `ind_task` (`project`,`group_id`,`datetime`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin AUTO_INCREMENT=1;"""],'task_desc':'添加计划任务表','check_sql':"SHOW TABLES LIKE 'scheduler_jobs';",'check_index':0,'check_sql_result':'scheduler_jobs','args':[],'eval':[]}
@@ -211,10 +253,11 @@ class DbInit():
                 write_to_log(filename='db_init',defname='setup_ghost_sa',result='init_project'+project_name+str(sql_project_index)+':'+str(result),level='info')
         elif res[0] == 'sql_err':
             write_to_log(filename='db_init',defname='setup_ghost_sa',result=project_name+'项目已存在',level='info')
-        self.init_version(currentversion=self.setup_version)
 
 if __name__ == '__main__':
     db_init = DbInit()
-    print(db_init.check_version())
-    db_init.setup_ghost_sa(project_name='test_me')
-    print(db_init.check_version())
+    db_init.first_version_inspect()
+    # db_init.traffic_update(max_retry_count=3)
+    # print(db_init.check_version())
+    # db_init.setup_ghost_sa(project_name='test_me')
+    # print(db_init.check_version())
