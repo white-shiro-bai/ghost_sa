@@ -109,7 +109,7 @@ independent_listener_kafka_client_group_id='trigger_listener2' #trigger独立的
 independent_listener_kafka_client_client_id = 'trigger_listener2'#trigger独立的订阅组名字(会拼在kafka.py的client_id后面)
 
 # 宝贝回家公益项目
-use_bbhj = True #默认启用宝贝回家公益项目功能，启用后，程序报错时会显示宝贝回家公益页面。并在链接处显示您的项目名和错误代码。不启用该功能时，则直接显示您的留言。
+use_bbhj = False #默认启用宝贝回家公益项目功能，启用后，程序报错时会显示宝贝回家公益页面。并在链接处显示您的项目名和错误代码。不启用该功能时，则直接显示您的留言。
 bbhj_keyword = '你的请求不合法哟。有兴趣的话，点击查看源码哟'
 bbhj_url = 'https://github.com/white-shiro-bai/ghost_sa/'
 
