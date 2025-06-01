@@ -3,7 +3,7 @@
 #Date: 2023-05-27 21:19:00
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-07-14 14:49:12
+#LastEditTime: 2025-06-01 20:32:01
 #FilePath: \ghost_sa_github_cgq\selftest\test_case.py
 #
 import sys
@@ -133,8 +133,12 @@ if __name__ == '__main__':
     # test_shortcut(count=1000)
     # print(len(test_ip_generate()),len(test_useragent_generate()))
     # batch_send_deduplication(project='test_app',url='http://192.168.193.28:8000/')
-    remark2 = sys.argv[1] if sys.argv[1] else 'normal'
-    no_bot = sys.argv[2] if sys.argv[2] else ''
-    batch_send_deduplication(project='test_me',url='http://192.168.193.28:8000/',remark = remark2, no_bot = no_bot)
+    remark2 = 'normal'
+    no_bot = ''
+    if len(sys.argv) > 1:
+        remark2 = sys.argv[1]
+    if len(sys.argv) > 2:
+        no_bot = sys.argv[2]
+    batch_send_deduplication(project='test_me',url='http://192.168.193.27:8000/',remark = remark2, no_bot = no_bot)
     # batch_send_deduplication(project='test_app',url='http://127.0.0.1:8000/',remark = remark2, no_bot = no_bot)
 
