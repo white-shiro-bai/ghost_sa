@@ -3,7 +3,7 @@
 #Date: 2022-03-12 14:54:46
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-07-13 20:06:41
+#LastEditTime: 2025-06-01 15:53:56
 #FilePath: \ghost_sa_github_cgq\component\kafka_op.py
 #
 import sys
@@ -32,4 +32,8 @@ def get_message_from_kafka(group_id=kafka.client_group_id,client_id=kafka.client
     return consumer
 
 if __name__ == "__main__":
-    insert_message_to_kafka(key='123231231', msg={'msg': 'test'})
+    # producer = KafkaProducer(bootstrap_servers=kafka.bootstrap_servers)
+    # insert_message_to_kafka(key='123231231', msg={'msg': 'test'})
+    res = get_message_from_kafka()
+    for item in res :
+        print(item.value.decode('utf-8'))

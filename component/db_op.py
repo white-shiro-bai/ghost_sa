@@ -3,7 +3,7 @@
 #Date: 2022-03-13 00:19:41
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-07-13 20:07:03
+#LastEditTime: 2025-01-05 14:35:46
 #FilePath: \ghost_sa_github_cgq\component\db_op.py
 #
 import sys
@@ -91,6 +91,9 @@ def do_tidb_select(sql,presql=None, args=None, retrycount=5,retry_sleep_time=1):
 if __name__ == "__main__":
     # print(do_tidb_exe('show tables'))
     from component.public_value import get_time_str,current_timestamp10
-    sql = 'insert into `deduplication_key` (`project`,`distinct_id`,`track_id`,`sdk_time13`,`created_at`) values ( %(project)s,%(distinct_id)s,%(track_id)s,%(sdk_time13)s,%(created_at)s)'
-    key = {'project': 'test_me', 'distinct_id': 'test123', 'track_id': '4567', 'sdk_time13':1234567890123 ,'created_at':get_time_str(inttime=current_timestamp10())}
-    print(do_tidb_exe(sql=sql, args=key,retrycount=0,skip_mysql_code=1062))
+    # sql = 'insert into `deduplication_key` (`project`,`distinct_id`,`track_id`,`sdk_time13`,`created_at`) values ( %(project)s,%(distinct_id)s,%(track_id)s,%(sdk_time13)s,%(created_at)s)'
+    # key = {'project': 'test_me', 'distinct_id': 'test123', 'track_id': '4567', 'sdk_time13':1234567890123 ,'created_at':get_time_str(inttime=current_timestamp10())}
+    # print(do_tidb_exe(sql=sql, args=key,retrycount=0,skip_mysql_code=1062))
+    # sql="""CREATE TABLE IF NOT EXISTS `%(project_name)s_noti_temple` (    `id` int(11) NOT NULL AUTO_INCREMENT,    `name` varchar(255) DEFAULT NULL COMMENT '模板名称',    `temple_desc` varchar(255) DEFAULT NULL COMMENT '模板描述',    `args` json DEFAULT NULL COMMENT '模板参数',    `content` json DEFAULT NULL COMMENT '模板内容',    `apply_times` int(11) DEFAULT 0 COMMENT '应用次数',    `lastest_apply_time` int(11) DEFAULT NULL COMMENT '最后一次应用时间',    `lastest_apply_list` int(11) DEFAULT NULL COMMENT '最后一次应用列表',    `created_at` int(11) DEFAULT NULL COMMENT '创建时间',    `updated_at` int(11) DEFAULT NULL COMMENT '更新时间',    PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin AUTO_INCREMENT=1 COMMENT="%(project_name)s消息通知模板";"""
+    # key={'project_name':'test_me'}
+    # print(do_tidb_exe(sql=sql, args=key,retrycount=0))
