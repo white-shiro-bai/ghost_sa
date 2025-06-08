@@ -7,7 +7,7 @@
 
 # 是否使用Kafka
 use_kafka = True #True时，数据写入kafka。False时，直接插入数据库.ghost_sa大部分功能需要在kafka支持下发挥性能。仅在并发性能极低时，才适用不使用Kafka的模式。
-consumer_workers = 9 #使用kafka时，消费者的数量。标准部署tidb，9个效果比较好。请根据数据库压力调节。不是越大越好。
+consumer_workers = 16 #使用kafka时，消费者的数量。标准部署tidb，9个效果比较好。请根据数据库压力调节。不是越大越好。
 
 
 #batch_send_deduplication

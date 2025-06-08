@@ -3,7 +3,7 @@
 #Date: 2022-03-13 00:19:41
 #Author: unknowwhite@outlook.com
 #WeChat: Ben_Xiaobai
-#LastEditTime: 2024-07-13 20:07:03
+#LastEditTime: 2025-06-08 22:14:57
 #FilePath: \ghost_sa_github_cgq\component\db_op.py
 #
 import sys
@@ -11,7 +11,7 @@ sys.path.append('./')
 from configs.export import write_to_log
 import traceback
 import time
-from configs.db import *
+from configs.db import get_conn_sqldb
 
 # 数据库操作
 
@@ -21,11 +21,12 @@ def _exe_tidb(sql, args=None,presql=None):
     conn = get_conn_sqldb()
     cur = conn.cursor()
     if presql:
-        cur.execute(query=presql)
-    result_count = cur.execute(query=sql, args=args)
+        cur.execute(operation=presql)
+    cur.execute(operation=sql, params=args)
+    result_count = cur.rowcount
     results = cur.fetchall()
     conn.commit()
-    lastest_id_count = cur.execute(query="""SELECT LAST_INSERT_ID();""")
+    lastest_id_count = cur.execute(operation="""SELECT LAST_INSERT_ID();""")
     lastest_id = cur.fetchone()
     cur.close()
     conn.close()
@@ -37,8 +38,9 @@ def _select_tidb(sql, args=None,presql=None):
     conn = get_conn_sqldb()
     cur = conn.cursor()
     if presql:
-        cur.execute(query=presql)
-    result_count = cur.execute(query=sql, args=args)
+        cur.execute(operation=presql)
+    cur.execute(operation=sql, params=args)
+    result_count = cur.rowcount
     results = cur.fetchall()
     cur.close()
     conn.close()
