@@ -119,6 +119,8 @@ SDK的使用方法，可以直接查看神策官方文档 https://www.sensorsdat
 
 2.不支持神策的新版本可视化全埋点功能，所以请使用较新SDK的用户，根据神策文档 https://manual.sensorsdata.cn/sa/latest/enable_visualized_autotrack-7548675.html?utm_source=github&utm_campaign=ghost_sa 关闭 可视化全埋点功能，减少报错。
 
+3. **Host whitelist (ALLOWED_HOSTS)**：Configure `ALLOWED_HOSTS` in `configs/admin.py` for Host header validation / canonical host enforcement; empty list = no check (backward compatible). When non-empty, only whitelisted hosts are used for QR and logo URLs. Invalid Host returns 400.
+
 # 更多文档：
 
 接口文档及示例 链接: https://www.apifox.cn/apidoc/shared-48bfd396-858f-442a-b290-5a5a5404ea97  访问密码: gLC6ZUQF

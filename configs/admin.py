@@ -79,6 +79,12 @@ admin_password = 'admin' #普通查询密码
 admin_override_code = 'override' #越权密码
 admin_do_not_track_code = 'dntmode' #cdn模式不参与记录密码
 
+# Host header validation (HNP mitigation). When non-empty, QR code and logo URLs only accept these hosts.
+# Validate request.host (authority), not host_url. Comparison is normalized: lowercase, default port (:80/:443) stripped.
+# Empty list = no validation (backward compatible). Example: ['yourdomain.com', 'localhost:8000']
+# If whitelist enabled, invalid Host returns 400.
+ALLOWED_HOSTS = []
+
 
 
 #IP地址转化

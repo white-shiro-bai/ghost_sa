@@ -3,7 +3,7 @@
 # wechat: Ben_Xiaobai
 import sys
 sys.path.append("./")
-from flask import request,jsonify,Response,redirect
+from flask import request, jsonify, Response, redirect, abort
 import traceback
 import time
 import urllib.parse
@@ -700,10 +700,36 @@ def shortcut_read(short_url):
         returnimage = f.read()
     return Response(returnimage, mimetype="image/gif")
 
+def _normalize_host(host):
+    """Lowercase and strip default port (:80, :443) for whitelist comparison."""
+    if not host:
+        return host
+    h = host.strip().lower()
+    if h.endswith('.'):
+        h = h[:-1]
+    if h.endswith(':80'):
+        return h[:-3]
+    if h.endswith(':443'):
+        return h[:-4]
+    return h
+
+def _host_validated_base_url():
+    """Validate authority (request.host), not host_url. Return request.host_url if allowed; else abort 400."""
+    allowed = getattr(admin, 'ALLOWED_HOSTS', None) or []
+    if not allowed:
+        return request.host_url
+    host = request.host
+    norm_host = _normalize_host(host)
+    norm_allowed = {_normalize_host(a) for a in allowed}
+    if norm_host not in norm_allowed:
+        abort(400)
+    return request.host_url
+
 def show_qrcode(short_url):
     short = short_url.split("_____")[0]
     logo = short_url.split("_____")[1] if len(short_url.split("_____"))>1 else None
-    returnimage = gen_qrcode(args={"qrdata":request.host_url+"t/"+short,"logo":os.path.join('image',logo) if logo and logo != "" else None})
+    base_url = _host_validated_base_url()
+    returnimage = gen_qrcode(args={"qrdata":base_url+"t/"+short,"logo":os.path.join('image',logo) if logo and logo != "" else None})
     shortcut_read(short_url=short_url.split("_____")[0])
     return Response(returnimage, mimetype="image/png")
     # return returnimage
@@ -719,10 +745,11 @@ def show_long_qrcode():
 def show_all_logos():
     password = get_url_params('password')
     if password == admin.admin_password:#只有正确的密码才能触发动作
+        base_url = _host_validated_base_url()
         logo_list = {'logo_list':[]}
         for maindir, subdir, file_name_list in os.walk('./image'):
             for file in file_name_list:
-                logo_list['logo_list'].append({'file_name':file,'image_url':request.host_url+'image/'+file})
+                logo_list['logo_list'].append({'file_name':file,'image_url':base_url+'image/'+file})
         return jsonify(logo_list)
 
 
