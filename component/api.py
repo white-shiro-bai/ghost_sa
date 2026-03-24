@@ -21,7 +21,7 @@ if admin.use_kafka is True:
 import re
 from trigger import trigger
 from component.pic_tools import gen_qrcode,gen_text_img
-from component.url_tools import get_url_params,get_req_info,sa_decode,force_to_bool
+from component.url_tools import get_url_params,get_req_info,sa_decode,force_to_bool,is_host_allowed
 import hashlib
 from component.batch_send import batch_cache
 
@@ -255,8 +255,14 @@ def get_long(short_url):
         return '您查询的解析不存在'
 
 def shortit():
-    if get_url_params(params='org_url') :
-        org_url = get_url_params(params='org_url').strip()
+    org_url = get_url_params(params='org_url').strip()
+    if not org_url:
+        returnjson = {'result':'error','error':'参数不全'}
+        return jsonify(returnjson)
+    if not is_host_allowed(org_url):
+        returnjson = {'result':'error','error':'不允许创建白名单以外站点的短链接'}
+        return jsonify(returnjson)
+    if org_url :
         expired_at = int(time.mktime(time.strptime(get_url_params('expired_at','2038-01-19'), "%Y-%m-%d")))
         if expired_at <= int(time.time()):
             returnjson = {'result':'error','error':'不允许创建过期时间早于当前时间的短链接'}
@@ -297,9 +303,6 @@ def shortit():
             urllist,urlstatus = check_long_url(long_url=longurl)
             returnjson = {'result':'created_success','urllist':urllist}
             return jsonify(returnjson)
-    else:
-        returnjson = {'result':'error','error':'参数不全'}
-        return jsonify(returnjson)
 
 def show_short_cut_list():
     page = int(request.args.get('page')) if 'page' in request.args else 1
@@ -700,56 +703,32 @@ def shortcut_read(short_url):
         returnimage = f.read()
     return Response(returnimage, mimetype="image/gif")
 
-def _normalize_host(host):
-    """Lowercase and strip default port (:80, :443) for whitelist comparison."""
-    if not host:
-        return host
-    h = host.strip().lower()
-    if h.endswith('.'):
-        h = h[:-1]
-    if h.endswith(':80'):
-        return h[:-3]
-    if h.endswith(':443'):
-        return h[:-4]
-    return h
-
-def _host_validated_base_url():
-    """Validate authority (request.host), not host_url. Return request.host_url if allowed; else abort 400."""
-    allowed = getattr(admin, 'ALLOWED_HOSTS', None) or []
-    if not allowed:
-        return request.host_url
-    host = request.host
-    norm_host = _normalize_host(host)
-    norm_allowed = {_normalize_host(a) for a in allowed}
-    if norm_host not in norm_allowed:
-        abort(400)
-    return request.host_url
 
 def show_qrcode(short_url):
     short = short_url.split("_____")[0]
     logo = short_url.split("_____")[1] if len(short_url.split("_____"))>1 else None
-    base_url = _host_validated_base_url()
-    returnimage = gen_qrcode(args={"qrdata":base_url+"t/"+short,"logo":os.path.join('image',logo) if logo and logo != "" else None})
+    returnimage = gen_qrcode(args={"qrdata":request.host_url+"t/"+short,"logo":os.path.join('image',logo) if logo and logo != "" else None})
     shortcut_read(short_url=short_url.split("_____")[0])
     return Response(returnimage, mimetype="image/png")
-    # return returnimage
+
 
 def show_long_qrcode():
     long_url = request.url.split('/qrcode?url=')[1]
-    logo = long_url.split("_____")[1] if len(urllib.parse.unquote(long_url).split("_____"))>1 else None
-    returnimage = gen_qrcode(args={"qrdata":urllib.parse.unquote(long_url).split("_____")[0],"logo":os.path.join('image',logo) if logo and logo != "" else None})
-    shortcut_read(short_url=urllib.parse.unquote(long_url).split("_____")[0].split("_____")[0][0:200])
-    return Response(returnimage, mimetype="image/png")
+    if is_host_allowed(long_url):
+        logo = long_url.split("_____")[1] if len(urllib.parse.unquote(long_url).split("_____"))>1 else None
+        returnimage = gen_qrcode(args={"qrdata":urllib.parse.unquote(long_url).split("_____")[0],"logo":os.path.join('image',logo) if logo and logo != "" else None})
+        shortcut_read(short_url=urllib.parse.unquote(long_url).split("_____")[0].split("_____")[0][0:200])
+        return Response(returnimage, mimetype="image/png")
+    return abort(404)
 
 
 def show_all_logos():
     password = get_url_params('password')
     if password == admin.admin_password:#只有正确的密码才能触发动作
-        base_url = _host_validated_base_url()
         logo_list = {'logo_list':[]}
         for maindir, subdir, file_name_list in os.walk('./image'):
             for file in file_name_list:
-                logo_list['logo_list'].append({'file_name':file,'image_url':base_url+'image/'+file})
+                logo_list['logo_list'].append({'file_name':file,'image_url':request.host_url+'image/'+file})
         return jsonify(logo_list)
 
 

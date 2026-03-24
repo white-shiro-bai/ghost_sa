@@ -15,6 +15,8 @@ https://github.com/toddlerya/ 提供了62进制编码的算法实现。
 
 https://github.com/shenhongbin7854 提供了异常emoji的测试案例和解决办法。
 
+https://github.com/LeaveerWang 提供QRCODE生成的域名校验可选性验证
+
 # 介绍：
 
 ghost_sa(鬼策)可以理解为不带前端界面的神策服务端。
@@ -119,7 +121,7 @@ SDK的使用方法，可以直接查看神策官方文档 https://www.sensorsdat
 
 2.不支持神策的新版本可视化全埋点功能，所以请使用较新SDK的用户，根据神策文档 https://manual.sensorsdata.cn/sa/latest/enable_visualized_autotrack-7548675.html?utm_source=github&utm_campaign=ghost_sa 关闭 可视化全埋点功能，减少报错。
 
-3. **Host whitelist (ALLOWED_HOSTS)**：Configure `ALLOWED_HOSTS` in `configs/admin.py` for Host header validation / canonical host enforcement; empty list = no check (backward compatible). When non-empty, only whitelisted hosts are used for QR and logo URLs. Invalid Host returns 400.
+
 
 # 更多文档：
 

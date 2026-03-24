@@ -13,6 +13,8 @@ from configs.export import write_to_log
 from geoip.geo import get_addr,get_asn
 from configs import admin
 from component.public_func import key_counter
+from urllib.parse import urlparse
+import ipaddress
 import urllib
 import base64
 import json
@@ -173,7 +175,82 @@ def is62hex(text):
             return 0,i
     return 1,None
 
+def normalize_host(host):
+    #"""
+    #Normalize host for whitelist comparison:
+    #- lowercase
+    #- strip surrounding spaces
+    #- remove trailing dot
+    #- remove port (standard or non-standard)
+    #- support IPv4 / IPv6 / domain
+    #Thanks https://github.com/LeaveerWang provide code. 
+    #"""
+    if not host:
+        return host
+
+    h = host.strip().lower()
+
+    # 兼容无 netloc 的情况
+    if "://" in h:
+        parsed = urlparse(h)
+        h = parsed.netloc or parsed.path  
+
+    # 去掉末尾的点（FQDN）
+    if h.endswith('.'):
+        h = h[:-1]
+
+    # 处理 IPv6 (带 [] 的情况) 
+    if h.startswith('['):
+        # 格式: [IPv6]:port 或 [IPv6]
+        end = h.find(']')
+        if end != -1:
+            ipv6 = h[1:end]
+            return ipv6  # 去掉端口和 []
+        return h  # malformed fallback
+
+    # 尝试解析为纯 IPv6（无端口）
+    try:
+        ip = ipaddress.ip_address(h)
+        return str(ip)
+    except ValueError:
+        pass
+
+    # 处理 host:port
+    if ':' in h:
+        # 只按最后一个 : 切（避免误伤 IPv6-like 字符串）
+        host_part, port_part = h.rsplit(':', 1)
+        # 如果 port 是数字，认为是端口
+        if port_part.isdigit():
+            return host_part
+
+    return h
+
+def _is_subdomain(host, domain):
+    return host == domain or host.endswith("." + domain)
+
+
+def is_host_allowed(host, whitelist=admin.qrcode_allow_hosts, allow_subdomains=admin.qrcode_allow_subdomains):
+    #whitelist 示例：["example.com", "api.service.io", "192.168.1.1","2409::1"]
+    norm = normalize_host(host)
+    if not whitelist or whitelist == [''] or whitelist == ['*']:
+        return True
+    if not norm:
+        return False
+    for allowed in whitelist:
+        allowed = allowed.lower()
+        if norm == allowed:
+            return True
+        elif allow_subdomains:
+            if _is_subdomain(norm, allowed):
+                return True
+    return False
+
+
 if __name__ == '__main__':
     test_is62hex = ['4325','f3442','CD3432f','234_8342','dfsad-32','23F*B',4321543]
     for i in test_is62hex:
         print(i, is62hex(i))
+
+    print(normalize_host('FE80::3'))
+    print(normalize_host('[FE80::3]:93'))
+    print(is_host_allowed('example.com'))
