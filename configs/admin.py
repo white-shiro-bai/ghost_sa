@@ -79,7 +79,15 @@ admin_password = 'admin' #普通查询密码
 admin_override_code = 'override' #越权密码
 admin_do_not_track_code = 'dntmode' #cdn模式不参与记录密码
 
-
+# QRCODE Host header validation (HNP mitigation). 
+# Already created short URLs are not affected.
+# When non-empty, Create QR code only accept these hosts. 
+# Affected endpoints: /shortit /qrcode
+# accept list example: ['yourdomain.com', 'yourdomain.com:8000','X.X.X.X:8000','x.x.x.x','aaaa:bbbb::cccc','[aaaa:bbbb::cccc]:8000']
+# when qrcode_allow_subdomains is True, qrcode_allow_hosts accept subdomains, example: ['yourdomain.com'] will accept ['subdomain.yourdomain.com']
+# This function is promote by https://github.com/LeaveerWang  via https://github.com/white-shiro-bai/ghost_sa/issues/56 Thanks a lot.
+qrcode_allow_hosts = []
+qrcode_allow_subdomains = True
 
 #IP地址转化
 #IP_Address dictionary
