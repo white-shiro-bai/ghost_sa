@@ -3,7 +3,7 @@
 # wechat: Ben_Xiaobai
 import sys
 sys.path.append("./")
-from flask import request,jsonify,Response,redirect
+from flask import request, jsonify, Response, redirect, abort
 import traceback
 import time
 import urllib.parse
@@ -21,7 +21,7 @@ if admin.use_kafka is True:
 import re
 from trigger import trigger
 from component.pic_tools import gen_qrcode,gen_text_img
-from component.url_tools import get_url_params,get_req_info,sa_decode,force_to_bool
+from component.url_tools import get_url_params,get_req_info,sa_decode,force_to_bool,is_host_allowed
 import hashlib
 from component.batch_send import batch_cache
 
@@ -255,8 +255,14 @@ def get_long(short_url):
         return '您查询的解析不存在'
 
 def shortit():
-    if get_url_params(params='org_url') :
-        org_url = get_url_params(params='org_url').strip()
+    org_url = get_url_params(params='org_url').strip()
+    if not org_url:
+        returnjson = {'result':'error','error':'参数不全'}
+        return jsonify(returnjson)
+    if not is_host_allowed(org_url):
+        returnjson = {'result':'error','error':'不允许创建白名单以外站点的短链接'}
+        return jsonify(returnjson)
+    if org_url :
         expired_at = int(time.mktime(time.strptime(get_url_params('expired_at','2038-01-19'), "%Y-%m-%d")))
         if expired_at <= int(time.time()):
             returnjson = {'result':'error','error':'不允许创建过期时间早于当前时间的短链接'}
@@ -297,9 +303,6 @@ def shortit():
             urllist,urlstatus = check_long_url(long_url=longurl)
             returnjson = {'result':'created_success','urllist':urllist}
             return jsonify(returnjson)
-    else:
-        returnjson = {'result':'error','error':'参数不全'}
-        return jsonify(returnjson)
 
 def show_short_cut_list():
     page = int(request.args.get('page')) if 'page' in request.args else 1
@@ -700,20 +703,23 @@ def shortcut_read(short_url):
         returnimage = f.read()
     return Response(returnimage, mimetype="image/gif")
 
+
 def show_qrcode(short_url):
     short = short_url.split("_____")[0]
     logo = short_url.split("_____")[1] if len(short_url.split("_____"))>1 else None
     returnimage = gen_qrcode(args={"qrdata":request.host_url+"t/"+short,"logo":os.path.join('image',logo) if logo and logo != "" else None})
     shortcut_read(short_url=short_url.split("_____")[0])
     return Response(returnimage, mimetype="image/png")
-    # return returnimage
+
 
 def show_long_qrcode():
     long_url = request.url.split('/qrcode?url=')[1]
-    logo = long_url.split("_____")[1] if len(urllib.parse.unquote(long_url).split("_____"))>1 else None
-    returnimage = gen_qrcode(args={"qrdata":urllib.parse.unquote(long_url).split("_____")[0],"logo":os.path.join('image',logo) if logo and logo != "" else None})
-    shortcut_read(short_url=urllib.parse.unquote(long_url).split("_____")[0].split("_____")[0][0:200])
-    return Response(returnimage, mimetype="image/png")
+    if is_host_allowed(long_url):
+        logo = long_url.split("_____")[1] if len(urllib.parse.unquote(long_url).split("_____"))>1 else None
+        returnimage = gen_qrcode(args={"qrdata":urllib.parse.unquote(long_url).split("_____")[0],"logo":os.path.join('image',logo) if logo and logo != "" else None})
+        shortcut_read(short_url=urllib.parse.unquote(long_url).split("_____")[0].split("_____")[0][0:200])
+        return Response(returnimage, mimetype="image/png")
+    return abort(404)
 
 
 def show_all_logos():
